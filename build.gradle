@@ -1,0 +1,124 @@
+import org.apache.tools.ant.Project
+
+plugins {
+  id 'java-gradle-plugin'
+  id 'maven-publish'
+  id 'net.researchgate.release' version '2.6.0'
+}
+
+apply plugin: 'maven'
+
+gradlePlugin {
+  plugins {
+    simplePlugin {
+      id = 'org.sonatype.gradle.plugins.scan'
+      implementationClass = 'org.sonatype.gradle.plugins.scan.ScanPlugin'
+    }
+  }
+}
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+jar {
+  manifest {
+    attributes(
+      'Build-Timestamp' : new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
+      'Build-Revision'  : project.version,
+      'Built-By'        : 'Sonatype',
+      'Created-By'      : "Gradle ${gradle.gradleVersion}",
+      'Build-Jdk'       : "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
+    )
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  localGroovy()
+  gradleApi()
+
+  implementation "com.sonatype.nexus:nexus-platform-api:$nexusJavaApiVersion:internal"
+
+  testCompile gradleTestKit()
+  testCompile "junit:junit:$junitVersion"
+  testCompile "org.assertj:assertj-core:$assertJVersion"
+  testCompile "commons-io:commons-io:$commonsIoVersion"
+  testCompile "org.powermock:powermock-module-junit4:$powermockVersion"
+  testCompile "org.powermock:powermock-api-mockito2:$powermockVersion"
+  
+}
+
+sourceSets {
+  integrationTest {
+    java.srcDir file('src/integTest/java')
+    resources.srcDir file('src/integTest/resources')
+    compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+    runtimeClasspath += output + compileClasspath
+  }
+}
+
+processResources {
+  filesMatching('com/sonatype/insight/client.properties') {
+      expand(project.properties)
+  }
+}
+
+task integrationTest(type: Test) {
+  description = 'Runs the integration tests.'
+  group = 'verification'
+  testClassesDirs = sourceSets.integrationTest.output.classesDirs
+  classpath = sourceSets.integrationTest.runtimeClasspath
+  mustRunAfter test
+}
+
+check.dependsOn integrationTest
+
+release {
+  failOnCommitNeeded = false
+  failOnPublishNeeded = false
+  failOnSnapshotDependencies = false
+  failOnUnversionedFiles = false
+  failOnUpdateNeeded = false
+  git {
+    requireBranch = ''
+  }
+}
+
+// configure deployment for releases and snapshots if configuration is present
+if (project.hasProperty('deployment')) {
+  publishing {
+    repositories {
+      maven {
+        def releasesRepoUrl = deployment.release.url
+        def snapshotsRepoUrl = deployment.snapshot.url
+        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        credentials {
+          username = version.endsWith('SNAPSHOT') ? deployment.snapshot.username : deployment.release.username
+          password = version.endsWith('SNAPSHOT') ? deployment.snapshot.password : deployment.release.password
+        }
+      }
+    }
+    publications {
+      main(MavenPublication) {
+        from components.java
+
+        pom {
+          artifactId = project.name
+          licenses {
+            license {
+              name = 'Sonatype Proprietary'
+              url = 'http://links.sonatype.com/products/corp/pom/eula'
+            }
+          }
+        }
+      }
+    }
+  }
+
+  afterReleaseBuild.dependsOn publishMainPublicationToMavenRepository
+}
