@@ -1,0 +1,7 @@
+orbs:
+  gradle: bizzabo/gradle@1.1.0
+version: 2.1
+workflows:
+  checkout_build_project:
+    jobs:
+      - gradle/checkout_build_test

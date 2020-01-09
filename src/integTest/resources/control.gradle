@@ -1,0 +1,19 @@
+plugins {
+  id 'java-library'
+  id 'org.sonatype.gradle.plugins.scan'
+}
+
+repositories {
+  mavenCentral()
+}
+dependencies {
+  implementation 'commons-collections:commons-collections:3.1'
+}
+
+nexusIQScan {
+  serverUrl = 'http://localhost:8081'
+  username = 'admin'
+  password = 'admin123'
+  applicationId = 'testing-gradle-plugin'
+  simulationEnabled = true
+}
