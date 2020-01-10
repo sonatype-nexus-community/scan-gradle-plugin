@@ -3,6 +3,7 @@ import org.apache.tools.ant.Project
 plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
+  id 'signing'
   id 'net.researchgate.release' version '2.6.0'
 }
 
@@ -10,7 +11,7 @@ apply plugin: 'maven'
 
 gradlePlugin {
   plugins {
-    simplePlugin {
+    scan {
       id = 'org.sonatype.gradle.plugins.scan'
       implementationClass = 'org.sonatype.gradle.plugins.scan.ScanPlugin'
     }
@@ -32,6 +33,22 @@ jar {
       'Build-Jdk'       : "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
     )
   }
+}
+
+task sourceJar(type: Jar) {
+  classifier "sources"
+  from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier "javadoc"
+  from javadoc.destinationDir
+}
+
+artifacts {
+  archives jar
+  archives sourceJar
+  archives javadocJar
 }
 
 repositories {
@@ -68,26 +85,20 @@ processResources {
   }
 }
 
+test {
+  maxHeapSize = '512m'
+}
+
 task integrationTest(type: Test) {
   description = 'Runs the integration tests.'
   group = 'verification'
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
+  maxHeapSize = '512m'
   mustRunAfter test
 }
 
 check.dependsOn integrationTest
-
-release {
-  failOnCommitNeeded = false
-  failOnPublishNeeded = false
-  failOnSnapshotDependencies = false
-  failOnUnversionedFiles = false
-  failOnUpdateNeeded = false
-  git {
-    requireBranch = ''
-  }
-}
 
 // configure deployment for releases and snapshots if configuration is present
 if (project.hasProperty('deployment')) {
@@ -103,22 +114,62 @@ if (project.hasProperty('deployment')) {
         }
       }
     }
-    publications {
-      main(MavenPublication) {
-        from components.java
-
-        pom {
-          artifactId = project.name
-          licenses {
-            license {
-              name = 'Sonatype Proprietary'
-              url = 'http://links.sonatype.com/products/corp/pom/eula'
+    
+    afterEvaluate {
+      publications {
+        withType(MavenPublication) {
+          pom {
+            name = project.name
+            description = 'Scan, evaluate and audit Gradle projects using Sonatype platforms'
+            url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
+            organization {
+              name = 'Sonatype'
+              url = 'https://www.sonatype.org'
+            }
+            issueManagement {
+              system = 'GitHub'
+              url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin/issues'
+            }
+            licenses {
+              license {
+                name = 'The Apache Software License, Version 2.0'
+                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution = 'repo'
+              }
+            }
+            scm {
+              connection = 'scm:git:git://github.com/sonatype-nexus-community/scan-gradle-plugin.git'
+              developerConnection = 'scm:git:ssh://git@github.com:sonatype-nexus-community/scan-gradle-plugin.git'
+              url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
+            }
+            developers {
+              developer {
+                name = 'Guillermo Varela'
+              }
+              developer {
+                name = 'Usman Shaikh'
+              }
             }
           }
+  
+          artifactId = project.name
+  
+          artifact(sourceJar) {
+            classifier = 'sources'
+          }
+  
+          artifact(javadocJar) {
+            classifier = 'javadoc'
+          }
         }
+      }
+
+      signing {
+        sign publishing.publications.pluginMaven
+        sign publishing.publications.scanPluginMarkerMaven
       }
     }
   }
 
-  afterReleaseBuild.dependsOn publishMainPublicationToMavenRepository
+  afterReleaseBuild.dependsOn publish
 }

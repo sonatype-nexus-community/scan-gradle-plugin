@@ -1,7 +1,13 @@
-orbs:
-  gradle: bizzabo/gradle@1.1.0
 version: 2.1
+orbs:
+  gradle: circleci/gradle@1.0.11
+executors:
+  openjdk-8-executor:
+    docker:
+      - image: 'circleci/openjdk:8'
 workflows:
-  checkout_build_project:
+  checkout-run_task:
     jobs:
-      - gradle/checkout_build_test
+      - gradle/run:
+          executor: openjdk-8-executor
+          command: test --no-daemon --debug --max-workers 2
