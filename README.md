@@ -38,6 +38,7 @@ Gradle can be used to build projects developed in various programming languages.
 - Java
 - Kotlin
 - Scala
+- Groovy
 
 ## How to Use
 - Create/Clone/Download any Gradle project.
@@ -48,7 +49,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.sonatype.gradle.plugins:scan-gradle-plugin:0.2.0'' // Update the version as needed
+        classpath 'org.sonatype.gradle.plugins:scan-gradle-plugin:0.2.0' // Update the version as needed
     }
 }
 
