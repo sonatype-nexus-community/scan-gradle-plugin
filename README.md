@@ -16,6 +16,8 @@
 
 -->
 # Nexus IQ Server Gradle Plugin #
+[![Maven Central](https://img.shields.io/maven-central/v/org.sonatype.gradle.plugins/scan-gradle-plugin.svg?label=Maven%20Central)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.sonatype.gradle.plugins%22%20AND%20a%3A%22scan-gradle-plugin%22)
+
 Gradle plugin that scans the dependencies of a Gradle project using Nexus IQ Server.
 
 ## Compile and Publish to Local Maven Cache
