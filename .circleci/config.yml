@@ -11,3 +11,8 @@ workflows:
       - gradle/run:
           executor: openjdk-8-executor
           command: test --no-daemon --debug --max-workers 2
+  integration-test:
+    jobs:
+      - gradle/run:
+          executor: openjdk-8-executor
+          command: integrationTest
