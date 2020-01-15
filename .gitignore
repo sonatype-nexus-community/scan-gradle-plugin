@@ -7,3 +7,5 @@ target/
 .project
 .idea
 
+# ci config for local ci build
+.circleci/local-config.yml
