@@ -1,5 +1,3 @@
-import org.apache.tools.ant.Project
-
 plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
@@ -100,6 +98,17 @@ task integrationTest(type: Test) {
 
 check.dependsOn integrationTest
 
+ext.deployment = [
+    release: [
+        // for local testing
+        //url: 'http://192.168.1.233:8081/nexus/service/local/staging/deploy/maven2/',
+        url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/',
+    ],
+    snapshot: [
+        url: 'https://oss.sonatype.org/content/repositories/snapshots',
+    ]
+]
+
 // configure deployment for releases and snapshots if configuration is present
 if (project.hasProperty('deployment')) {
   publishing {
@@ -109,8 +118,8 @@ if (project.hasProperty('deployment')) {
         def snapshotsRepoUrl = deployment.snapshot.url
         url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
         credentials {
-          username = version.endsWith('SNAPSHOT') ? deployment.snapshot.username : deployment.release.username
-          password = version.endsWith('SNAPSHOT') ? deployment.snapshot.password : deployment.release.password
+          username = System.getenv('SONATYPE_USERNAME')
+          password = System.getenv('SONATYPE_PASSWORD')
         }
       }
     }
@@ -165,6 +174,11 @@ if (project.hasProperty('deployment')) {
       }
 
       signing {
+        useGpgCmd()
+        allprojects { ext."signing.gnupg.executable" =  System.getenv('GPG_EXECUTABLE') }
+        allprojects { ext."signing.gnupg.keyName" = System.getenv('GPG_KEYNAME') }
+        allprojects { ext."signing.gnupg.passphrase" = System.getenv('GPG_PASSPHRASE') }
+
         sign publishing.publications.pluginMaven
         sign publishing.publications.scanPluginMarkerMaven
       }
