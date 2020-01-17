@@ -27,6 +27,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,6 +62,11 @@ public class ScanPluginIntegrationTest
   @Before
   public void setup() throws IOException {
     buildFile = testProjectDir.newFile("build.gradle");
+  }
+
+  @After
+  public void tearDown() {
+    buildFile = null;
   }
 
   @Test
