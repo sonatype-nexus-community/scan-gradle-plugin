@@ -92,7 +92,7 @@ task integrationTest(type: Test) {
   group = 'verification'
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
-  maxHeapSize = '512m'
+  maxHeapSize = '256m'
   mustRunAfter test
 }
 
