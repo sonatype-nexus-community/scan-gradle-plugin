@@ -5,14 +5,71 @@ executors:
   openjdk-8-executor:
     docker:
       - image: 'circleci/openjdk:8'
+
+commands:
+  configure-gpg:
+    steps:
+      - run:
+          name: Configure GPG private key for signing project artifacts in OSS Sonatype
+          command: |
+            echo $SECRING_GPG_ASC_BASE64 | base64 --decode | gpg --batch --no-tty --import --yes
+
+  configure-git:
+    steps:
+      - run:
+          name: Configure GIT with user info for pushing
+          command: |
+            git config user.name "$GITHUB_USERNAME"
+            git config user.email "$GITHUB_EMAIL"
+
+  gradle-release:
+    steps:
+      - run:
+          command: |
+            ./gradlew clean release -Dorg.gradle.daemon=false
+
+jobs:
+  do-release:
+    executor: openjdk-8-executor
+    parameters:
+      ssh-fingerprints:
+        type: string
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - <<parameters.ssh-fingerprints>>
+      - checkout
+      - configure-gpg
+      - configure-git
+      - gradle-release
+
 workflows:
   checkout-run_task:
     jobs:
-      - gradle/run:
+      - gradle/test:
           executor: openjdk-8-executor
-          command: test --no-daemon --debug --max-workers 2
+          test_results_path: build/test-results
+          reports_path: build/reports
+          test_command: test --no-daemon --debug --max-workers 2
   integration-test:
     jobs:
-      - gradle/run:
+      - gradle/test:
           executor: openjdk-8-executor
-          command: integrationTest
+          test_results_path: build/test-results
+          reports_path: build/reports
+          test_command: integrationTest --fail-fast --no-daemon -Dorg.gradle.daemon=false  --info
+  release:
+    jobs:
+      - approve-release:
+          type: approval
+          filters:
+            branches:
+              only: master
+      - do-release:
+          ssh-fingerprints: "13:f3:b7:44:ef:87:83:87:87:f9:ae:b7:5f:7f:51:33"
+          context: rso-base
+          requires:
+            - approve-release
+          filters:
+            branches:
+              only: master
