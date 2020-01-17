@@ -48,14 +48,14 @@ workflows:
     jobs:
       - gradle/test:
           executor: openjdk-8-executor
-          test_results_path: build
+          test_results_path: build/test-results
           reports_path: build/reports
           test_command: test --no-daemon --debug --max-workers 2
   integration-test:
     jobs:
       - gradle/test:
           executor: openjdk-8-executor
-          test_results_path: build
+          test_results_path: build/test-results
           reports_path: build/reports
           test_command: integrationTest --fail-fast --no-daemon -Dorg.gradle.daemon=false
   release:
