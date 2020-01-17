@@ -92,8 +92,10 @@ task integrationTest(type: Test) {
   group = 'verification'
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
-  maxHeapSize = '256m'
+  maxHeapSize = '1024m'
   mustRunAfter test
+  println "GRADLE_OPTS: " + System.getenv('GRADLE_OPTS')
+  println "_JAVA_OPTIONS: " + System.getenv('_JAVA_OPTIONS')
 }
 
 check.dependsOn integrationTest
