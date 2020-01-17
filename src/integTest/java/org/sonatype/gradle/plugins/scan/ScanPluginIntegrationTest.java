@@ -88,7 +88,7 @@ public class ScanPluginIntegrationTest
   public void testScanTask_NoPolicyAction_NexusIQ() throws IOException {
     writeFile(buildFile, "control.gradle");
 
-    BuildResult result = GradleRunner.create()
+    final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
         .withProjectDir(testProjectDir.getRoot())
         .withPluginClasspath()
@@ -103,7 +103,7 @@ public class ScanPluginIntegrationTest
   public void testScanTask_WarnPolicyAction_NexusIQ() throws IOException {
     writeFile(buildFile, "policy-warn.gradle");
 
-    BuildResult result = GradleRunner.create()
+    final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
         .withProjectDir(testProjectDir.getRoot())
         .withPluginClasspath()
@@ -118,7 +118,7 @@ public class ScanPluginIntegrationTest
   public void testScanTask_FailPolicyAction_NexusIQ() throws IOException {
     writeFile(buildFile, "policy-fail.gradle");
 
-    BuildResult result = GradleRunner.create()
+    final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
         .withProjectDir(testProjectDir.getRoot())
         .withPluginClasspath()
@@ -137,9 +137,10 @@ public class ScanPluginIntegrationTest
   }
 
   private void assertBuildOutputText_NexusIQ(BuildResult result, String policyAction) {
-    assertThat(result.getOutput()).contains("Policy Action: " + policyAction);
-    assertThat(result.getOutput()).contains("Number of components affected: 0 critical, 0 severe, 0 moderate");
-    assertThat(result.getOutput()).contains("Number of grandfathered policy violations: 0");
-    assertThat(result.getOutput()).contains("The detailed report can be viewed online at simulated/report");
+    final String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains("Policy Action: " + policyAction);
+    assertThat(resultOutput).contains("Number of components affected: 0 critical, 0 severe, 0 moderate");
+    assertThat(resultOutput).contains("Number of grandfathered policy violations: 0");
+    assertThat(resultOutput).contains("The detailed report can be viewed online at simulated/report");
   }
 }
