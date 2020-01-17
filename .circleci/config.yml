@@ -57,7 +57,7 @@ workflows:
           executor: openjdk-8-executor
           test_results_path: build/test-results
           reports_path: build/reports
-          test_command: integrationTest --fail-fast --no-daemon --info
+          test_command: integrationTest --fail-fast --no-daemon -Dorg.gradle.daemon=false  --info
   release:
     jobs:
       - approve-release:
