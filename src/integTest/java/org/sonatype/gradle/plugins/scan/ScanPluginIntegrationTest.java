@@ -129,17 +129,10 @@ public class ScanPluginIntegrationTest
   }
 
   private void writeFile(File destination, String resourceName) throws IOException {
-    InputStream contentStream = getClass().getClassLoader().getResourceAsStream(resourceName);
-
-    BufferedWriter output = null;
-    try {
-      output = new BufferedWriter(new FileWriter(destination));
+    try (InputStream contentStream = getClass().getClassLoader().getResourceAsStream(resourceName);
+        BufferedWriter output = new BufferedWriter(new FileWriter(destination))) {
+      assert contentStream != null;
       IOUtils.copy(contentStream, output, StandardCharsets.UTF_8);
-    }
-    finally {
-      if (output != null) {
-        output.close();
-      }
     }
   }
 
