@@ -26,7 +26,7 @@ commands:
     steps:
       - run:
           command: |
-            ./gradlew clean release -Dorg.gradle.daemon=false --info
+            ./gradlew clean release -Dorg.gradle.daemon=false --info -x integrationTest
 
 jobs:
   do-release:
