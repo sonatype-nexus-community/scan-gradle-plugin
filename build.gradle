@@ -177,13 +177,18 @@ if (project.hasProperty('deployment')) {
         allprojects {
 //          def final encodedKey = System.getenv('SECRING_GPG_ASC_BASE64')
 //          def final signingKey = new String(encodedKey.decodeBase64())
-          def props = new Properties()
-          file("./key.properties").withInputStream { props.load(it) }
-          def final signingKey = props.getProperty("GPG_SIGNING_KEY")
-          useInMemoryPgpKeys(
-              signingKey,
-              System.getenv('GPG_PASSPHRASE')
-          )
+          // @todo Cleanup conditional logic to avoid errors when not publishing
+          def propsFile = file("/tmp/key.properties")
+          if (propsFile.exists()) {
+            def props = new Properties()
+            propsFile.withInputStream { props.load(it) }
+            def final signingKey = props.getProperty("GPG_SIGNING_KEY")
+            useInMemoryPgpKeys(
+                signingKey,
+                System.getenv('GPG_PASSPHRASE')
+            )
+            propsFile.delete()
+          }
         }
 
         sign publishing.publications.pluginMaven
