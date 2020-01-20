@@ -181,8 +181,8 @@ if (project.hasProperty('deployment')) {
           ext."signing.gnupg.passphrase" = System.getenv('GPG_PASSPHRASE')
 
           // try getting release plugin gpg happy
-//          ext."signing.keyId"=System.getenv('GPG_KEYNAME')
-//          ext."signing.password"=System.getenv('GPG_PASSPHRASE')
+          ext."signing.keyId"=System.getenv('GPG_KEYNAME')
+          ext."signing.password"=System.getenv('GPG_PASSPHRASE')
 //          ext."signing.secretKeyRingFile"='/home/circleci/.gnupg/trustdb.gpg'
 
           useInMemoryPgpKeys(System.getenv('ENV_GPG_KEY'), System.getenv('GPG_PASSPHRASE'))
