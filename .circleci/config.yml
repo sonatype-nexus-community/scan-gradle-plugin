@@ -7,13 +7,6 @@ executors:
       - image: 'circleci/openjdk:8'
 
 commands:
-  configure-gpg:
-    steps:
-      - run:
-          name: Configure GPG private key for signing project artifacts in OSS Sonatype
-          command: |
-            echo $SECRING_GPG_ASC_BASE64 | base64 --decode | gpg --batch --no-tty --import --yes
-
   configure-git:
     steps:
       - run:
@@ -26,7 +19,6 @@ commands:
     steps:
       - run:
           command: |
-            ENV_GPG_KEY=$(echo $SECRING_GPG_ASC_BASE64 | base64 --decode | awk 1 ORS='')
             ./gradlew clean release -Dorg.gradle.daemon=false --info -x integrationTest
 
 jobs:
@@ -40,7 +32,6 @@ jobs:
           fingerprints:
             - <<parameters.ssh-fingerprints>>
       - checkout
-      - configure-gpg
       - configure-git
       - gradle-release
 
