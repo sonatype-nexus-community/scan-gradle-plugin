@@ -175,8 +175,10 @@ if (project.hasProperty('deployment')) {
 
       signing {
         allprojects {
+          def final encodedKey = System.getenv('SECRING_GPG_ASC_BASE64')
+          def final signingKey = new String(encodedKey.decodeBase64())
           useInMemoryPgpKeys(
-              new String(System.getenv('SECRING_GPG_ASC_BASE64').decodeBase64()),
+              signingKey,
               System.getenv('GPG_PASSPHRASE')
           )
         }
