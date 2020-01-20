@@ -181,9 +181,9 @@ if (project.hasProperty('deployment')) {
           ext."signing.gnupg.passphrase" = System.getenv('GPG_PASSPHRASE')
 
           // try getting release plugin gpg happy
-          ext."signing.keyId"=System.getenv('GPG_KEYNAME')
-          ext."signing.password"=System.getenv('GPG_PASSPHRASE')
-          ext."signing.secretKeyRingFile"='/home/circleci/.gnupg/trustdb.gpg'
+          signing.keyId=System.getenv('GPG_KEYNAME')
+          signing.password=System.getenv('GPG_PASSPHRASE')
+          signing.secretKeyRingFile='/home/circleci/.gnupg/trustdb.gpg'
         }
 
         sign publishing.publications.pluginMaven
