@@ -19,8 +19,7 @@ commands:
     steps:
       - run:
           command: |
-            echo $SECRING_GPG_ASC_BASE64 | base64 --decode | awk 'NR == 1 { print "GPG_SIGNING_KEY=" } 1' ORS='\\n' >> ./key.properties
-            ls -alh ./key.properties
+            echo $SECRING_GPG_ASC_BASE64 | base64 --decode | awk 'NR == 1 { print "GPG_SIGNING_KEY=" } 1' ORS='\\n' >> /tmp/key.properties
             ./gradlew clean release -Dorg.gradle.daemon=false --info -x integrationTest
 
 jobs:
