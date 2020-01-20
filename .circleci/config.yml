@@ -26,6 +26,7 @@ commands:
     steps:
       - run:
           command: |
+            ENV_GPG_KEY=$(echo $SECRING_GPG_ASC_BASE64 | base64 --decode | awk 1 ORS='')
             ./gradlew clean release -Dorg.gradle.daemon=false --info -x integrationTest
 
 jobs:

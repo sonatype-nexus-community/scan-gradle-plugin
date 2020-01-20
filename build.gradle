@@ -185,7 +185,7 @@ if (project.hasProperty('deployment')) {
 //          ext."signing.password"=System.getenv('GPG_PASSPHRASE')
 //          ext."signing.secretKeyRingFile"='/home/circleci/.gnupg/trustdb.gpg'
 
-          useInMemoryPgpKeys(System.getenv('SECRING_GPG_ASC_BASE64'), System.getenv('GPG_PASSPHRASE'))
+          useInMemoryPgpKeys(System.getenv('ENV_GPG_KEY'), System.getenv('GPG_PASSPHRASE'))
         }
 
         sign publishing.publications.pluginMaven
