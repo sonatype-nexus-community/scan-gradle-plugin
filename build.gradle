@@ -174,8 +174,8 @@ if (project.hasProperty('deployment')) {
       }
 
       signing {
-        useGpgCmd()
         allprojects {
+          useGpgCmd()
           ext."signing.gnupg.executable" = System.getenv('GPG_EXECUTABLE')
           ext."signing.gnupg.keyName" = System.getenv('GPG_KEYNAME')
           ext."signing.gnupg.passphrase" = System.getenv('GPG_PASSPHRASE')
