@@ -21,13 +21,6 @@ commands:
           command: |
             ./gradlew clean release -Dorg.gradle.daemon=false --info -x integrationTest
 
-  check-env:
-    steps:
-      - run:
-          command: |
-            ./gradlew publishToMavenLocal -Dorg.gradle.daemon=false --info -x integrationTest
-
-
 jobs:
   do-release:
     executor: openjdk-8-executor
