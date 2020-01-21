@@ -104,6 +104,9 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
   publishing {
     afterEvaluate {
       nexusStaging {
+        // for local testing
+        serverUrl ='http://192.168.1.233:8081/nexus/service/local/staging/deploy/maven2/'
+
         username = System.getenv('SONATYPE_USERNAME')
         password = System.getenv('SONATYPE_PASSWORD')
       }
