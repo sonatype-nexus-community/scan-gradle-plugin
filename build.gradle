@@ -127,6 +127,15 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
         password = System.getenv('SONATYPE_PASSWORD')
       }
 
+      nexusPublishing {
+        repositories {
+          sonatype {
+            username = System.getenv('SONATYPE_USERNAME')
+            password = System.getenv('SONATYPE_PASSWORD')
+          }
+        }
+      }
+
       publications {
         withType(MavenPublication) {
           pom {
