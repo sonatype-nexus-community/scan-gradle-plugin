@@ -185,6 +185,7 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
 //            def props = new Properties()
 //            propsFile.withInputStream { props.load(it) }
 //            def final signingKey = props.getProperty("GPG_SIGNING_KEY")
+            println 'setup signing with in-memory key'
             useInMemoryPgpKeys(
                 signingKey,
                 System.getenv('GPG_PASSPHRASE')
