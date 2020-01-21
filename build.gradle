@@ -98,25 +98,25 @@ task integrationTest(type: Test) {
 
 check.dependsOn integrationTest
 
-ext.deployment = [
-    release: [
-        // for local testing
-        //url: 'http://192.168.1.233:8081/nexus/service/local/staging/deploy/maven2/',
-        url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/',
-    ],
-    snapshot: [
-        url: 'https://oss.sonatype.org/content/repositories/snapshots',
-    ]
-]
+//ext.deployment = [
+//    release: [
+//        // for local testing
+//        //url: 'http://192.168.1.233:8081/nexus/service/local/staging/deploy/maven2/',
+//        url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/',
+//    ],
+//    snapshot: [
+//        url: 'https://oss.sonatype.org/content/repositories/snapshots',
+//    ]
+//]
 
 // configure deployment if performing release
 if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
   publishing {
     repositories {
       maven {
-        def releasesRepoUrl = deployment.release.url
-        def snapshotsRepoUrl = deployment.snapshot.url
-        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+//        def releasesRepoUrl = deployment.release.url
+//        def snapshotsRepoUrl = deployment.snapshot.url
+//        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
         credentials {
           username = System.getenv('SONATYPE_USERNAME')
           password = System.getenv('SONATYPE_PASSWORD')
@@ -176,22 +176,12 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
       signing {
         def final encodedKey = System.getenv('SECRING_GPG_ASC_BASE64')
         def final signingKey = new String(encodedKey.decodeBase64())
-        println 'encodedKey len: ' + encodedKey.length()
-        println 'key len: ' + signingKey.length()
         allprojects {
-          // @todo Cleanup conditional logic to avoid errors when not publishing
-//          def propsFile = file("/tmp/key.properties")
-//          if (propsFile.exists()) {
-//            def props = new Properties()
-//            propsFile.withInputStream { props.load(it) }
-//            def final signingKey = props.getProperty("GPG_SIGNING_KEY")
-            println 'setup signing with in-memory key'
-            useInMemoryPgpKeys(
-                signingKey,
-                System.getenv('GPG_PASSPHRASE')
-            )
-//            propsFile.delete()
-//          }
+          println 'setup gpg signing with in-memory key'
+          useInMemoryPgpKeys(
+              signingKey,
+              System.getenv('GPG_PASSPHRASE')
+          )
         }
 
         sign publishing.publications.pluginMaven
