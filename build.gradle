@@ -103,9 +103,14 @@ check.dependsOn integrationTest
 if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
   publishing {
     afterEvaluate {
+      release {
+        // avoid infinite CircleCI builds triggered by release commits
+        preCommitText = '[skip ci] '
+      }
+
       nexusStaging {
         // for local testing
-        serverUrl ='http://192.168.1.233:8081/nexus/service/local/staging/deploy/maven2/'
+        //serverUrl ='http://192.168.1.233:8081/nexus/service/local/staging/deploy/maven2/'
 
         username = System.getenv('SONATYPE_USERNAME')
         password = System.getenv('SONATYPE_PASSWORD')
