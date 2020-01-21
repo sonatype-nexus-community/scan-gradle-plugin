@@ -3,6 +3,7 @@ plugins {
   id 'maven-publish'
   id 'signing'
   id 'net.researchgate.release' version '2.6.0'
+  id 'io.codearte.nexus-staging' version '0.21.2'
 }
 
 apply plugin: 'maven'
@@ -98,33 +99,15 @@ task integrationTest(type: Test) {
 
 check.dependsOn integrationTest
 
-//ext.deployment = [
-//    release: [
-//        // for local testing
-//        //url: 'http://192.168.1.233:8081/nexus/service/local/staging/deploy/maven2/',
-//        url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/',
-//    ],
-//    snapshot: [
-//        url: 'https://oss.sonatype.org/content/repositories/snapshots',
-//    ]
-//]
-
 // configure deployment if performing release
 if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
   publishing {
-    repositories {
-      maven {
-//        def releasesRepoUrl = deployment.release.url
-//        def snapshotsRepoUrl = deployment.snapshot.url
-//        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-        credentials {
-          username = System.getenv('SONATYPE_USERNAME')
-          password = System.getenv('SONATYPE_PASSWORD')
-        }
-      }
-    }
-    
     afterEvaluate {
+      nexusStaging {
+        username = System.getenv('SONATYPE_USERNAME')
+        password = System.getenv('SONATYPE_PASSWORD')
+      }
+
       publications {
         withType(MavenPublication) {
           pom {
