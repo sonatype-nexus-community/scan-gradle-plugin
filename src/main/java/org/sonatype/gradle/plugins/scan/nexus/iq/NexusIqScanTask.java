@@ -85,6 +85,7 @@ public class NexusIqScanTask
             .build();
 
         iqClient.validateServerVersion(MINIMAL_SERVER_VERSION_REQUIRED);
+        iqClient.verifyOrCreateApplication(extension.getApplicationId());
 
         ProprietaryConfig proprietaryConfig =
             iqClient.getProprietaryConfigForApplicationEvaluation(extension.getApplicationId());
