@@ -4,7 +4,6 @@ plugins {
   id 'signing'
   id 'net.researchgate.release' version '2.6.0'
   id 'io.codearte.nexus-staging' version '0.21.2'
-  id 'de.marcphilipp.nexus-publish' version '0.4.0'
 }
 
 apply plugin: 'maven'
@@ -202,4 +201,5 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
   }
 
   afterReleaseBuild.dependsOn publish
+  closeAndReleaseRepository.mustRunAfter publish
 }
