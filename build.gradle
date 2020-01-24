@@ -201,5 +201,4 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
   }
 
   afterReleaseBuild.dependsOn publish
-  closeAndReleaseRepository.mustRunAfter release
 }
