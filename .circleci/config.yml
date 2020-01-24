@@ -21,7 +21,32 @@ commands:
           command: |
             ./gradlew clean release -Dorg.gradle.daemon=false --info -x integrationTest
 
+  showstuff:
+    steps:
+      - run:
+          name: Show cache content
+          command: |
+              ls -alh /home/circleci/.gradle/caches
+
 jobs:
+  save-cache-it:
+    executor: openjdk-8-executor
+    steps:
+      - showstuff
+      - save_cache:
+          key: v1-integration-test-cache-{{ checksum "src/integTest/java/org/sonatype/gradle/plugins/scan/ScanPluginIntegrationTest.java" }}
+          paths:
+            - /home/circleci/.gradle/caches
+
+  restore-cache-it:
+    executor: openjdk-8-executor
+    steps:
+      - showstuff
+      - restore_cache:
+          keys:
+            - v1-integration-test-cache-{{ checksum "src/integTest/java/org/sonatype/gradle/plugins/scan/ScanPluginIntegrationTest.java" }}
+      - showstuff
+
   do-release:
     executor: openjdk-8-executor
     parameters:
@@ -43,13 +68,17 @@ workflows:
           test_results_path: build/test-results
           reports_path: build/reports
           test_command: test --no-daemon --debug --max-workers 2
+
   integration-test:
     jobs:
+      - restore-cache-it
       - gradle/test:
           executor: openjdk-8-executor
           test_results_path: build/test-results
           reports_path: build/reports
           test_command: integrationTest --fail-fast --no-daemon -Dorg.gradle.daemon=false  --info
+      - save-cache-it
+
   release:
     jobs:
       - approve-release:
