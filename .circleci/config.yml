@@ -19,7 +19,7 @@ commands:
     steps:
       - run:
           command: |
-            ./gradlew clean release closeAndReleaseRepository -Dorg.gradle.daemon=false --info -x integrationTest
+            ./gradlew clean release closeAndReleaseRepository -Dorg.gradle.daemon=false --debug -x integrationTest
 
 jobs:
   do-release:
