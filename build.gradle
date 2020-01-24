@@ -3,6 +3,7 @@ plugins {
   id 'maven-publish'
   id 'signing'
   id 'net.researchgate.release' version '2.6.0'
+  id 'io.codearte.nexus-staging' version '0.21.2'
 }
 
 apply plugin: 'maven'
@@ -107,17 +108,31 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
         preCommitText = '[skip ci] '
       }
 
+      def sonatypeUsername = System.getenv('SONATYPE_USERNAME')
+      def sonatypePassword = System.getenv('SONATYPE_PASSWORD')
+
+      // for local testing
+      //def serverUrlBase = 'http://192.168.1.233:8081/nexus/service/local/'
+      def serverUrlBase = 'https://repository.sonatype.org:443/service/local/'
+
       repositories {
         maven {
           name = 'rso'
-          // for local testing
-          //url = 'http://192.168.1.233:8081/nexus/service/local/staging/deploy/maven2/'
-          url = 'https://repository.sonatype.org:443/service/local/staging/deploy/maven2/'
+          url = serverUrlBase + 'staging/deploy/maven2/'
           credentials {
-            username = System.getenv('SONATYPE_USERNAME')
-            password = System.getenv('SONATYPE_PASSWORD')
+            username = sonatypeUsername
+            password = sonatypePassword
           }
         }
+      }
+
+      nexusStaging {
+        serverUrl = serverUrlBase
+        // for local testing
+        //stagingProfileId = 'd2d10f6cdd9'
+        stagingProfileId = '97306992c3c7ca'
+        username = sonatypeUsername
+        password = sonatypePassword
       }
 
       publications {
@@ -186,4 +201,5 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
   }
 
   afterReleaseBuild.dependsOn publish
+  closeAndReleaseRepository.mustRunAfter publish
 }
