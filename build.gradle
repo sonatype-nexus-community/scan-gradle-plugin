@@ -111,8 +111,6 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
       def sonatypeUsername = System.getenv('SONATYPE_USERNAME')
       def sonatypePassword = System.getenv('SONATYPE_PASSWORD')
 
-      // for local testing
-      //def serverUrlBase = 'http://192.168.1.233:8081/nexus/service/local/'
       def serverUrlBase = 'https://repository.sonatype.org:443/service/local/'
 
       repositories {
@@ -128,8 +126,6 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
 
       nexusStaging {
         serverUrl = serverUrlBase
-        // for local testing
-        //stagingProfileId = 'd2d10f6cdd9'
         stagingProfileId = '97306992c3c7ca'
         username = sonatypeUsername
         password = sonatypePassword
