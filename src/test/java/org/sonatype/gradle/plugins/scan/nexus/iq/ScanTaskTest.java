@@ -27,6 +27,7 @@ import com.sonatype.nexus.api.iq.scan.ScanResult;
 
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Before;
@@ -38,6 +39,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -87,13 +89,27 @@ public class ScanTaskTest
   public void testScan_real() throws Exception {
     NexusIqScanTask task = buildScanTask(false);
     task.setDependenciesFinder(dependenciesFinderMock);
+    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
+
     task.scan();
 
     verify(dependenciesFinderMock).findModules(any(Project.class));
     verify(iqClientMock).validateServerVersion(anyString());
+    verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()));
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
     verify(iqClientMock).evaluateApplication(eq(task.getApplicationId()), eq(task.getStage()),
         nullable(ScanResult.class), any(File.class));
+  }
+
+  @Test
+  public void testScan_realUnabledToCreateApp() throws Exception {
+    NexusIqScanTask task = buildScanTask(false);
+    task.setDependenciesFinder(dependenciesFinderMock);
+    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(false);
+
+    assertThatThrownBy(() -> task.scan())
+        .isInstanceOf(GradleException.class)
+        .hasMessageContaining("Application ID test doesn't exist and couldn't be created");
   }
 
   private NexusIqScanTask buildScanTask(boolean isSimulated) {
