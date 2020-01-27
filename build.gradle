@@ -133,7 +133,8 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
         stagingProfileId = '97306992c3c7ca'
         username = sonatypeUsername
         password = sonatypePassword
-        delayBetweenRetriesInMillis = 4000
+        numberOfRetries = 40
+        delayBetweenRetriesInMillis = 5000
       }
 
       publications {
