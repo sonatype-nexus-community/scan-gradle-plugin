@@ -2,7 +2,7 @@ plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
   id 'signing'
-  id 'net.researchgate.release' version '2.6.0'
+  id 'net.researchgate.release' version '2.8.1'
   id 'io.codearte.nexus-staging' version '0.21.2'
 }
 
@@ -133,6 +133,7 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
         stagingProfileId = '97306992c3c7ca'
         username = sonatypeUsername
         password = sonatypePassword
+        delayBetweenRetriesInMillis = 4000
       }
 
       publications {
