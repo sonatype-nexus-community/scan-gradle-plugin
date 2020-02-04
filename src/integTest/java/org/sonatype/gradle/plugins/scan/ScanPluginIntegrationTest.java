@@ -49,7 +49,7 @@ public class ScanPluginIntegrationTest
         "5.3.1", "5.4.1", "5.6.4", "6.0.1");
   }
 
-  private String gradleVersion;
+  private final String gradleVersion;
 
   public ScanPluginIntegrationTest(String gradleVersion) {
     this.gradleVersion = gradleVersion;

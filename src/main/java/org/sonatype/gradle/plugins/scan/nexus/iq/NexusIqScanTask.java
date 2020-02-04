@@ -64,7 +64,7 @@ public class NexusIqScanTask
   @TaskAction
   public void scan() {
     try {
-      ApplicationPolicyEvaluation applicationPolicyEvaluation = null;
+      final ApplicationPolicyEvaluation applicationPolicyEvaluation;
 
       if (extension.isSimulationEnabled()) {
         log.info("Simulating scan...");
