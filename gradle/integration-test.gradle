@@ -16,4 +16,15 @@ task integrationTest(type: Test) {
   mustRunAfter test
 }
 
+task it1(type: Test) {
+  description = 'Runs small batch of integration tests.'
+  group = 'verification'
+  testClassesDirs = sourceSets.integrationTest.output.classesDirs
+  classpath = sourceSets.integrationTest.runtimeClasspath
+  maxHeapSize = '1536m'
+  mustRunAfter test
+  includes = '**/ScanIT_Gradle_Versions_4_2*.class'
+
+}
+
 check.dependsOn integrationTest
