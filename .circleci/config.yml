@@ -49,7 +49,7 @@ workflows:
           reports_path: build/reports
           test_command: test --no-daemon --debug --max-workers 2
 
-# Running all ITs at once was causing intermittent memory errors
+# Running all ITs at once was causing intermittent memory errors (as per below config), so we split ITs into batches.
 #  integration-test:
 #    jobs:
 #      - gradle/test:
