@@ -8,6 +8,7 @@ plugins {
 }
 
 apply plugin: 'maven'
+apply from: 'gradle/integration-test.gradle'
 
 def pluginDescription = 'Scan, evaluate and audit Gradle projects using Sonatype platforms'
 
@@ -74,15 +75,6 @@ dependencies {
   
 }
 
-sourceSets {
-  integrationTest {
-    java.srcDir file('src/integTest/java')
-    resources.srcDir file('src/integTest/resources')
-    compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
-    runtimeClasspath += output + compileClasspath
-  }
-}
-
 processResources {
   filesMatching('com/sonatype/insight/client.properties') {
       expand(project.properties)
@@ -92,17 +84,6 @@ processResources {
 test {
   maxHeapSize = '512m'
 }
-
-task integrationTest(type: Test) {
-  description = 'Runs the integration tests.'
-  group = 'verification'
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
-  maxHeapSize = '1536m'
-  mustRunAfter test
-}
-
-check.dependsOn integrationTest
 
 // configure deployment if performing release
 if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
