@@ -23,7 +23,8 @@ task it1(type: Test) {
   classpath = sourceSets.integrationTest.runtimeClasspath
   maxHeapSize = '1536m'
   mustRunAfter test
-  includes = '**/ScanIT_Gradle_Versions_4_2*.class'
+  // @TODO the setting below is wrong, but not sure how to filter the tests...
+  //includes = '**/ScanIT_Gradle_Versions_4_2*.class'
 
 }
 
