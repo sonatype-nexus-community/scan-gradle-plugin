@@ -35,6 +35,11 @@ jobs:
       - configure-git
       - gradle-release
 
+it-defaults: &it-defaults
+      executor: openjdk-8-executor
+      test_results_path: build/test-results
+      reports_path: build/reports
+
 workflows:
   checkout-run_task:
     jobs:
@@ -43,20 +48,42 @@ workflows:
           test_results_path: build/test-results
           reports_path: build/reports
           test_command: test --no-daemon --debug --max-workers 2
-  integration-test:
-    jobs:
-      - gradle/test:
-          executor: openjdk-8-executor
-          test_results_path: build/test-results
-          reports_path: build/reports
-          test_command: integrationTest --fail-fast --no-daemon -Dorg.gradle.daemon=false  --info
+
+# Running all ITs at once was causing intermittent memory errors
+#  integration-test:
+#    jobs:
+#      - gradle/test:
+#          executor: openjdk-8-executor
+#          test_results_path: build/test-results
+#          reports_path: build/reports
+#          test_command: --fail-fast --no-daemon -Dorg.gradle.daemon=false --info integrationTest
+
   it1:
     jobs:
-      - gradle/test:
-          executor: openjdk-8-executor
-          test_results_path: build/test-results
-          reports_path: build/reports
-          test_command: it1 --fail-fast --no-daemon -Dorg.gradle.daemon=false  --info
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it1
+  it2:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it2
+  it3:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it3
+  it4:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it4
+  it5:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it5
+
   release:
     jobs:
       - approve-release:
