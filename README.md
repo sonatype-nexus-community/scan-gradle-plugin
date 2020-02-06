@@ -15,12 +15,12 @@
     limitations under the License.
 
 -->
-# Nexus IQ Server Gradle Plugin #
+# Sonatype Scan Gradle Plugin #
 [![Maven Central](https://img.shields.io/maven-central/v/org.sonatype.gradle.plugins/scan-gradle-plugin.svg?label=Maven%20Central)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.sonatype.gradle.plugins%22%20AND%20a%3A%22scan-gradle-plugin%22)
 
 [![CircleCI](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin.svg?style=svg)](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin) 
 
-Gradle plugin that scans the dependencies of a Gradle project using Nexus IQ Server.
+Gradle plugin that scans the dependencies of a Gradle project using Sonatype platforms: OSS Index and Nexus IQ Server.
 
 ## Compile and Publish to Local Maven Cache
 
@@ -48,17 +48,28 @@ Gradle can be used to build projects developed in various programming languages.
 - Create/Clone/Download any Gradle project.
 - Edit its `build.gradle` file adding this:
 ```
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.sonatype.gradle.plugins:scan-gradle-plugin:0.2.0' // Update the version as needed
-    }
+plugins {
+  id 'org.sonatype.gradle.plugins.scan' version '1.0.0' // Update the version as needed
 }
-
-apply plugin: 'org.sonatype.gradle.plugins.scan'
 ```
+
+### OSS Index
+OSS Index can be used without any extra configuration, but to avoid reaching the limit for anonymous queries every user
+is encouraged to create a free account on [OSS Index](https://ossindex.sonatype.org/user/signin) and use the credentials
+on this plugin. Cache can also be configured optionally.
+```
+ossIndexAudit {
+    username = 'email' // if not provided, an anonymous query will be made
+    password = 'pass'
+    useCache = true // true by default
+    cacheDirectory = 'some/path' // by default it uses the user data directory (according to OS)
+    cacheExpiration = 'PT12H' // 12 hours if omitted. It must follow the Joda Time specification at https://www.javadoc.io/doc/joda-time/joda-time/2.10.4/org/joda/time/Duration.html#parse-java.lang.String-
+}
+```
+- Open Terminal on the project's root and run `./gradlew ossIndexAudit --info`
+- You should see the audit result on Terminal.
+
+### Nexus IQ Server
 - Start a local instance of IQ Server, or get the URL and credentials of a remote one.
 - Configure IQ Server settings inside the `nexusIQScan` configuration on the file `build.gradle` e.g.
 ```
@@ -85,9 +96,21 @@ nexusIQScan {
     serverUrl = 'http://localhost:8070'
     applicationId = 'app'
 }
+
+ossIndexAudit {
+    username = project['username']
+    password = project['password']
+}
 ```
 
-On command line: `./gradlew nexusIQScan -Pusername=admin -Ppassword=pass --info`
+On command line:
+```
+./gradlew nexusIQScan -Pusername=admin -Ppassword=pass --info
+```
+
+```
+./gradlew ossIndexAudit -Pusername=admin -Ppassword=pass --info
+```
 
 Each property name can be set as needed.
 
