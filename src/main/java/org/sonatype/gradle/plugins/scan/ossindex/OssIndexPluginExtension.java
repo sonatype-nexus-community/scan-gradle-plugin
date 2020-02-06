@@ -19,22 +19,33 @@ import org.gradle.api.Project;
 
 public class OssIndexPluginExtension
 {
-  private String username = "";
+  private String username;
 
-  private String password = "";
+  private String password;
 
-  private boolean useCache = true;
+  private boolean useCache;
 
-  private String cacheDirectory = "";
+  private String cacheDirectory;
 
   /**
    * It must follow the duration format from <a href=
    * "https://www.javadoc.io/doc/joda-time/joda-time/2.10.4/org/joda/time/Duration.html#parse-java.lang.String-">
    * Duration</a>
    */
-  private String cacheExpiration = "";
+  private String cacheExpiration;
+
+  private boolean simulationEnabled;
+
+  private boolean simulatedVulnerabityFound;
 
   public OssIndexPluginExtension(Project project) {
+    username = "";
+    password = "";
+    useCache = true;
+    cacheDirectory = "";
+    cacheExpiration = "";
+    simulationEnabled = false;
+    simulatedVulnerabityFound = false;
   }
 
   public String getUsername() {
@@ -75,5 +86,21 @@ public class OssIndexPluginExtension
 
   public void setCacheExpiration(String cacheExpiration) {
     this.cacheExpiration = cacheExpiration;
+  }
+
+  public boolean isSimulationEnabled() {
+    return simulationEnabled;
+  }
+
+  public void setSimulationEnabled(boolean simulationEnabled) {
+    this.simulationEnabled = simulationEnabled;
+  }
+
+  public boolean isSimulatedVulnerabityFound() {
+    return simulatedVulnerabityFound;
+  }
+
+  public void setSimulatedVulnerabityFound(boolean simulatedVulnerabityFound) {
+    this.simulatedVulnerabityFound = simulatedVulnerabityFound;
   }
 }

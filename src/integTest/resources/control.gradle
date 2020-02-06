@@ -17,3 +17,7 @@ nexusIQScan {
   applicationId = 'testing-gradle-plugin'
   simulationEnabled = true
 }
+
+ossIndexAudit {
+  simulationEnabled = true
+}

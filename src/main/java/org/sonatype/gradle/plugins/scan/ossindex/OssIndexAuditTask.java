@@ -15,8 +15,12 @@
  */
 package org.sonatype.gradle.plugins.scan.ossindex;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -60,7 +64,7 @@ public class OssIndexAuditTask
   }
 
   @TaskAction
-  public void scan() {
+  public void audit() {
     boolean hasVulnerabilities = false;
 
     try (OssindexClient ossIndexClient = buildOssIndexClient()) {
@@ -72,7 +76,14 @@ public class OssIndexAuditTask
       List<PackageUrl> packageUrls = new ArrayList<>(artifactsMap.keySet());
       log.info("Checking vulnerabilities in {} artifacts", packageUrls.size());
 
-      Map<PackageUrl, ComponentReport> response = ossIndexClient.requestComponentReports(packageUrls);
+      Map<PackageUrl, ComponentReport> response;
+
+      if (extension.isSimulationEnabled()) {
+        response = buildSimulatedResponse(packageUrls);
+      }
+      else {
+        response = ossIndexClient.requestComponentReports(packageUrls);
+      }
 
       hasVulnerabilities = handleOssIndexResponse(artifactsMap, response);
     }
@@ -98,6 +109,29 @@ public class OssIndexAuditTask
     Marshaller marshaller = new GsonMarshaller();
 
     return new OssindexClientImpl(clientConfiguration, transport, marshaller);
+  }
+
+  private Map<PackageUrl, ComponentReport> buildSimulatedResponse(
+      List<PackageUrl> packageUrls) throws URISyntaxException
+  {
+    Map<PackageUrl, ComponentReport> map = new HashMap<>();
+
+    for (PackageUrl packageUrl : packageUrls) {
+      ComponentReport report = new ComponentReport();
+      report.setCoordinates(packageUrl);
+
+      if (extension.isSimulatedVulnerabityFound()) {
+        ComponentReportVulnerability vulnerability = new ComponentReportVulnerability();
+        vulnerability.setTitle("Simulated");
+        vulnerability.setCvssScore(4f);
+        vulnerability.setReference(new URI("http://test/123"));
+        report.setVulnerabilities(Arrays.asList(vulnerability));
+      }
+
+      map.put(packageUrl, report);
+    }
+
+    return map;
   }
 
   private boolean handleOssIndexResponse(
