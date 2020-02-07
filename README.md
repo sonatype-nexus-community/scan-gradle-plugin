@@ -18,6 +18,8 @@
 # Sonatype Scan Gradle Plugin #
 [![Maven Central](https://img.shields.io/maven-central/v/org.sonatype.gradle.plugins/scan-gradle-plugin.svg?label=Maven%20Central)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.sonatype.gradle.plugins%22%20AND%20a%3A%22scan-gradle-plugin%22)
 
+[![Gradle Plugin Portal](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/org/sonatype/gradle/plugins/scan/org.sonatype.gradle.plugins.scan.gradle.plugin/maven-metadata.xml.svg?colorB=007ec6&label=Gradle%20Plugins%20Portal)](https://plugins.gradle.org/plugin/org.sonatype.gradle.plugins.scan)
+
 [![CircleCI](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin.svg?style=svg)](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin) 
 
 Gradle plugin that scans the dependencies of a Gradle project using Sonatype platforms: OSS Index and Nexus IQ Server.
@@ -86,7 +88,9 @@ nexusIQScan {
 
 ### Sensitive Data
 Sometimes it's not desirable to keep sensitive data stored on `build.gradle`. For such cases it's possible to use project
-properties (-P arguments) or environment variables (-D arguments) from command line when running the `nexusIQScan` task.
+properties (-P arguments) or environment variables (-D arguments or injected from a tool) from command line when running
+the `nexusIQScan` or `ossIndexAudit` tasks.
+
 Here is an example using project properties for the credentials:
 
 ```
@@ -113,6 +117,24 @@ On command line:
 ```
 
 Each property name can be set as needed.
+
+Here is an example using environment variables for the credentials:
+
+```
+nexusIQScan {
+    username = System.getenv('username')
+    password = System.getenv('password')
+    serverUrl = 'http://localhost:8070'
+    applicationId = 'app'
+}
+
+ossIndexAudit {
+    username = System.getenv('username')
+    password = System.getenv('password')
+}
+```
+
+As mentioned above the values can be set on command line using -D arguments or injected via a tool (CI/CD for instance).
 
 ### Multi-module projects
 Just apply the plugin on the root project and all sub-modules will be processed and the output will be a single report
