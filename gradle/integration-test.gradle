@@ -10,57 +10,24 @@ sourceSets {
 task integrationTest(type: Test) {
   description = 'Runs the integration tests.'
   group = 'verification'
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
-  maxHeapSize = '1536m'
-  mustRunAfter test
 }
 
-// small batches of ITs to avoid memory errors on CI. will be run in parallel workflows.
-task it1(type: Test) {
-  description = 'Runs small batch of integration tests.'
-  group = 'verification'
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
-  maxHeapSize = '1536m'
-  includes = ['**/ScanIT_Gradle_Versions_4_2*.class']
-  mustRunAfter test
-}
-task it2(type: Test) {
-  description = 'Runs small batch of integration tests.'
-  group = 'verification'
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
-  maxHeapSize = '1536m'
-  includes = ['**/ScanIT_Gradle_Versions_4_5*.class']
-  mustRunAfter test
-}
-task it3(type: Test) {
-  description = 'Runs small batch of integration tests.'
-  group = 'verification'
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
-  maxHeapSize = '1536m'
-  includes = ['**/ScanIT_Gradle_Versions_4_8*.class']
-  mustRunAfter test
-}
-task it4(type: Test) {
-  description = 'Runs small batch of integration tests.'
-  group = 'verification'
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
-  maxHeapSize = '1536m'
-  includes = ['**/ScanIT_Gradle_Versions_5_1*.class']
-  mustRunAfter test
-}
-task it5(type: Test) {
-  description = 'Runs small batch of integration tests.'
-  group = 'verification'
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
-  maxHeapSize = '1536m'
-  includes = ['**/ScanIT_Gradle_Versions_5_4*.class']
-  mustRunAfter test
+['**/ScanIT_Gradle_Versions_4_2*.class',
+ '**/ScanIT_Gradle_Versions_4_5*.class',
+ '**/ScanIT_Gradle_Versions_4_8*.class',
+ '**/ScanIT_Gradle_Versions_5_1*.class',
+ '**/ScanIT_Gradle_Versions_5_4*.class'].eachWithIndex { className, index ->
+  task "it${index + 1}"(type: Test) {
+    includes = [className]
+    description = "Runs the integration tests on class $className."
+    group = 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    maxHeapSize = '1536m'
+    mustRunAfter test
+  }
+
+  integrationTest.dependsOn "it${index + 1}"
 }
 
 check.dependsOn integrationTest
