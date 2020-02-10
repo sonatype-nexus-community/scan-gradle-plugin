@@ -21,8 +21,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.testkit.runner.BuildResult;
@@ -41,17 +39,18 @@ import static org.gradle.testkit.runner.TaskOutcome.FAILED;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 
 @RunWith(Parameterized.class)
-public class ScanPluginIntegrationTest
+public abstract class ScanPluginIntegrationTestBase
 {
-  @Parameterized.Parameters(name = "Version: {0}")
-  public static List<String> data() {
-    return Arrays.asList("4.2.1", "4.3.1", "4.4.1", "4.5.1", "4.6", "4.7", "4.8.1", "4.9", "4.10.3", "5.1.1", "5.2.1",
-        "5.3.1", "5.4.1", "5.6.4", "6.0.1");
-  }
+   /*
+   Parameters are declared in subclasses in order run subsets of Gradle versions to avoid Memory errors on CI.
+   Original list of versions:
+      return Arrays.asList("4.2.1", "4.3.1", "4.4.1", "4.5.1", "4.6", "4.7", "4.8.1", "4.9", "4.10.3", "5.1.1", "5.2.1",
+          "5.3.1", "5.4.1", "5.6.4", "6.0.1");
+   */
 
   private final String gradleVersion;
 
-  public ScanPluginIntegrationTest(String gradleVersion) {
+  public ScanPluginIntegrationTestBase(String gradleVersion) {
     this.gradleVersion = gradleVersion;
   }
 
