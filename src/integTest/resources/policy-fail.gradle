@@ -18,3 +18,8 @@ nexusIQScan {
   simulationEnabled = true
   simulatedPolicyActionId = 'fail'
 }
+
+ossIndexAudit {
+  simulationEnabled = true
+  simulatedVulnerabityFound = true
+}
