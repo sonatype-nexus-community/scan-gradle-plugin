@@ -17,6 +17,8 @@ package org.sonatype.gradle.plugins.scan;
 
 import org.sonatype.gradle.plugins.scan.nexus.iq.NexusIqPluginExtension;
 import org.sonatype.gradle.plugins.scan.nexus.iq.NexusIqScanTask;
+import org.sonatype.gradle.plugins.scan.ossindex.OssIndexAuditTask;
+import org.sonatype.gradle.plugins.scan.ossindex.OssIndexPluginExtension;
 
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
@@ -35,11 +37,14 @@ public class ScanPluginTest
   }
 
   @Test
-  public void testApply_nexusIQ() {
+  public void testApply() {
     Project project = ProjectBuilder.builder().build();
     plugin.apply(project);
 
     assertThat(project.getTasks().getByName("nexusIQScan")).isInstanceOf(NexusIqScanTask.class);
     assertThat(project.getExtensions().getByName("nexusIQScan")).isInstanceOf(NexusIqPluginExtension.class);
+
+    assertThat(project.getTasks().getByName("ossIndexAudit")).isInstanceOf(OssIndexAuditTask.class);
+    assertThat(project.getExtensions().getByName("ossIndexAudit")).isInstanceOf(OssIndexPluginExtension.class);
   }
 }
