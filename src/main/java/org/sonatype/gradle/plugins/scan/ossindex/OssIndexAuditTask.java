@@ -65,7 +65,7 @@ public class OssIndexAuditTask
 
   @TaskAction
   public void audit() {
-    boolean hasVulnerabilities = false;
+    boolean hasVulnerabilities;
 
     try (OssindexClient ossIndexClient = buildOssIndexClient()) {
 
