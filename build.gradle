@@ -65,6 +65,7 @@ dependencies {
   gradleApi()
 
   implementation "com.sonatype.nexus:nexus-platform-api:$nexusJavaApiVersion:internal"
+  implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
 
   testCompile gradleTestKit()
   testCompile "junit:junit:$junitVersion"

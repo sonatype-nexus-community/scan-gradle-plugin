@@ -17,17 +17,26 @@ package org.sonatype.gradle.plugins.scan;
 
 import org.sonatype.gradle.plugins.scan.nexus.iq.NexusIqPluginExtension;
 import org.sonatype.gradle.plugins.scan.nexus.iq.NexusIqScanTask;
+import org.sonatype.gradle.plugins.scan.ossindex.OssIndexAuditTask;
+import org.sonatype.gradle.plugins.scan.ossindex.OssIndexPluginExtension;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
 public class ScanPlugin implements Plugin<Project>
 {
+  private static final String SONATYPE_GROUP = "Sonatype";
+
   @Override
   public void apply(Project project) {
     project.getExtensions().create("nexusIQScan", NexusIqPluginExtension.class, project);
-    NexusIqScanTask scanTask = project.getTasks().create("nexusIQScan", NexusIqScanTask.class);
-    scanTask.setGroup("Sonatype");
-    scanTask.setDescription("Scan and evaluate the dependencies of the project using Nexus IQ Server.");
+    NexusIqScanTask nexusIqScanTask = project.getTasks().create("nexusIQScan", NexusIqScanTask.class);
+    nexusIqScanTask.setGroup(SONATYPE_GROUP);
+    nexusIqScanTask.setDescription("Scan and evaluate the dependencies of the project using Nexus IQ Server.");
+
+    project.getExtensions().create("ossIndexAudit", OssIndexPluginExtension.class, project);
+    OssIndexAuditTask ossIndexAuditTask = project.getTasks().create("ossIndexAudit", OssIndexAuditTask.class);
+    ossIndexAuditTask.setGroup(SONATYPE_GROUP);
+    ossIndexAuditTask.setDescription("Audit the dependencies of the project using OSS Index.");
   }
 }

@@ -76,7 +76,7 @@ public abstract class ScanPluginIntegrationTestBase
         .withGradleVersion(gradleVersion)
         .withProjectDir(testProjectDir.getRoot())
         .withPluginClasspath()
-        .withArguments("nexusIQ").build())
+        .withArguments("nexusIQScan").build())
         .hasMessageContaining("No value has been specified for property 'applicationId")
         .hasMessageContaining("No value has been specified for property 'username'")
         .hasMessageContaining("No value has been specified for property 'password'")
@@ -91,7 +91,8 @@ public abstract class ScanPluginIntegrationTestBase
         .withGradleVersion(gradleVersion)
         .withProjectDir(testProjectDir.getRoot())
         .withPluginClasspath()
-        .withArguments("nexusIQScan", "--info").build();
+        .withArguments("nexusIQScan", "--info")
+        .build();
 
     assertBuildOutputText_NexusIQ(result, "None");
 
@@ -106,7 +107,8 @@ public abstract class ScanPluginIntegrationTestBase
         .withGradleVersion(gradleVersion)
         .withProjectDir(testProjectDir.getRoot())
         .withPluginClasspath()
-        .withArguments("nexusIQScan", "--info").build();
+        .withArguments("nexusIQScan", "--info")
+        .build();
 
     assertBuildOutputText_NexusIQ(result, "Warn");
 
@@ -121,10 +123,41 @@ public abstract class ScanPluginIntegrationTestBase
         .withGradleVersion(gradleVersion)
         .withProjectDir(testProjectDir.getRoot())
         .withPluginClasspath()
-        .withArguments("nexusIQScan", "--info").buildAndFail();
+        .withArguments("nexusIQScan", "--info")
+        .buildAndFail();
 
     assertBuildOutputText_NexusIQ(result, "Failure");
     assertThat(result.task(":nexusIQScan").getOutcome()).isEqualTo(FAILED);
+  }
+
+  @Test
+  public void testAuditTask_NoVulnerabilities_OssIndex() throws IOException {
+    writeFile(buildFile, "control.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    assertBuildOutputText_OssIndex(result, 0);
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_Vulnerabilities_OssIndex() throws IOException {
+    writeFile(buildFile, "policy-fail.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .buildAndFail();
+
+    assertBuildOutputText_OssIndex(result, 1);
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(FAILED);
   }
 
   private void writeFile(File destination, String resourceName) throws IOException {
@@ -141,5 +174,11 @@ public abstract class ScanPluginIntegrationTestBase
     assertThat(resultOutput).contains("Number of components affected: 0 critical, 0 severe, 0 moderate");
     assertThat(resultOutput).contains("Number of grandfathered policy violations: 0");
     assertThat(resultOutput).contains("The detailed report can be viewed online at simulated/report");
+  }
+
+  private void assertBuildOutputText_OssIndex(BuildResult result, int vulnerabilities) {
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains(
+        String.format("commons-collections:commons-collections:3.1: %s vulnerabilities detected", vulnerabilities));
   }
 }

@@ -122,7 +122,7 @@ public class ScanTaskTest
     extension.setPassword("password");
     extension.setSimulationEnabled(isSimulated);
 
-    project.getExtensions().add("scan", extension);
-    return project.getTasks().create("scan", NexusIqScanTask.class);
+    project.getExtensions().add("nexusIQScan", extension);
+    return project.getTasks().create("nexusIQScan", NexusIqScanTask.class);
   }
 }
