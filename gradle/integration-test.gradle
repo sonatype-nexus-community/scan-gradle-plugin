@@ -12,7 +12,10 @@ task integrationTest(type: Test) {
   group = 'verification'
 }
 
-['**/ScanIT_Gradle_Versions_4_2*.class',
+['**/ScanIT_Gradle_Versions_3_0*.class',
+ '**/ScanIT_Gradle_Versions_3_4*.class',
+ '**/ScanIT_Gradle_Versions_4_0*.class',
+ '**/ScanIT_Gradle_Versions_4_2*.class',
  '**/ScanIT_Gradle_Versions_4_5*.class',
  '**/ScanIT_Gradle_Versions_4_8*.class',
  '**/ScanIT_Gradle_Versions_5_1*.class',

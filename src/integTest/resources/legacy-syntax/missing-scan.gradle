@@ -1,0 +1,3 @@
+plugins {
+  id 'org.sonatype.gradle.plugins.scan'
+}
