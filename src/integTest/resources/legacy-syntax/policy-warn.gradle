@@ -7,7 +7,7 @@ repositories {
   mavenCentral()
 }
 dependencies {
-  implementation 'commons-collections:commons-collections:3.1'
+  compile 'commons-collections:commons-collections:3.1'
 }
 
 nexusIQScan {
@@ -16,10 +16,5 @@ nexusIQScan {
   password = 'admin123'
   applicationId = 'testing-gradle-plugin'
   simulationEnabled = true
-  simulatedPolicyActionId = 'fail'
-}
-
-ossIndexAudit {
-  simulationEnabled = true
-  simulatedVulnerabityFound = true
+  simulatedPolicyActionId = 'warn'
 }
