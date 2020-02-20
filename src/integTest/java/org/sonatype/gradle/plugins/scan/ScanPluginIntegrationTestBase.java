@@ -41,14 +41,13 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 @RunWith(Parameterized.class)
 public abstract class ScanPluginIntegrationTestBase
 {
-   /*
-   Parameters are declared in subclasses in order run subsets of Gradle versions to avoid Memory errors on CI.
-   Original list of versions:
-      return Arrays.asList("4.2.1", "4.3.1", "4.4.1", "4.5.1", "4.6", "4.7", "4.8.1", "4.9", "4.10.3", "5.1.1", "5.2.1",
-          "5.3.1", "5.4.1", "5.6.4", "6.0.1");
+  /*
+   * Parameters are declared in subclasses in order run subsets of Gradle versions to avoid Memory errors on CI.
    */
 
   private final String gradleVersion;
+
+  protected boolean useLegacySyntax;
 
   public ScanPluginIntegrationTestBase(String gradleVersion) {
     this.gradleVersion = gradleVersion;
@@ -161,7 +160,8 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   private void writeFile(File destination, String resourceName) throws IOException {
-    try (InputStream contentStream = getClass().getClassLoader().getResourceAsStream(resourceName);
+    String resource = useLegacySyntax ? "legacy-syntax" + File.separator + resourceName : resourceName;
+    try (InputStream contentStream = getClass().getClassLoader().getResourceAsStream(resource);
         BufferedWriter output = new BufferedWriter(new FileWriter(destination))) {
       assert contentStream != null;
       IOUtils.copy(contentStream, output, StandardCharsets.UTF_8);
