@@ -20,7 +20,7 @@
 
 [![Gradle Plugins Portal](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/org/sonatype/gradle/plugins/scan/org.sonatype.gradle.plugins.scan.gradle.plugin/maven-metadata.xml.svg?colorB=007ec6&label=Gradle%20Plugins%20Portal)](https://plugins.gradle.org/plugin/org.sonatype.gradle.plugins.scan)
 
-[![CircleCI](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin.svg?style=svg)](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin) 
+[![CircleCI Build Status](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin.svg?style=shield "CircleCI Build Status")](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin) 
 
 Gradle plugin that scans the dependencies of a Gradle project using Sonatype platforms: OSS Index and Nexus IQ Server.
 
