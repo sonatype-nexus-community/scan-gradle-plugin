@@ -28,6 +28,7 @@ import com.sonatype.insight.scan.module.model.Module;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
@@ -36,6 +37,14 @@ public class DependenciesFinder
 {
   private static final Set<String> CONFIGURATION_NAMES =
       new HashSet<>(Arrays.asList(COMPILE_CLASSPATH_CONFIGURATION_NAME, "releaseCompileClasspath"));
+
+  public Set<ResolvedDependency> findResolvedDependencies(Project rootProject) {
+    return rootProject.getAllprojects().stream()
+        .flatMap(project -> project.getConfigurations().stream())
+        .filter(configuration -> CONFIGURATION_NAMES.contains(configuration.getName()))
+        .flatMap(configuration -> configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream())
+        .collect(Collectors.toSet());
+  }
 
   public Set<ResolvedArtifact> findResolvedArtifacts(Project project) {
     return project.getConfigurations().stream()
