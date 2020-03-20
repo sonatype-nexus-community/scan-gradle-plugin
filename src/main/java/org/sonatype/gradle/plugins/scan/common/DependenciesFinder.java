@@ -18,6 +18,7 @@ package org.sonatype.gradle.plugins.scan.common;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,7 +44,7 @@ public class DependenciesFinder
         .flatMap(project -> project.getConfigurations().stream())
         .filter(configuration -> CONFIGURATION_NAMES.contains(configuration.getName()))
         .flatMap(configuration -> configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream())
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   public Set<ResolvedArtifact> findResolvedArtifacts(Project project) {

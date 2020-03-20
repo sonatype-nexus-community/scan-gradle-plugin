@@ -21,10 +21,13 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.sonatype.goodies.packageurl.PackageUrl;
@@ -40,6 +43,9 @@ import org.sonatype.ossindex.service.client.marshal.Marshaller;
 import org.sonatype.ossindex.service.client.transport.Transport;
 import org.sonatype.ossindex.service.client.transport.Transport.TransportException;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -70,7 +76,7 @@ public class OssIndexAuditTask
 
     try (OssindexClient ossIndexClient = buildOssIndexClient()) {
       Set<ResolvedDependency> dependencies = dependenciesFinder.findResolvedDependencies(getProject());
-      Map<ResolvedDependency, PackageUrl> dependenciesMap = new HashMap<>();
+      BiMap<ResolvedDependency, PackageUrl> dependenciesMap = HashBiMap.create();
 
       dependencies.forEach(dependency -> {
         buildDependenciesMap(dependency, dependenciesMap);
@@ -137,12 +143,15 @@ public class OssIndexAuditTask
     return map;
   }
 
-  private void buildDependenciesMap(ResolvedDependency dependency, Map<ResolvedDependency, PackageUrl> mapAccumulator) {
-    mapAccumulator.put(dependency, toPackageUrl(dependency));
+  private void buildDependenciesMap(
+      ResolvedDependency dependency,
+      BiMap<ResolvedDependency, PackageUrl> mapAccumulator)
+  {
+    mapAccumulator.forcePut(dependency, toPackageUrl(dependency));
 
-    dependency.getChildren().forEach(children -> {
-      mapAccumulator.put(children, toPackageUrl(children));
-      buildDependenciesMap(children, mapAccumulator);
+    dependency.getChildren().forEach(child -> {
+      mapAccumulator.forcePut(child, toPackageUrl(child));
+      buildDependenciesMap(child, mapAccumulator);
     });
   }
 
@@ -155,6 +164,7 @@ public class OssIndexAuditTask
         .build();
   }
 
+
   private boolean handleOssIndexResponse(
       Set<ResolvedDependency> dependencies,
       Map<ResolvedDependency, PackageUrl> dependenciesMap,
@@ -162,8 +172,9 @@ public class OssIndexAuditTask
   {
     boolean hasVulnerabilities = false;
 
+    Set<PackageUrl> processedPackageUrls = new HashSet<>();
     for (ResolvedDependency dependency : dependencies) {
-      hasVulnerabilities = logWithVulnerabilities(dependency, dependenciesMap, response, "|-");
+      hasVulnerabilities = logWithVulnerabilities(dependency, dependenciesMap, response, processedPackageUrls, "+--- ");
     }
 
     return hasVulnerabilities;
@@ -173,6 +184,7 @@ public class OssIndexAuditTask
       ResolvedDependency dependency,
       Map<ResolvedDependency, PackageUrl> dependenciesMap,
       Map<PackageUrl, ComponentReport> response,
+      Set<PackageUrl> processedPackageUrls,
       String prefix)
   {
     PackageUrl packageUrl = dependenciesMap.get(dependency);
@@ -187,18 +199,29 @@ public class OssIndexAuditTask
             .map(vulnerability -> handleComponentReportVulnerability(vulnerability, prefix))
             .collect(Collectors.joining(System.lineSeparator())));
 
-    ModuleVersionIdentifier id = dependency.getModule().getId();
+    String id = getDependencyId(dependency);
+    boolean isRepeated = !processedPackageUrls.add(packageUrl);
+    String repeatedMarker = isRepeated && !dependency.getChildren().isEmpty() ? " (*)" : "";
 
-    if (!vulnerabilities.isEmpty()) {
-      log.info("{}{}:{}:{}: {}", prefix, id.getGroup(), id.getName(), id.getVersion(), vulnerabilitiesText);
-    }
-    else {
-      log.error("{}{}:{}:{}: {}", prefix, id.getGroup(), id.getName(), id.getVersion(), vulnerabilitiesText);
+    log.info("{}{}{}: {}", prefix, id, repeatedMarker, vulnerabilitiesText);
+
+    if (isRepeated) {
+      return !vulnerabilities.isEmpty();
     }
 
-    return dependency.getChildren().stream()
-        .map(children -> logWithVulnerabilities(children, dependenciesMap, response, prefix + "-"))
+    Set<ResolvedDependency> childrenSet = new TreeSet<>(Comparator.comparing(ResolvedDependency::getModuleGroup)
+        .thenComparing(ResolvedDependency::getModuleName).thenComparing(ResolvedDependency::getModuleVersion));
+    childrenSet.addAll(dependency.getChildren());
+
+    return childrenSet.stream()
+        .map(child -> logWithVulnerabilities(child, dependenciesMap, response, processedPackageUrls,
+            StringUtils.replaceOnce(prefix, "+--- ", "|    ") + "+--- "))
         .anyMatch(hasVulnerabilities -> hasVulnerabilities == true);
+  }
+
+  private String getDependencyId(ResolvedDependency dependency) {
+    ModuleVersionIdentifier moduleVersionId = dependency.getModule().getId();
+    return moduleVersionId.getGroup() + ":" + moduleVersionId.getName() + ":" + moduleVersionId.getVersion();
   }
 
   private String handleComponentReportVulnerability(ComponentReportVulnerability vulnerability, String prefix) {
