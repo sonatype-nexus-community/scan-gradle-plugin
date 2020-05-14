@@ -1,10 +1,13 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+
 plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
   id 'signing'
   id 'net.researchgate.release' version '2.8.1'
   id 'io.codearte.nexus-staging' version '0.21.2'
-  id "com.gradle.plugin-publish" version "0.10.1"
+  id 'com.gradle.plugin-publish' version '0.10.1'
+  id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 apply plugin: 'maven'
@@ -50,8 +53,19 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
   from javadoc.destinationDir
 }
 
+shadowJar {
+  mergeServiceFiles()
+  classifier = null
+}
+
+task relocateShadowJar(type: ConfigureShadowRelocation) {
+  target = tasks.shadowJar
+}
+
+tasks.shadowJar.dependsOn tasks.relocateShadowJar
+
 artifacts {
-  archives jar
+  archives shadowJar
   archives sourceJar
   archives javadocJar
 }
@@ -61,11 +75,11 @@ repositories {
 }
 
 dependencies {
-  localGroovy()
-  gradleApi()
+  shadow localGroovy()
+  shadow gradleApi()
 
   implementation "com.sonatype.nexus:nexus-platform-api:$nexusJavaApiVersion:internal"
-  implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
+  shadow "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
 
   testCompile gradleTestKit()
   testCompile "junit:junit:$junitVersion"
@@ -84,6 +98,13 @@ processResources {
 
 test {
   maxHeapSize = '512m'
+}
+
+sourceSets {
+  test {
+    compileClasspath += sourceSets.main.output + configurations.shadow
+    runtimeClasspath += output + compileClasspath
+  }
 }
 
 // configure deployment if performing release
@@ -132,6 +153,10 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
       }
 
       publications {
+        shadow(MavenPublication) { publication ->
+          project.shadow.component(publication)
+        }
+
         withType(MavenPublication) {
           pom {
             name = project.name
@@ -166,13 +191,13 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
               }
             }
           }
-  
+
           artifactId = project.name
-  
+
           artifact(sourceJar) {
             classifier = 'sources'
           }
-  
+
           artifact(javadocJar) {
             classifier = 'javadoc'
           }
