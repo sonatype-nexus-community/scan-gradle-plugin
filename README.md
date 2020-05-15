@@ -68,7 +68,7 @@ ossIndexAudit {
     cacheExpiration = 'PT12H' // 12 hours if omitted. It must follow the Joda Time specification at https://www.javadoc.io/doc/joda-time/joda-time/2.10.4/org/joda/time/Duration.html#parse-java.lang.String-
 }
 ```
-- Open Terminal on the project's root and run `./gradlew ossIndexAudit --info`
+- Open Terminal on the project's root and run `./gradlew ossIndexAudit`
 - You should see the audit result on Terminal.
 
 ### Nexus IQ Server
@@ -83,7 +83,7 @@ nexusIQScan {
     stage = 'build' // build is used if omitted
 }
 ```
-- Open Terminal on the project's root and run `./gradlew nexusIQScan --info`
+- Open Terminal on the project's root and run `./gradlew nexusIQScan`
 - You should see the scan report URL report on Terminal.
 
 ### Sensitive Data
@@ -109,11 +109,11 @@ ossIndexAudit {
 
 On command line:
 ```
-./gradlew nexusIQScan -Pusername=admin -Ppassword=pass --info
+./gradlew nexusIQScan -Pusername=admin -Ppassword=pass
 ```
 
 ```
-./gradlew ossIndexAudit -Pusername=admin -Ppassword=pass --info
+./gradlew ossIndexAudit -Pusername=admin -Ppassword=pass
 ```
 
 Each property name can be set as needed.
