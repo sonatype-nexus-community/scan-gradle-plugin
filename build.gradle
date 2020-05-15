@@ -44,12 +44,12 @@ jar {
 }
 
 task sourceJar(type: Jar) {
-  classifier "sources"
+  classifier 'sources'
   from sourceSets.main.allJava
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-  classifier "javadoc"
+  classifier 'javadoc'
   from javadoc.destinationDir
 }
 
@@ -74,12 +74,15 @@ repositories {
   mavenCentral()
 }
 
+// Compiles and shades the nexus-platform-api before compiling the plugin project
+tasks.compileJava.dependsOn(':nexus-platform-api:shadowJar')
+
 dependencies {
   shadow localGroovy()
   shadow gradleApi()
 
-  implementation "com.sonatype.nexus:nexus-platform-api:$nexusJavaApiVersion:internal"
-  shadow "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
+  implementation files ("nexus-platform-api/build/libs/nexus-platform-api-${version}.jar")
+  implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
 
   testCompile gradleTestKit()
   testCompile "junit:junit:$junitVersion"
@@ -87,7 +90,6 @@ dependencies {
   testCompile "commons-io:commons-io:$commonsIoVersion"
   testCompile "org.powermock:powermock-module-junit4:$powermockVersion"
   testCompile "org.powermock:powermock-api-mockito2:$powermockVersion"
-  
 }
 
 processResources {
@@ -102,8 +104,9 @@ test {
 
 sourceSets {
   test {
-    compileClasspath += sourceSets.main.output + configurations.shadow
-    runtimeClasspath += output + compileClasspath
+    // Groovy and Gradle libraries on the new shadow configuration need to be available for tests
+    compileClasspath = configurations.shadow + compileClasspath
+    runtimeClasspath = configurations.shadow + runtimeClasspath
   }
 }
 
@@ -216,6 +219,7 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
         }
 
         sign publishing.publications.pluginMaven
+        sign publishing.publications.shadow
         sign publishing.publications.scanPluginMarkerMaven
       }
     }
