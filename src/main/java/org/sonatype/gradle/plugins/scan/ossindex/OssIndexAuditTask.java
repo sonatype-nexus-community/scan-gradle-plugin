@@ -230,7 +230,7 @@ public class OssIndexAuditTask
         .map(child -> logWithVulnerabilities(child, dependenciesMap, response, processedPackageUrls,
             StringUtils.replaceOnce(prefix, DEPENDENCY_PREFIX, "|    ") + DEPENDENCY_PREFIX))
         .collect(Collectors.toList())
-        .contains(true);
+        .contains(true) || hasVulnerabilities;
 
   }
 
