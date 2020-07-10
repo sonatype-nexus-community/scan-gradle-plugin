@@ -20,10 +20,14 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.sonatype.goodies.packageurl.PackageUrl;
@@ -39,10 +43,13 @@ import org.sonatype.ossindex.service.client.marshal.Marshaller;
 import org.sonatype.ossindex.service.client.transport.Transport;
 import org.sonatype.ossindex.service.client.transport.Transport.TransportException;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
@@ -53,6 +60,10 @@ public class OssIndexAuditTask
     extends DefaultTask
 {
   private final Logger log = LoggerFactory.getLogger(OssIndexAuditTask.class);
+
+  private static final String DEPENDENCY_PREFIX = "+--- ";
+
+  private static final String REPEATED_MARKER = "(*)";
 
   private final OssIndexPluginExtension extension;
 
@@ -68,13 +79,15 @@ public class OssIndexAuditTask
     boolean hasVulnerabilities;
 
     try (OssindexClient ossIndexClient = buildOssIndexClient()) {
+      Set<ResolvedDependency> dependencies = dependenciesFinder.findResolvedDependencies(getProject());
+      BiMap<ResolvedDependency, PackageUrl> dependenciesMap = HashBiMap.create();
 
-      Map<PackageUrl, ResolvedArtifact> artifactsMap = getProject().getAllprojects().stream()
-          .flatMap(project -> dependenciesFinder.findResolvedArtifacts(project).stream())
-          .collect(Collectors.toMap(this::packageUrl, artifact -> artifact));
+      dependencies.forEach(dependency -> {
+        buildDependenciesMap(dependency, dependenciesMap);
+      });
 
-      List<PackageUrl> packageUrls = new ArrayList<>(artifactsMap.keySet());
-      log.info("Checking vulnerabilities in {} artifacts", packageUrls.size());
+      List<PackageUrl> packageUrls = new ArrayList<>(dependenciesMap.values());
+      log.info("Checking vulnerabilities in {} dependencies", packageUrls.size());
 
       Map<PackageUrl, ComponentReport> response;
 
@@ -85,7 +98,7 @@ public class OssIndexAuditTask
         response = ossIndexClient.requestComponentReports(packageUrls);
       }
 
-      hasVulnerabilities = handleOssIndexResponse(artifactsMap, response);
+      hasVulnerabilities = handleOssIndexResponse(dependencies, dependenciesMap, response);
     }
     catch (TransportException e) {
       throw new GradleException("Connection to OSS Index failed, check your credentials: " + e.getMessage(), e);
@@ -134,50 +147,102 @@ public class OssIndexAuditTask
     return map;
   }
 
+  private void buildDependenciesMap(
+      ResolvedDependency dependency,
+      BiMap<ResolvedDependency, PackageUrl> mapAccumulator)
+  {
+    mapAccumulator.forcePut(dependency, toPackageUrl(dependency));
+
+    dependency.getChildren().forEach(child -> {
+      mapAccumulator.forcePut(child, toPackageUrl(child));
+      buildDependenciesMap(child, mapAccumulator);
+    });
+  }
+
+  private PackageUrl toPackageUrl(ResolvedDependency dependency) {
+    return new PackageUrlBuilder()
+        .type("maven")
+        .namespace(dependency.getModule().getId().getGroup())
+        .name(dependency.getModule().getId().getName())
+        .version(dependency.getModule().getId().getVersion())
+        .build();
+  }
+
   private boolean handleOssIndexResponse(
-      Map<PackageUrl, ResolvedArtifact> artifactsMap,
+      Set<ResolvedDependency> dependencies,
+      Map<ResolvedDependency, PackageUrl> dependenciesMap,
       Map<PackageUrl, ComponentReport> response)
   {
     boolean hasVulnerabilities = false;
 
-    for (Entry<PackageUrl, ComponentReport> entry : response.entrySet()) {
-      ResolvedArtifact artifact = artifactsMap.get(entry.getKey());
-
-      List<ComponentReportVulnerability> vulnerabilities = entry.getValue().getVulnerabilities();
-
-      StringBuilder vulnerabilitiesText = new StringBuilder(vulnerabilities.size() + " vulnerabilities detected")
-          .append(vulnerabilities.stream()
-              .map(this::handleComponentReportVulnerability)
-              .collect(Collectors.joining(System.lineSeparator())));
-
-      if (vulnerabilities.isEmpty()) {
-        log.info("{}: {}", artifact.getId().getComponentIdentifier().getDisplayName(), vulnerabilitiesText);
-      }
-      else {
-        hasVulnerabilities = true;
-        log.error("{}: {}", artifact.getId().getComponentIdentifier().getDisplayName(), vulnerabilitiesText);
-      }
+    Set<PackageUrl> processedPackageUrls = new HashSet<>();
+    for (ResolvedDependency dependency : dependencies) {
+      hasVulnerabilities =
+          logWithVulnerabilities(dependency, dependenciesMap, response, processedPackageUrls, DEPENDENCY_PREFIX);
     }
+
+    log.info("{}{} - if present, dependencies omitted (listed previously)", System.lineSeparator(), REPEATED_MARKER);
 
     return hasVulnerabilities;
   }
 
-  private PackageUrl packageUrl(ResolvedArtifact artifact) {
-    PackageUrlBuilder builder = new PackageUrlBuilder()
-        .type("maven")
-        .namespace(artifact.getModuleVersion().getId().getGroup())
-        .name(artifact.getModuleVersion().getId().getName())
-        .version(artifact.getModuleVersion().getId().getVersion());
+  private boolean logWithVulnerabilities(
+      ResolvedDependency dependency,
+      Map<ResolvedDependency, PackageUrl> dependenciesMap,
+      Map<PackageUrl, ComponentReport> response,
+      Set<PackageUrl> processedPackageUrls,
+      String prefix)
+  {
+    PackageUrl packageUrl = dependenciesMap.get(dependency);
+    ComponentReport report = response.get(packageUrl);
+    List<ComponentReportVulnerability> vulnerabilities =
+        report != null ? report.getVulnerabilities() : Collections.emptyList();
 
-    if (StringUtils.isNotBlank(artifact.getExtension())) {
-      builder.qualifier("extension", artifact.getExtension());
+    StringBuilder vulnerabilitiesText = new StringBuilder()
+        .append(vulnerabilities.size())
+        .append(" vulnerabilities detected")
+        .append(vulnerabilities.stream()
+            .map(vulnerability -> handleComponentReportVulnerability(vulnerability, prefix))
+            .collect(Collectors.joining("")));
+
+    String id = getDependencyId(dependency);
+    boolean isRepeated = !processedPackageUrls.add(packageUrl);
+    String repeatedMarker = isRepeated && !dependency.getChildren().isEmpty() ? " " + REPEATED_MARKER : "";
+    boolean hasVulnerabilities = !vulnerabilities.isEmpty();
+
+    log.info("{}{}{}: {}", prefix, id, repeatedMarker, vulnerabilitiesText);
+
+    if (isRepeated) {
+      return hasVulnerabilities;
     }
 
-    return builder.build();
+    Set<ResolvedDependency> childrenSet = new TreeSet<>(
+        Comparator.comparing(ResolvedDependency::getModuleGroup)
+        .thenComparing(ResolvedDependency::getModuleName)
+        .thenComparing(ResolvedDependency::getModuleVersion));
+    childrenSet.addAll(dependency.getChildren());
+
+    if (childrenSet.isEmpty()) {
+      return hasVulnerabilities;
+    }
+
+    return childrenSet.stream()
+        .map(child -> logWithVulnerabilities(child, dependenciesMap, response, processedPackageUrls,
+            StringUtils.replaceOnce(prefix, DEPENDENCY_PREFIX, "|    ") + DEPENDENCY_PREFIX))
+        .collect(Collectors.toList())
+        .contains(true) || hasVulnerabilities;
+
   }
 
-  private String handleComponentReportVulnerability(ComponentReportVulnerability vulnerability) {
-    StringBuilder builder = new StringBuilder(System.lineSeparator()).append(vulnerability.getTitle());
+  private String getDependencyId(ResolvedDependency dependency) {
+    ModuleVersionIdentifier moduleVersionId = dependency.getModule().getId();
+    return moduleVersionId.getGroup() + ":" + moduleVersionId.getName() + ":" + moduleVersionId.getVersion();
+  }
+
+  private String handleComponentReportVulnerability(ComponentReportVulnerability vulnerability, String prefix) {
+    StringBuilder builder = new StringBuilder(System.lineSeparator())
+        .append(StringUtils.replaceOnce(prefix, DEPENDENCY_PREFIX, StringUtils.repeat(" ", DEPENDENCY_PREFIX.length())))
+        .append(vulnerability.getTitle());
 
     if (vulnerability.getCvssScore() != null) {
       builder.append(" (").append(vulnerability.getCvssScore()).append(')');
