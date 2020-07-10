@@ -41,6 +41,8 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 @RunWith(Parameterized.class)
 public abstract class ScanPluginIntegrationTestBase
 {
+  private static final String DEPENDENCY_PREFIX = "+--- ";
+
   /*
    * Parameters are declared in subclasses in order run subsets of Gradle versions to avoid Memory errors on CI.
    */
@@ -159,6 +161,23 @@ public abstract class ScanPluginIntegrationTestBase
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(FAILED);
   }
 
+  @Test
+  public void testAuditTask_TransitiveDepdendencies_OssIndex() throws IOException {
+    writeFile(buildFile, "transitive-dependencies.gradle");
+
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    assertThat(result.getOutput()).contains(String.format(
+        "%sjunit:junit:4.12: 0 vulnerabilities detected%n"
+        + "|    %sorg.hamcrest:hamcrest-core:1.3: 0 vulnerabilities detected", DEPENDENCY_PREFIX, DEPENDENCY_PREFIX));
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
   private void writeFile(File destination, String resourceName) throws IOException {
     String resource = useLegacySyntax ? "legacy-syntax" + File.separator + resourceName : resourceName;
     try (InputStream contentStream = getClass().getClassLoader().getResourceAsStream(resource);
@@ -178,7 +197,8 @@ public abstract class ScanPluginIntegrationTestBase
 
   private void assertBuildOutputText_OssIndex(BuildResult result, int vulnerabilities) {
     String resultOutput = result.getOutput();
-    assertThat(resultOutput).contains(
-        String.format("commons-collections:commons-collections:3.1: %s vulnerabilities detected", vulnerabilities));
+    assertThat(resultOutput)
+        .contains(String.format("%scommons-collections:commons-collections:3.1: %s vulnerabilities detected",
+            DEPENDENCY_PREFIX, vulnerabilities));
   }
 }
