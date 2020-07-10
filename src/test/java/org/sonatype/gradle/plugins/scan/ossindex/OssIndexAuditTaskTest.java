@@ -55,7 +55,6 @@ public class OssIndexAuditTaskTest
       .namespace("commons-collections")
       .name("commons-collections")
       .version("3.1")
-      .qualifier("extension", "jar")
       .build();
 
   @Mock

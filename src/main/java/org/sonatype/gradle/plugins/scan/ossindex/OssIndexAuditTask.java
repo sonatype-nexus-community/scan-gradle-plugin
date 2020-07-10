@@ -61,6 +61,10 @@ public class OssIndexAuditTask
 {
   private final Logger log = LoggerFactory.getLogger(OssIndexAuditTask.class);
 
+  private static final String DEPENDENCY_PREFIX = "+--- ";
+
+  private static final String REPEATED_MARKER = "(*)";
+
   private final OssIndexPluginExtension extension;
 
   private final DependenciesFinder dependenciesFinder;
@@ -164,7 +168,6 @@ public class OssIndexAuditTask
         .build();
   }
 
-
   private boolean handleOssIndexResponse(
       Set<ResolvedDependency> dependencies,
       Map<ResolvedDependency, PackageUrl> dependenciesMap,
@@ -174,8 +177,11 @@ public class OssIndexAuditTask
 
     Set<PackageUrl> processedPackageUrls = new HashSet<>();
     for (ResolvedDependency dependency : dependencies) {
-      hasVulnerabilities = logWithVulnerabilities(dependency, dependenciesMap, response, processedPackageUrls, "+--- ");
+      hasVulnerabilities =
+          logWithVulnerabilities(dependency, dependenciesMap, response, processedPackageUrls, DEPENDENCY_PREFIX);
     }
+
+    log.info("{}{} - if present, dependencies omitted (listed previously)", System.lineSeparator(), REPEATED_MARKER);
 
     return hasVulnerabilities;
   }
@@ -197,26 +203,35 @@ public class OssIndexAuditTask
         .append(" vulnerabilities detected")
         .append(vulnerabilities.stream()
             .map(vulnerability -> handleComponentReportVulnerability(vulnerability, prefix))
-            .collect(Collectors.joining(System.lineSeparator())));
+            .collect(Collectors.joining("")));
 
     String id = getDependencyId(dependency);
     boolean isRepeated = !processedPackageUrls.add(packageUrl);
-    String repeatedMarker = isRepeated && !dependency.getChildren().isEmpty() ? " (*)" : "";
+    String repeatedMarker = isRepeated && !dependency.getChildren().isEmpty() ? " " + REPEATED_MARKER : "";
+    boolean hasVulnerabilities = !vulnerabilities.isEmpty();
 
     log.info("{}{}{}: {}", prefix, id, repeatedMarker, vulnerabilitiesText);
 
     if (isRepeated) {
-      return !vulnerabilities.isEmpty();
+      return hasVulnerabilities;
     }
 
-    Set<ResolvedDependency> childrenSet = new TreeSet<>(Comparator.comparing(ResolvedDependency::getModuleGroup)
-        .thenComparing(ResolvedDependency::getModuleName).thenComparing(ResolvedDependency::getModuleVersion));
+    Set<ResolvedDependency> childrenSet = new TreeSet<>(
+        Comparator.comparing(ResolvedDependency::getModuleGroup)
+        .thenComparing(ResolvedDependency::getModuleName)
+        .thenComparing(ResolvedDependency::getModuleVersion));
     childrenSet.addAll(dependency.getChildren());
+
+    if (childrenSet.isEmpty()) {
+      return hasVulnerabilities;
+    }
 
     return childrenSet.stream()
         .map(child -> logWithVulnerabilities(child, dependenciesMap, response, processedPackageUrls,
-            StringUtils.replaceOnce(prefix, "+--- ", "|    ") + "+--- "))
-        .anyMatch(hasVulnerabilities -> hasVulnerabilities == true);
+            StringUtils.replaceOnce(prefix, DEPENDENCY_PREFIX, "|    ") + DEPENDENCY_PREFIX))
+        .collect(Collectors.toList())
+        .contains(true);
+
   }
 
   private String getDependencyId(ResolvedDependency dependency) {
@@ -226,8 +241,7 @@ public class OssIndexAuditTask
 
   private String handleComponentReportVulnerability(ComponentReportVulnerability vulnerability, String prefix) {
     StringBuilder builder = new StringBuilder(System.lineSeparator())
-        .append(prefix)
-        .append(">")
+        .append(StringUtils.replaceOnce(prefix, DEPENDENCY_PREFIX, StringUtils.repeat(" ", DEPENDENCY_PREFIX.length())))
         .append(vulnerability.getTitle());
 
     if (vulnerability.getCvssScore() != null) {
