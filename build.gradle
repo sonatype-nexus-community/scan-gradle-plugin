@@ -110,103 +110,103 @@ sourceSets {
   }
 }
 
-// configure deployment if performing release
-if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
-  publishing {
-    afterEvaluate {
-      def pluginUrl = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
+publishing {
+  afterEvaluate {
+    def pluginUrl = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
 
-      pluginBundle {
-        website = pluginUrl
-        vcsUrl = pluginUrl
-        description = pluginDescription
-        tags = ['sonatype', 'scan', 'dependencies', 'ossindex', 'iq server']
-        System.setProperty('gradle.publish.key', System.getenv('GRADLE_PUBLISH_KEY'))
-        System.setProperty('gradle.publish.secret', System.getenv('GRADLE_PUBLISH_SECRET'))
+    pluginBundle {
+      website = pluginUrl
+      vcsUrl = pluginUrl
+      description = pluginDescription
+      tags = ['sonatype', 'scan', 'dependencies', 'ossindex', 'iq server']
+      System.setProperty('gradle.publish.key', System.getenv('GRADLE_PUBLISH_KEY') ?: '')
+      System.setProperty('gradle.publish.secret', System.getenv('GRADLE_PUBLISH_SECRET') ?: '')
+    }
+
+    release {
+      // avoid infinite CircleCI builds triggered by release commits
+      preCommitText = '[skip ci] '
+    }
+
+    def sonatypeUsername = System.getenv('SONATYPE_USERNAME')
+    def sonatypePassword = System.getenv('SONATYPE_PASSWORD')
+
+    def serverUrlBase = 'https://repository.sonatype.org:443/service/local/'
+
+    repositories {
+      maven {
+        name = 'rso'
+        url = serverUrlBase + 'staging/deploy/maven2/'
+        credentials {
+          username = sonatypeUsername
+          password = sonatypePassword
+        }
+      }
+    }
+
+    nexusStaging {
+      serverUrl = serverUrlBase
+      stagingProfileId = '97306992c3c7ca'
+      username = sonatypeUsername
+      password = sonatypePassword
+      numberOfRetries = 40
+      delayBetweenRetriesInMillis = 5000
+    }
+
+    publications {
+      shadow(MavenPublication) { publication ->
+        project.shadow.component(publication)
       }
 
-      release {
-        // avoid infinite CircleCI builds triggered by release commits
-        preCommitText = '[skip ci] '
-      }
-
-      def sonatypeUsername = System.getenv('SONATYPE_USERNAME')
-      def sonatypePassword = System.getenv('SONATYPE_PASSWORD')
-
-      def serverUrlBase = 'https://repository.sonatype.org:443/service/local/'
-
-      repositories {
-        maven {
-          name = 'rso'
-          url = serverUrlBase + 'staging/deploy/maven2/'
-          credentials {
-            username = sonatypeUsername
-            password = sonatypePassword
+      withType(MavenPublication) {
+        pom {
+          name = project.name
+          description = pluginDescription
+          url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
+          organization {
+            name = 'Sonatype'
+            url = 'https://www.sonatype.org'
           }
-        }
-      }
-
-      nexusStaging {
-        serverUrl = serverUrlBase
-        stagingProfileId = '97306992c3c7ca'
-        username = sonatypeUsername
-        password = sonatypePassword
-        numberOfRetries = 40
-        delayBetweenRetriesInMillis = 5000
-      }
-
-      publications {
-        shadow(MavenPublication) { publication ->
-          project.shadow.component(publication)
-        }
-
-        withType(MavenPublication) {
-          pom {
-            name = project.name
-            description = pluginDescription
+          issueManagement {
+            system = 'GitHub'
+            url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin/issues'
+          }
+          licenses {
+            license {
+              name = 'The Apache Software License, Version 2.0'
+              url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+              distribution = 'repo'
+            }
+          }
+          scm {
+            connection = 'scm:git:git://github.com/sonatype-nexus-community/scan-gradle-plugin.git'
+            developerConnection = 'scm:git:ssh://git@github.com:sonatype-nexus-community/scan-gradle-plugin.git'
             url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
-            organization {
-              name = 'Sonatype'
-              url = 'https://www.sonatype.org'
-            }
-            issueManagement {
-              system = 'GitHub'
-              url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin/issues'
-            }
-            licenses {
-              license {
-                name = 'The Apache Software License, Version 2.0'
-                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                distribution = 'repo'
-              }
-            }
-            scm {
-              connection = 'scm:git:git://github.com/sonatype-nexus-community/scan-gradle-plugin.git'
-              developerConnection = 'scm:git:ssh://git@github.com:sonatype-nexus-community/scan-gradle-plugin.git'
-              url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
-            }
-            developers {
-              developer {
-                name = 'Guillermo Varela'
-              }
-              developer {
-                name = 'Usman Shaikh'
-              }
-            }
           }
-
-          artifactId = project.name
-
-          artifact(sourceJar) {
-            classifier = 'sources'
-          }
-
-          artifact(javadocJar) {
-            classifier = 'javadoc'
+          developers {
+            developer {
+              name = 'Guillermo Varela'
+            }
+            developer {
+              name = 'Usman Shaikh'
+            }
           }
         }
-      }
 
+        artifactId = project.name
+
+        artifact(sourceJar) {
+          classifier = 'sources'
+        }
+
+        artifact(javadocJar) {
+          classifier = 'javadoc'
+        }
+      }
+    }
+
+    // configure signing if performing release
+    if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
       signing {
         def final encodedKey = System.getenv('SECRING_GPG_ASC_BASE64')
         def final signingKey = new String(encodedKey.decodeBase64())
@@ -224,8 +224,8 @@ if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
       }
     }
   }
-
-  afterReleaseBuild.dependsOn publish
-  publish.finalizedBy closeAndReleaseRepository
-  publish.finalizedBy publishPlugins
 }
+
+afterReleaseBuild.dependsOn publish
+publish.finalizedBy closeAndReleaseRepository
+publish.finalizedBy publishPlugins
