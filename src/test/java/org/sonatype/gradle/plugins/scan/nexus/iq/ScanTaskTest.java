@@ -109,7 +109,8 @@ public class ScanTaskTest
 
     assertThatThrownBy(() -> task.scan())
         .isInstanceOf(GradleException.class)
-        .hasMessageContaining("Application ID test doesn't exist and couldn't be created");
+        .hasMessageContaining("Application ID test doesn't exist and couldn't be created or the user user doesn't have"
+            + " the 'Application Evaluator' role for that application.");
   }
 
   private NexusIqScanTask buildScanTask(boolean isSimulated) {
