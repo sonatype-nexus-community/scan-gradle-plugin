@@ -87,8 +87,10 @@ public class NexusIqScanTask
         iqClient.validateServerVersion(MINIMAL_SERVER_VERSION_REQUIRED);
 
         if (!iqClient.verifyOrCreateApplication(extension.getApplicationId())) {
-          throw new IllegalArgumentException(
-              String.format("Application ID %s doesn't exist and couldn't be created", extension.getApplicationId()));
+          throw new IllegalArgumentException(String.format(
+              "Application ID %s doesn't exist and couldn't be created or the user %s doesn't have the "
+                  + "'Application Evaluator' role for that application.",
+              extension.getApplicationId(), extension.getUsername()));
         }
 
         ProprietaryConfig proprietaryConfig =
