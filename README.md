@@ -76,7 +76,7 @@ ossIndexAudit {
 - Configure IQ Server settings inside the `nexusIQScan` configuration on the file `build.gradle` e.g.
 ```
 nexusIQScan {
-    username = 'admin'
+    username = 'admin' // Make sure to use an user with the role 'Application Evaluator' in the given IQ Server application
     password = 'pass'
     serverUrl = 'http://localhost:8070'
     applicationId = 'app'
