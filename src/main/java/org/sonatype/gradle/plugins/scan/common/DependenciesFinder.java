@@ -28,6 +28,7 @@ import com.sonatype.insight.scan.module.model.Module;
 
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
@@ -39,28 +40,28 @@ public class DependenciesFinder
   private static final Set<String> CONFIGURATION_NAMES =
       new HashSet<>(Arrays.asList(COMPILE_CLASSPATH_CONFIGURATION_NAME, "releaseCompileClasspath"));
 
-  public Set<ResolvedDependency> findResolvedDependencies(Project rootProject) {
+  public Set<ResolvedDependency> findResolvedDependencies(Project rootProject, boolean allConfigurations) {
     return rootProject.getAllprojects().stream()
         .flatMap(project -> project.getConfigurations().stream())
-        .filter(configuration -> CONFIGURATION_NAMES.contains(configuration.getName()))
+        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
         .flatMap(configuration -> configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream())
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  public Set<ResolvedArtifact> findResolvedArtifacts(Project project) {
+  public Set<ResolvedArtifact> findResolvedArtifacts(Project project, boolean allConfigurations) {
     return project.getConfigurations().stream()
-        .filter(configuration -> CONFIGURATION_NAMES.contains(configuration.getName()))
+        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
         .flatMap(configuration -> configuration.getResolvedConfiguration().getResolvedArtifacts().stream())
         .collect(Collectors.toSet());
   }
 
-  public List<Module> findModules(Project rootProject) {
+  public List<Module> findModules(Project rootProject, boolean allConfigurations) {
     List<Module> modules = new ArrayList<>();
 
     rootProject.allprojects(project -> {
       Module module = buildModule(project);
 
-      findResolvedArtifacts(project).forEach(resolvedArtifact -> {
+      findResolvedArtifacts(project, allConfigurations).forEach(resolvedArtifact -> {
         Artifact artifact = new Artifact()
             .setId(resolvedArtifact.getId().getComponentIdentifier().getDisplayName())
             .setPathname(resolvedArtifact.getFile())
@@ -92,5 +93,12 @@ public class DependenciesFinder
     module.setId(idBuilder.toString());
 
     return module;
+  }
+
+  private boolean isAcceptableConfiguration(Configuration configuration, boolean allConfigurations) {
+    if (allConfigurations) {
+      return configuration.isCanBeResolved();
+    }
+    return CONFIGURATION_NAMES.contains(configuration.getName());
   }
 }

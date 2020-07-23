@@ -23,6 +23,7 @@ import com.sonatype.insight.scan.module.model.Module;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Before;
@@ -44,24 +45,59 @@ public class DependenciesFinderTest
   }
 
   @Test
+  public void testFindResolvedDependencies_includeCompileDependencies() {
+    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_includeAndroidDependencies() {
+    Project project = buildProject("releaseCompileClasspath", true);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_omitTestDependencies() {
+    Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testFindResolvedDependencies_includeTestDependencies() {
+    Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
   public void testFindResolvedArtifacts_includeCompileDependencies() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_includeAndroidDependencies() {
     Project project = buildProject("releaseCompileClasspath", true);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_omitTestDependencies() {
     Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testFindResolvedArtifacts_includeTestDependencies() {
+    Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, true);
+    assertThat(result).hasSize(1);
   }
 
   @Test
@@ -99,7 +135,7 @@ public class DependenciesFinderTest
   @Test
   public void testFindModules_singleModule() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    List<Module> modules = finder.findModules(project);
+    List<Module> modules = finder.findModules(project, false);
 
     assertThat(modules).hasSize(1);
 
@@ -115,7 +151,7 @@ public class DependenciesFinderTest
   public void testFindModules_multiModule() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
     Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
-    List<Module> modules = finder.findModules(parentProject);
+    List<Module> modules = finder.findModules(parentProject, false);
 
     assertThat(modules).hasSize(2);
 
