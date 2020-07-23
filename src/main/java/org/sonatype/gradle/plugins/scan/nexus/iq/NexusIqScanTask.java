@@ -97,7 +97,7 @@ public class NexusIqScanTask
             iqClient.getProprietaryConfigForApplicationEvaluation(extension.getApplicationId());
 
         File scanFolder = new File(extension.getScanFolderPath());
-        List<Module> modules = dependenciesFinder.findModules(getProject());
+        List<Module> modules = dependenciesFinder.findModules(getProject(), extension.isAllConfigurations());
 
         ScanResult scanResult = iqClient.scan(extension.getApplicationId(), proprietaryConfig, new Properties(),
             Collections.emptyList(), scanFolder, Collections.emptyMap(), modules);
@@ -180,6 +180,11 @@ public class NexusIqScanTask
   @Input
   public String getStage() {
     return extension.getStage();
+  }
+
+  @Input
+  public boolean isAllConfigurations() {
+    return extension.isAllConfigurations();
   }
 
   @VisibleForTesting
