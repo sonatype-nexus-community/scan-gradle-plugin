@@ -178,6 +178,28 @@ public abstract class ScanPluginIntegrationTestBase
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
+  @Test
+  public void testAuditTask_ExcludeTestDependencies_OssIndex() throws IOException {
+    writeFile(buildFile, "exclude-test-dependency.gradle");
+
+    BuildResult result = GradleRunner.create().withGradleVersion(gradleVersion).withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath().withArguments("ossIndexAudit", "--info").build();
+
+    assertThat(result.getOutput()).contains("0 dependencies");
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_IncludeTestDependencies_OssIndex() throws IOException {
+    writeFile(buildFile, "include-test-dependency.gradle");
+
+    BuildResult result = GradleRunner.create().withGradleVersion(gradleVersion).withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath().withArguments("ossIndexAudit", "--info").build();
+
+    assertBuildOutputText_OssIndex(result, 0);
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
   private void writeFile(File destination, String resourceName) throws IOException {
     String resource = useLegacySyntax ? "legacy-syntax" + File.separator + resourceName : resourceName;
     try (InputStream contentStream = getClass().getClassLoader().getResourceAsStream(resource);
