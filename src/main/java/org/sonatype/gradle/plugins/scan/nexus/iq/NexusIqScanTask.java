@@ -182,6 +182,11 @@ public class NexusIqScanTask
     return extension.getStage();
   }
 
+  @Input
+  public boolean isAllConfigurations() {
+    return extension.isAllConfigurations();
+  }
+
   @VisibleForTesting
   void setDependenciesFinder(DependenciesFinder dependenciesFinder) {
     this.dependenciesFinder = dependenciesFinder;

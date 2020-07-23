@@ -280,4 +280,9 @@ public class OssIndexAuditTask
   public String getCacheExpiration() {
     return extension.getCacheExpiration();
   }
+
+  @Input
+  public boolean isAllConfigurations() {
+    return extension.isAllConfigurations();
+  }
 }
