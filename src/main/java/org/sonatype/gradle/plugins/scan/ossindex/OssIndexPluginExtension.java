@@ -34,6 +34,8 @@ public class OssIndexPluginExtension
    */
   private String cacheExpiration;
 
+  private boolean allConfigurations;
+
   private boolean simulationEnabled;
 
   private boolean simulatedVulnerabityFound;
@@ -86,6 +88,14 @@ public class OssIndexPluginExtension
 
   public void setCacheExpiration(String cacheExpiration) {
     this.cacheExpiration = cacheExpiration;
+  }
+
+  public boolean isAllConfigurations() {
+    return allConfigurations;
+  }
+
+  public void setAllConfigurations(boolean allConfigurations) {
+    this.allConfigurations = allConfigurations;
   }
 
   public boolean isSimulationEnabled() {

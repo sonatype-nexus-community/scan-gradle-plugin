@@ -36,6 +36,8 @@ public class NexusIqPluginExtension
 
   private String applicationId;
 
+  private boolean allConfigurations;
+
   private boolean simulationEnabled;
 
   private String simulatedPolicyActionId;
@@ -102,6 +104,14 @@ public class NexusIqPluginExtension
 
   public void setStage(final String stage) {
     this.stage = stage;
+  }
+
+  public boolean isAllConfigurations() {
+    return allConfigurations;
+  }
+
+  public void setAllConfigurations(boolean allConfigurations) {
+    this.allConfigurations = allConfigurations;
   }
 
   public boolean isSimulationEnabled() {

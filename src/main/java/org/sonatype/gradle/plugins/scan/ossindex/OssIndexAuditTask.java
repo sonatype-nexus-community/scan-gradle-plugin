@@ -79,7 +79,8 @@ public class OssIndexAuditTask
     boolean hasVulnerabilities;
 
     try (OssindexClient ossIndexClient = buildOssIndexClient()) {
-      Set<ResolvedDependency> dependencies = dependenciesFinder.findResolvedDependencies(getProject());
+      Set<ResolvedDependency> dependencies =
+          dependenciesFinder.findResolvedDependencies(getProject(), extension.isAllConfigurations());
       BiMap<ResolvedDependency, PackageUrl> dependenciesMap = HashBiMap.create();
 
       dependencies.forEach(dependency -> {
@@ -181,7 +182,9 @@ public class OssIndexAuditTask
           logWithVulnerabilities(dependency, dependenciesMap, response, processedPackageUrls, DEPENDENCY_PREFIX);
     }
 
-    log.info("{}{} - if present, dependencies omitted (listed previously)", System.lineSeparator(), REPEATED_MARKER);
+    if (!dependencies.isEmpty()) {
+      log.info("{}{} - if present, dependencies omitted (listed previously)", System.lineSeparator(), REPEATED_MARKER);
+    }
 
     return hasVulnerabilities;
   }
@@ -276,5 +279,10 @@ public class OssIndexAuditTask
   @Input
   public String getCacheExpiration() {
     return extension.getCacheExpiration();
+  }
+
+  @Input
+  public boolean isAllConfigurations() {
+    return extension.isAllConfigurations();
   }
 }

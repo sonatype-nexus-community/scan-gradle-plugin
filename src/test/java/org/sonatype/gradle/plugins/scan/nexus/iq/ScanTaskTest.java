@@ -72,7 +72,7 @@ public class ScanTaskTest
         .thenReturn(new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
     when(builderMock.build()).thenReturn(iqClientMock);
 
-    when(dependenciesFinderMock.findModules(any(Project.class))).thenReturn(Collections.emptyList());
+    when(dependenciesFinderMock.findModules(any(Project.class), eq(false))).thenReturn(Collections.emptyList());
   }
 
   @Test
@@ -93,7 +93,7 @@ public class ScanTaskTest
 
     task.scan();
 
-    verify(dependenciesFinderMock).findModules(any(Project.class));
+    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false));
     verify(iqClientMock).validateServerVersion(anyString());
     verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()));
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
