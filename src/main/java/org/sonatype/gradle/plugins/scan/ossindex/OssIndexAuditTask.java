@@ -243,9 +243,9 @@ public class OssIndexAuditTask
 
   }
 
-  private void changeColor(StringBuilder vulnerabilitiesText, String color) {
+  private void changeColor(StringBuilder vulnerabilitiesText, String asciiCode) {
     if (extension.isColorEnabled()) {
-      vulnerabilitiesText.append(color);
+      vulnerabilitiesText.append(asciiCode);
     }
   }
 
