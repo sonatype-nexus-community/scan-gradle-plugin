@@ -65,6 +65,10 @@ public class OssIndexAuditTask
 
   private static final String REPEATED_MARKER = "(*)";
 
+  private static final String ASCII_COLOR_RED = "\033[31m";
+
+  private static final String ASCII_COLOR_RESET = "\033[0m";
+
   private final OssIndexPluginExtension extension;
 
   private final DependenciesFinder dependenciesFinder;
@@ -203,10 +207,12 @@ public class OssIndexAuditTask
 
     StringBuilder vulnerabilitiesText = new StringBuilder()
         .append(vulnerabilities.size())
-        .append(" vulnerabilities detected")
-        .append(vulnerabilities.stream()
-            .map(vulnerability -> handleComponentReportVulnerability(vulnerability, prefix))
-            .collect(Collectors.joining("")));
+        .append(" vulnerabilities detected");
+    changeColor(vulnerabilitiesText, ASCII_COLOR_RED);
+    vulnerabilitiesText.append(vulnerabilities.stream()
+        .map(vulnerability -> handleComponentReportVulnerability(vulnerability, prefix))
+        .collect(Collectors.joining("")));
+    changeColor(vulnerabilitiesText, ASCII_COLOR_RESET);
 
     String id = getDependencyId(dependency);
     boolean isRepeated = !processedPackageUrls.add(packageUrl);
@@ -235,6 +241,12 @@ public class OssIndexAuditTask
         .collect(Collectors.toList())
         .contains(true) || hasVulnerabilities;
 
+  }
+
+  private void changeColor(StringBuilder vulnerabilitiesText, String asciiCode) {
+    if (extension.isColorEnabled()) {
+      vulnerabilitiesText.append(asciiCode);
+    }
   }
 
   private String getDependencyId(ResolvedDependency dependency) {

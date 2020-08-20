@@ -40,6 +40,8 @@ public class OssIndexPluginExtension
 
   private boolean simulatedVulnerabityFound;
 
+  private boolean colorEnabled;
+
   public OssIndexPluginExtension(Project project) {
     username = "";
     password = "";
@@ -48,6 +50,7 @@ public class OssIndexPluginExtension
     cacheExpiration = "";
     simulationEnabled = false;
     simulatedVulnerabityFound = false;
+    colorEnabled = true;
   }
 
   public String getUsername() {
@@ -112,5 +115,13 @@ public class OssIndexPluginExtension
 
   public void setSimulatedVulnerabityFound(boolean simulatedVulnerabityFound) {
     this.simulatedVulnerabityFound = simulatedVulnerabityFound;
+  }
+
+  public boolean isColorEnabled() {
+    return colorEnabled;
+  }
+
+  public void setColorEnabled(boolean colorEnabled) {
+    this.colorEnabled = colorEnabled;
   }
 }

@@ -9,3 +9,6 @@ repositories {
 dependencies {
   compile 'junit:junit:4.12'
 }
+ossIndexAudit {
+  colorEnabled = false
+}
