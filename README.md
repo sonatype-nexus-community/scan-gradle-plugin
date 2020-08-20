@@ -67,6 +67,7 @@ ossIndexAudit {
     useCache = true // true by default
     cacheDirectory = 'some/path' // by default it uses the user data directory (according to OS)
     cacheExpiration = 'PT12H' // 12 hours if omitted. It must follow the Joda Time specification at https://www.javadoc.io/doc/joda-time/joda-time/2.10.4/org/joda/time/Duration.html#parse-java.lang.String-
+    colorEnabled = false // if true prints vulnerability description in color (red). By default is true.  
 }
 ```
 - Open Terminal on the project's root and run `./gradlew ossIndexAudit`
