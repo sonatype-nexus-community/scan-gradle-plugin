@@ -259,8 +259,10 @@ public class OssIndexAuditTask
         .append(StringUtils.replaceOnce(prefix, DEPENDENCY_PREFIX, StringUtils.repeat(" ", DEPENDENCY_PREFIX.length())))
         .append(vulnerability.getTitle());
 
-    if (vulnerability.getCvssScore() != null) {
-      builder.append(" (").append(vulnerability.getCvssScore()).append(')');
+    Float cvssScore = vulnerability.getCvssScore();
+    if (cvssScore != null) {
+      builder.append(" (").append(cvssScore).append("/10").append(", ")
+          .append(VulnerabilityUtils.getAssessment(cvssScore)).append(')');
     }
 
     builder.append(": ").append(vulnerability.getReference());
