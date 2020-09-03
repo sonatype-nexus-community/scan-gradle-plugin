@@ -75,7 +75,8 @@ public class NexusIqScanTask
               Collections.singletonList(new Action(extension.getSimulatedPolicyActionId()))));
         }
 
-        applicationPolicyEvaluation = new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, alerts, "simulated/report");
+        applicationPolicyEvaluation =
+            new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, alerts, "simulated/report");
       }
       else {
         InternalIqClient iqClient = InternalIqClientBuilder.create()

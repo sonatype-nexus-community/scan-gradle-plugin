@@ -69,7 +69,8 @@ public class ScanTaskTest
     when(InternalIqClientBuilder.create()).thenReturn(builderMock);
 
     when(iqClientMock.evaluateApplication(anyString(), anyString(), nullable(ScanResult.class), any(File.class)))
-        .thenReturn(new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
+        .thenReturn(
+            new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
     when(builderMock.build()).thenReturn(iqClientMock);
 
     when(dependenciesFinderMock.findModules(any(Project.class), eq(false))).thenReturn(Collections.emptyList());
