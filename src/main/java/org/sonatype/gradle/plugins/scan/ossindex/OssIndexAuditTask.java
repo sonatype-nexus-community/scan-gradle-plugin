@@ -178,8 +178,11 @@ public class OssIndexAuditTask
 
     Set<PackageUrl> processedPackageUrls = new HashSet<>();
     for (ResolvedDependency dependency : dependencies) {
-      hasVulnerabilities =
+      boolean vulnerable =
           logWithVulnerabilities(dependency, dependenciesMap, response, processedPackageUrls, DEPENDENCY_PREFIX);
+      if (vulnerable) {
+        hasVulnerabilities = true;
+      }
     }
 
     if (!dependencies.isEmpty()) {
