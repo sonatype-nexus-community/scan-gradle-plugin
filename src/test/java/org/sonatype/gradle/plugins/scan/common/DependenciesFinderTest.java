@@ -59,6 +59,13 @@ public class DependenciesFinderTest
   }
 
   @Test
+  public void testFindResolvedDependencies_includeAndroidDependenciesUsingVariant() {
+    Project project = buildProject("variantProdReleaseCompileClasspath", true);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
   public void testFindResolvedDependencies_omitTestDependencies() {
     Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
