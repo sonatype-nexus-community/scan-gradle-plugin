@@ -37,8 +37,10 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_
 
 public class DependenciesFinder
 {
+  private static final String RELEASE_COMPILE_CONFIGURATION_NAME = "releaseCompileClasspath";
+
   private static final Set<String> CONFIGURATION_NAMES =
-      new HashSet<>(Arrays.asList(COMPILE_CLASSPATH_CONFIGURATION_NAME, "releaseCompileClasspath"));
+      new HashSet<>(Arrays.asList(COMPILE_CLASSPATH_CONFIGURATION_NAME, RELEASE_COMPILE_CONFIGURATION_NAME));
 
   public Set<ResolvedDependency> findResolvedDependencies(Project rootProject, boolean allConfigurations) {
     return rootProject.getAllprojects().stream()
@@ -99,6 +101,7 @@ public class DependenciesFinder
     if (allConfigurations) {
       return configuration.isCanBeResolved();
     }
-    return CONFIGURATION_NAMES.contains(configuration.getName());
+    return CONFIGURATION_NAMES.contains(configuration.getName())
+        || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME);
   }
 }
