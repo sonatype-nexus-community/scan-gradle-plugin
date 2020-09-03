@@ -65,10 +65,6 @@ public class OssIndexAuditTask
 
   private static final String REPEATED_MARKER = "(*)";
 
-  private static final String ASCII_COLOR_RED = "\033[31m";
-
-  private static final String ASCII_COLOR_RESET = "\033[0m";
-
   private final OssIndexPluginExtension extension;
 
   private final DependenciesFinder dependenciesFinder;
@@ -208,11 +204,11 @@ public class OssIndexAuditTask
     StringBuilder vulnerabilitiesText = new StringBuilder()
         .append(vulnerabilities.size())
         .append(" vulnerabilities detected");
-    changeColor(vulnerabilitiesText, ASCII_COLOR_RED);
+
     vulnerabilitiesText.append(vulnerabilities.stream()
         .map(vulnerability -> handleComponentReportVulnerability(vulnerability, prefix))
         .collect(Collectors.joining("")));
-    changeColor(vulnerabilitiesText, ASCII_COLOR_RESET);
+
 
     String id = getDependencyId(dependency);
     boolean isRepeated = !processedPackageUrls.add(packageUrl);
@@ -243,29 +239,31 @@ public class OssIndexAuditTask
 
   }
 
-  private void changeColor(StringBuilder vulnerabilitiesText, String asciiCode) {
-    if (extension.isColorEnabled()) {
-      vulnerabilitiesText.append(asciiCode);
-    }
-  }
-
   private String getDependencyId(ResolvedDependency dependency) {
     ModuleVersionIdentifier moduleVersionId = dependency.getModule().getId();
     return moduleVersionId.getGroup() + ":" + moduleVersionId.getName() + ":" + moduleVersionId.getVersion();
   }
 
   private String handleComponentReportVulnerability(ComponentReportVulnerability vulnerability, String prefix) {
-    StringBuilder builder = new StringBuilder(System.lineSeparator())
-        .append(StringUtils.replaceOnce(prefix, DEPENDENCY_PREFIX, StringUtils.repeat(" ", DEPENDENCY_PREFIX.length())))
+    String indent = System.lineSeparator() +
+        StringUtils.replaceOnce(prefix, DEPENDENCY_PREFIX, StringUtils.repeat(" ", DEPENDENCY_PREFIX.length()));
+
+    StringBuilder builder = new StringBuilder()
         .append(vulnerability.getTitle());
 
-    if (vulnerability.getCvssScore() != null) {
-      builder.append(" (").append(vulnerability.getCvssScore()).append(')');
+    Float cvssScore = vulnerability.getCvssScore();
+    if (cvssScore != null) {
+      builder.append(" (").append(cvssScore).append("/10").append(", ")
+          .append(VulnerabilityUtils.getAssessment(cvssScore)).append(')');
     }
 
     builder.append(": ").append(vulnerability.getReference());
 
-    return builder.toString();
+    String vulnerabilityText = builder.toString();
+    if (extension.isColorEnabled()) {
+      vulnerabilityText = VulnerabilityUtils.addColorBasedOnCvssScore(cvssScore, vulnerabilityText);
+    }
+    return indent + vulnerabilityText;
   }
 
   @Input
