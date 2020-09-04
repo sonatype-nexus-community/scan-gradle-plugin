@@ -38,7 +38,7 @@ public class OssIndexPluginExtension
 
   private boolean simulationEnabled;
 
-  private boolean simulatedVulnerabityFound;
+  private boolean simulatedVulnerabilityFound;
 
   private boolean colorEnabled;
 
@@ -49,7 +49,7 @@ public class OssIndexPluginExtension
     cacheDirectory = "";
     cacheExpiration = "";
     simulationEnabled = false;
-    simulatedVulnerabityFound = false;
+    simulatedVulnerabilityFound = false;
     colorEnabled = true;
   }
 
@@ -109,12 +109,12 @@ public class OssIndexPluginExtension
     this.simulationEnabled = simulationEnabled;
   }
 
-  public boolean isSimulatedVulnerabityFound() {
-    return simulatedVulnerabityFound;
+  public boolean isSimulatedVulnerabilityFound() {
+    return simulatedVulnerabilityFound;
   }
 
-  public void setSimulatedVulnerabityFound(boolean simulatedVulnerabityFound) {
-    this.simulatedVulnerabityFound = simulatedVulnerabityFound;
+  public void setSimulatedVulnerabilityFound(boolean simulatedVulnerabilityFound) {
+    this.simulatedVulnerabilityFound = simulatedVulnerabilityFound;
   }
 
   public boolean isColorEnabled() {
