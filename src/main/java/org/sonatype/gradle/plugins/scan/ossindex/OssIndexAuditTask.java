@@ -134,7 +134,7 @@ public class OssIndexAuditTask
       ComponentReport report = new ComponentReport();
       report.setCoordinates(packageUrl);
 
-      if (extension.isSimulatedVulnerabityFound()) {
+      if (extension.isSimulatedVulnerabilityFound()) {
         ComponentReportVulnerability vulnerability = new ComponentReportVulnerability();
         vulnerability.setTitle("Simulated");
         vulnerability.setCvssScore(4f);
