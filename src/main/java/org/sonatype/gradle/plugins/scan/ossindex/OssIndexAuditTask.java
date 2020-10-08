@@ -203,6 +203,7 @@ public class OssIndexAuditTask
     ComponentReport report = response.get(packageUrl);
     List<ComponentReportVulnerability> vulnerabilities =
         report != null ? report.getVulnerabilities() : Collections.emptyList();
+    vulnerabilities.sort(Comparator.comparing(ComponentReportVulnerability::getCvssScore).reversed());
 
     StringBuilder vulnerabilitiesText = new StringBuilder()
         .append(vulnerabilities.size())
