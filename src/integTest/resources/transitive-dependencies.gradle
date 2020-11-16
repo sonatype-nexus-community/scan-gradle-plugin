@@ -7,7 +7,7 @@ repositories {
   mavenCentral()
 }
 dependencies {
-  implementation 'junit:junit:4.12'
+  implementation 'org.hamcrest:hamcrest-core:2.2'
 }
 ossIndexAudit {
   colorEnabled = false
