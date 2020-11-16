@@ -173,8 +173,8 @@ public abstract class ScanPluginIntegrationTestBase
         .build();
 
     assertThat(result.getOutput()).contains(String.format(
-        "%sjunit:junit:4.12: 0 vulnerabilities detected%n"
-        + "|    %sorg.hamcrest:hamcrest-core:1.3: 0 vulnerabilities detected", DEPENDENCY_PREFIX, DEPENDENCY_PREFIX));
+        "%sorg.hamcrest:hamcrest-core:2.2: 0 vulnerabilities detected%n"
+        + "|    %sorg.hamcrest:hamcrest:2.2: 0 vulnerabilities detected", DEPENDENCY_PREFIX, DEPENDENCY_PREFIX));
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
