@@ -143,21 +143,6 @@ As mentioned above the values can be set on command line using -D arguments or i
 Just apply the plugin on the root project and all sub-modules will be processed and the output will be a single report
 with all components found in each module. This includes Android projects.
 
-### Known issue with dependencies and build variants (mostly found in Android projects)
-Let's say an Android project has a module `core` with some code (library) and another module `app` as the actual Android
-app. When using build variants an error like this may show:
-
-> Could not resolve all dependencies for configuration ':app:releaseCompileClasspath'.
-More than one variant of project :core matches the consumer attributes
-      Configuration ':core:releaseApiElements' variant android-aidl: Unmatched attributes:
-      - Found artifactType 'android-aidl' but wasn't required.
-      - Found com.android.build.api.attributes.VariantAttr 'release' but wasn't required.
-
-At the moment, to get ride of that variant issue we recommend to change the way the library is declared in `app` by
-going to the `build.gradle` file from:
-    - `api project(':core')` or `implementation project(':core')` to
-    - `api project(path: ':core', configuration: 'default')` or `implementation project(path: ':core', configuration: 'default')`
-
 ## Contributing
 
 We care a lot about making the world a safer place, and that's why we created this `scan-gradle-plugin`. If you as well want to speed up the pace of software development by working on this project, jump on in! Before you start work, create a new issue, or comment on an existing issue, to let others know you are!
