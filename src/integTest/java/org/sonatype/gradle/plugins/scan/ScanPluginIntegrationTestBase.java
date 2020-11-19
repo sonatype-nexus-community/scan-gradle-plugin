@@ -87,7 +87,7 @@ public abstract class ScanPluginIntegrationTestBase
 
   @Test
   public void testScanTask_NoPolicyAction_NexusIQ() throws IOException {
-    writeFile(buildFile, "control.gradle");
+    writeFile(buildFile, "control_dependency_graph.gradle");
 
     final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -119,7 +119,7 @@ public abstract class ScanPluginIntegrationTestBase
 
   @Test
   public void testScanTask_FailPolicyAction_NexusIQ() throws IOException {
-    writeFile(buildFile, "policy-fail.gradle");
+    writeFile(buildFile, "policy-fail_dependency_graph.gradle");
 
     final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -149,8 +149,8 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testAuditTask_NoVulnerabilities_OssIndex() throws IOException {
-    writeFile(buildFile, "control.gradle");
+  public void testAuditTask_NoVulnerabilities_OssIndex_Default() throws IOException {
+    writeFile(buildFile, "control_default.gradle");
 
     final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -159,13 +159,29 @@ public abstract class ScanPluginIntegrationTestBase
         .withArguments("ossIndexAudit", "--info")
         .build();
 
-    assertBuildOutputText_OssIndex(result, 0);
+    assertBuildOutputText_OssIndex_Default(result,
+        " - pkg:maven/commons-collections/commons-collections@3.1 - No vulnerabilities found!");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
   @Test
-  public void testAuditTask_Vulnerabilities_OssIndex() throws IOException {
-    writeFile(buildFile, "policy-fail.gradle");
+  public void testAuditTask_NoVulnerabilities_OssIndex_DependencyGraph() throws IOException {
+    writeFile(buildFile, "control_dependency_graph.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    assertBuildOutputText_OssIndex_DependencyGraph(result, 0);
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_Vulnerabilities_OssIndex_DependencyGraph() throws IOException {
+    writeFile(buildFile, "policy-fail_dependency_graph.gradle");
 
     final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -174,7 +190,23 @@ public abstract class ScanPluginIntegrationTestBase
         .withArguments("ossIndexAudit", "--info")
         .buildAndFail();
 
-    assertBuildOutputText_OssIndex(result, 1);
+    assertBuildOutputText_OssIndex_DependencyGraph(result, 1);
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(FAILED);
+  }
+
+  @Test
+  public void testAuditTask_Vulnerabilities_OssIndex_Default() throws IOException {
+    writeFile(buildFile, "policy-fail_default.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .buildAndFail();
+
+    assertBuildOutputText_OssIndex_Default(result,
+        " - pkg:maven/commons-collections/commons-collections@3.1 - 1 vulnerability found!");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(FAILED);
   }
 
@@ -221,7 +253,7 @@ public abstract class ScanPluginIntegrationTestBase
         .withArguments("ossIndexAudit", "--info")
         .build();
 
-    assertBuildOutputText_OssIndex(result, 0);
+    assertBuildOutputText_OssIndex_DependencyGraph(result, 0);
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
@@ -265,10 +297,15 @@ public abstract class ScanPluginIntegrationTestBase
     assertThat(resultOutput).contains("The detailed report can be viewed online at simulated/report");
   }
 
-  private void assertBuildOutputText_OssIndex(BuildResult result, int vulnerabilities) {
+  private void assertBuildOutputText_OssIndex_DependencyGraph(BuildResult result, int vulnerabilities) {
     String resultOutput = result.getOutput();
     assertThat(resultOutput)
         .contains(String.format("%scommons-collections:commons-collections:3.1: %s vulnerabilities detected",
             DEPENDENCY_PREFIX, vulnerabilities));
+  }
+
+  private void assertBuildOutputText_OssIndex_Default(BuildResult result, String expectedText) {
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains(expectedText);
   }
 }
