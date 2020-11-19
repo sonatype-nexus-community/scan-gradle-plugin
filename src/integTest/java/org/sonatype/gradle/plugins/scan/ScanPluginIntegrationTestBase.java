@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 import com.github.ardenliu.common.file.ResourcesUtils;
@@ -134,7 +133,7 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testScanTask_Android_NexusIQ() throws IOException, InterruptedException, URISyntaxException {
+  public void testScanTask_Android_NexusIQ() {
     String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
     ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
 
@@ -200,8 +199,12 @@ public abstract class ScanPluginIntegrationTestBase
   public void testAuditTask_ExcludeTestDependencies_OssIndex() throws IOException {
     writeFile(buildFile, "exclude-test-dependency.gradle");
 
-    BuildResult result = GradleRunner.create().withGradleVersion(gradleVersion).withProjectDir(testProjectDir.getRoot())
-        .withPluginClasspath().withArguments("ossIndexAudit", "--info").build();
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
 
     assertThat(result.getOutput()).contains("0 dependencies");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
@@ -211,15 +214,19 @@ public abstract class ScanPluginIntegrationTestBase
   public void testAuditTask_IncludeTestDependencies_OssIndex() throws IOException {
     writeFile(buildFile, "include-test-dependency.gradle");
 
-    BuildResult result = GradleRunner.create().withGradleVersion(gradleVersion).withProjectDir(testProjectDir.getRoot())
-        .withPluginClasspath().withArguments("ossIndexAudit", "--info").build();
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
 
     assertBuildOutputText_OssIndex(result, 0);
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
   @Test
-  public void testAuditTask_Android_OssIndex() throws IOException, InterruptedException, URISyntaxException {
+  public void testAuditTask_Android_OssIndex() {
     String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
     ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
 
@@ -227,7 +234,8 @@ public abstract class ScanPluginIntegrationTestBase
         .withGradleVersion(gradleVersion)
         .withProjectDir(new File(testProjectDir.getRoot(), resource))
         .withPluginClasspath()
-        .withArguments("ossIndexAudit", "--info").build();
+        .withArguments("ossIndexAudit", "--info")
+        .build();
 
     String resultOutput = result.getOutput();
     assertThat(resultOutput).contains(String.format(

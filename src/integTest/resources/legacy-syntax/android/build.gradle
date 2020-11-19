@@ -24,7 +24,7 @@ ext {
   compileSdkVersion=28
   minSdkVersion=10
   targetSdkVersion=28
-  buildToolsVersion="26.0.2"
+  buildToolsVersion='26.0.2'
 }
 
 nexusIQScan {
