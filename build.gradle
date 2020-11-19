@@ -90,6 +90,7 @@ dependencies {
   testCompile "commons-io:commons-io:$commonsIoVersion"
   testCompile "org.powermock:powermock-module-junit4:$powermockVersion"
   testCompile "org.powermock:powermock-api-mockito2:$powermockVersion"
+  testCompile "com.github.ardenliu:arden-file:$ardenFileVersion"
 }
 
 processResources {
