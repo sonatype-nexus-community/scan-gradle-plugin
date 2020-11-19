@@ -4,7 +4,7 @@ orbs:
 executors:
   openjdk-8-executor:
     docker:
-      - image: 'circleci/openjdk:8'
+      - image: 'circleci/android:api-28-alpha'
 
 commands:
   configure-git:

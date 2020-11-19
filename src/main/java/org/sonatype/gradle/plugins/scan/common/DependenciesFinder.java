@@ -21,7 +21,9 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Module;
@@ -29,31 +31,50 @@ import com.sonatype.insight.scan.module.model.Module;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 
 public class DependenciesFinder
 {
+  private static final String RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME = "_releaseCompile";
+
   private static final String RELEASE_COMPILE_CONFIGURATION_NAME = "releaseCompileClasspath";
 
   private static final Set<String> CONFIGURATION_NAMES =
-      new HashSet<>(Arrays.asList(COMPILE_CLASSPATH_CONFIGURATION_NAME, RELEASE_COMPILE_CONFIGURATION_NAME));
+      new HashSet<>(Arrays.asList(
+          COMPILE_CLASSPATH_CONFIGURATION_NAME,
+          RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME,
+          RELEASE_COMPILE_CONFIGURATION_NAME));
+
+  private static final String COPY_CONFIGURATION_NAME = "sonatypeCopyConfiguration";
+
+  private static final String ATTRIBUTES_SUPPORTED_GRADLE_VERSION = "4.0";
 
   public Set<ResolvedDependency> findResolvedDependencies(Project rootProject, boolean allConfigurations) {
-    return rootProject.getAllprojects().stream()
-        .flatMap(project -> project.getConfigurations().stream())
+    Configuration copyConfiguration = createCopyConfiguration(rootProject);
+
+    return rootProject.getAllprojects().stream().flatMap(project -> project.getConfigurations().stream())
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream())
+        .flatMap(configuration -> getDependencies(rootProject, configuration, copyConfiguration,
+            resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   public Set<ResolvedArtifact> findResolvedArtifacts(Project project, boolean allConfigurations) {
+    Configuration copyConfiguration = createCopyConfiguration(project);
+
     return project.getConfigurations().stream()
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> configuration.getResolvedConfiguration().getResolvedArtifacts().stream())
+        .flatMap(configuration -> getDependencies(project, configuration, copyConfiguration,
+            resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream()))
         .collect(Collectors.toSet());
   }
 
@@ -64,10 +85,8 @@ public class DependenciesFinder
       Module module = buildModule(project);
 
       findResolvedArtifacts(project, allConfigurations).forEach(resolvedArtifact -> {
-        Artifact artifact = new Artifact()
-            .setId(resolvedArtifact.getId().getComponentIdentifier().getDisplayName())
-            .setPathname(resolvedArtifact.getFile())
-            .setMonitored(true);
+        Artifact artifact = new Artifact().setId(resolvedArtifact.getId().getComponentIdentifier().getDisplayName())
+            .setPathname(resolvedArtifact.getFile()).setMonitored(true);
         module.addConsumedArtifact(artifact);
       });
 
@@ -79,9 +98,7 @@ public class DependenciesFinder
 
   @VisibleForTesting
   Module buildModule(Project project) {
-    Module module = new Module()
-        .setIdKind("gradle")
-        .setPathname(project.getProjectDir());
+    Module module = new Module().setIdKind("gradle").setPathname(project.getProjectDir());
 
     StringBuilder idBuilder = new StringBuilder();
     if (StringUtils.isNotBlank(project.getGroup().toString())) {
@@ -97,11 +114,55 @@ public class DependenciesFinder
     return module;
   }
 
+  @VisibleForTesting
+  Configuration createCopyConfiguration(Project project) {
+    Configuration copyConfiguration = project.getConfigurations().maybeCreate(COPY_CONFIGURATION_NAME);
+    if (isGradleVersionSupportedForAttributes(project.getGradle().getGradleVersion())) {
+      copyConfiguration.attributes(attributeContainer -> {
+        ObjectFactory factory = project.getObjects();
+        attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, factory.named(Usage.class, Usage.JAVA_RUNTIME));
+      });
+    }
+    return copyConfiguration;
+  }
+
+  @VisibleForTesting
+  boolean isGradleVersionSupportedForAttributes(String gradleVersion) {
+    return gradleVersion.compareTo(ATTRIBUTES_SUPPORTED_GRADLE_VERSION) >= 0;
+  }
+
+  @VisibleForTesting
+  <T> Stream<T> getDependencies(
+      Project project,
+      Configuration originalConfiguration,
+      Configuration copyConfiguration,
+      Function<ResolvedConfiguration, Stream<T>> function)
+  {
+    try {
+      return function.apply(originalConfiguration.getResolvedConfiguration());
+    }
+    catch (ResolveException e) {
+      originalConfiguration.getAllDependencies().all(dependency -> {
+        if (dependency instanceof ProjectDependency) {
+          Project dependencyProject = ((ProjectDependency) dependency).getDependencyProject();
+          project.evaluationDependsOn(dependencyProject.getPath());
+        }
+        else {
+          copyConfiguration.getDependencies().add(dependency);
+        }
+      });
+      return function.apply(copyConfiguration.getResolvedConfiguration());
+    }
+  }
+
   private boolean isAcceptableConfiguration(Configuration configuration, boolean allConfigurations) {
+    if (configuration.getName().endsWith(COPY_CONFIGURATION_NAME))
+      return false;
     if (allConfigurations) {
       return configuration.isCanBeResolved();
     }
-    return CONFIGURATION_NAMES.contains(configuration.getName())
-        || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME);
+    return configuration.isCanBeResolved() && (CONFIGURATION_NAMES.contains(configuration.getName())
+        || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME)
+        || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME));
   }
 }

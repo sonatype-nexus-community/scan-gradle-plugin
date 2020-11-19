@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.github.ardenliu.common.file.ResourcesUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -132,6 +133,22 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
+  public void testScanTask_Android_NexusIQ() {
+    String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
+    ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(new File(testProjectDir.getRoot(), resource))
+        .withPluginClasspath()
+        .withArguments("nexusIQScan", "--info")
+        .build();
+
+    assertBuildOutputText_NexusIQ(result, "None");
+    assertThat(result.task(":nexusIQScan").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
   public void testAuditTask_NoVulnerabilities_OssIndex() throws IOException {
     writeFile(buildFile, "control.gradle");
 
@@ -182,8 +199,12 @@ public abstract class ScanPluginIntegrationTestBase
   public void testAuditTask_ExcludeTestDependencies_OssIndex() throws IOException {
     writeFile(buildFile, "exclude-test-dependency.gradle");
 
-    BuildResult result = GradleRunner.create().withGradleVersion(gradleVersion).withProjectDir(testProjectDir.getRoot())
-        .withPluginClasspath().withArguments("ossIndexAudit", "--info").build();
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
 
     assertThat(result.getOutput()).contains("0 dependencies");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
@@ -193,10 +214,37 @@ public abstract class ScanPluginIntegrationTestBase
   public void testAuditTask_IncludeTestDependencies_OssIndex() throws IOException {
     writeFile(buildFile, "include-test-dependency.gradle");
 
-    BuildResult result = GradleRunner.create().withGradleVersion(gradleVersion).withProjectDir(testProjectDir.getRoot())
-        .withPluginClasspath().withArguments("ossIndexAudit", "--info").build();
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
 
     assertBuildOutputText_OssIndex(result, 0);
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_Android_OssIndex() {
+    String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
+    ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
+
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(new File(testProjectDir.getRoot(), resource))
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains(String.format(
+        "%scom.android.support:appcompat-v7:24.2.1: 0 vulnerabilities detected%n"
+            + "|    %scom.android.support:animated-vector-drawable:24.2.1: 0 vulnerabilities detected",
+        DEPENDENCY_PREFIX, DEPENDENCY_PREFIX));
+    assertThat(resultOutput).contains(
+        String.format("%scommons-collections:commons-collections:3.1: 0 vulnerabilities detected", DEPENDENCY_PREFIX));
+
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 

@@ -75,6 +75,8 @@ public class NexusIqScanTask
               Collections.singletonList(new Action(extension.getSimulatedPolicyActionId()))));
         }
 
+        dependenciesFinder.findModules(getProject(), extension.isAllConfigurations());
+
         applicationPolicyEvaluation =
             new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, alerts, "simulated/report");
       }
