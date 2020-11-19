@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  gradle: circleci/gradle@1.0.11
+  gradle: circleci/android:api-28-alpha
 executors:
   openjdk-8-executor:
     docker:
