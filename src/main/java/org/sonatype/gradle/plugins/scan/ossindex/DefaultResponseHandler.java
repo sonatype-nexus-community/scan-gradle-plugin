@@ -95,7 +95,7 @@ public class DefaultResponseHandler
       packageUrlProcessingText += "1 vulnerability found!";
     }
     else {
-      packageUrlProcessingText += vulnerabilities.size() + " vulnerabilities found";
+      packageUrlProcessingText += vulnerabilities.size() + " vulnerabilities found!";
     }
 
 
