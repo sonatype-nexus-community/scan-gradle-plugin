@@ -42,6 +42,8 @@ public class OssIndexPluginExtension
 
   private boolean colorEnabled;
 
+  private boolean dependencyGraph;
+
   public OssIndexPluginExtension(Project project) {
     username = "";
     password = "";
@@ -51,6 +53,7 @@ public class OssIndexPluginExtension
     simulationEnabled = false;
     simulatedVulnerabilityFound = false;
     colorEnabled = true;
+    dependencyGraph = false;
   }
 
   public String getUsername() {
@@ -123,5 +126,13 @@ public class OssIndexPluginExtension
 
   public void setColorEnabled(boolean colorEnabled) {
     this.colorEnabled = colorEnabled;
+  }
+
+  public boolean isDependencyGraph() {
+    return dependencyGraph;
+  }
+
+  public void setDependencyGraph(boolean dependencyGraph) {
+    this.dependencyGraph = dependencyGraph;
   }
 }
