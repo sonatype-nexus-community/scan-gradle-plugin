@@ -56,10 +56,13 @@ public class DefaultResponseHandler
       ComponentReport componentReport = response.get(packageUrl);
 
       List<ComponentReportVulnerability> vulnerabilities = getSortedVulnerabilities(componentReport);
-      log.info(getProcessingPackageUrlString(packageUrl, vulnerabilities, index++, dependenciesMap.size()));
-      for (ComponentReportVulnerability vulnerability : vulnerabilities) {
-        log.info((getVulnerabilityDetailsString(vulnerability)));
+      if (!vulnerabilities.isEmpty() || extension.isShowAll()) {
+        log.info(getProcessingPackageUrlString(packageUrl, vulnerabilities, index, dependenciesMap.size()));
+        for (ComponentReportVulnerability vulnerability : vulnerabilities) {
+          log.info((getVulnerabilityDetailsString(vulnerability)));
+        }
       }
+      index++;
 
       boolean vulnerable = !vulnerabilities.isEmpty();
       if (vulnerable) {

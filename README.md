@@ -76,6 +76,7 @@ ossIndexAudit {
         authConfiguration.username = 'username' // username for the proxy (if credentials are required)
         authConfiguration.password = 'password' // password for the proxy (if credentials are required)
     }
+    showAll = true // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.   
 }
 ```
 - Open Terminal on the project's root and run `./gradlew ossIndexAudit`

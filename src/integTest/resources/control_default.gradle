@@ -21,4 +21,5 @@ nexusIQScan {
 ossIndexAudit {
   simulationEnabled = true
   colorEnabled = false
+  showAll = true
 }
