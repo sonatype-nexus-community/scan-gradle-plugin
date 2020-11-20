@@ -6,10 +6,12 @@ plugins {
 repositories {
   mavenCentral()
 }
+
 dependencies {
-  compile 'org.hamcrest:hamcrest-core:2.2'
+  testCompile 'commons-collections:commons-collections:3.1'
 }
+
 ossIndexAudit {
-  colorEnabled = false
+  simulationEnabled = true
   dependencyGraph = true
 }
