@@ -136,8 +136,12 @@ public class DependencyGraphResponseHandler
 
     Float cvssScore = vulnerability.getCvssScore();
     if (cvssScore != null) {
-      builder.append(" (").append(cvssScore).append("/10").append(", ")
-          .append(VulnerabilityUtils.getAssessment(cvssScore)).append(')');
+      builder.append(" (")
+          .append(cvssScore)
+          .append("/10")
+          .append(", ")
+          .append(VulnerabilityUtils.getAssessment(cvssScore))
+          .append(")");
     }
 
     builder.append(": ").append(vulnerability.getReference());
