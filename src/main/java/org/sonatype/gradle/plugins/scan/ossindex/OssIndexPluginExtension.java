@@ -15,6 +15,11 @@
  */
 package org.sonatype.gradle.plugins.scan.ossindex;
 
+import org.sonatype.ossindex.service.client.transport.AuthConfiguration;
+import org.sonatype.ossindex.service.client.transport.ProxyConfiguration;
+
+import groovy.lang.Closure;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 
 public class OssIndexPluginExtension
@@ -43,6 +48,8 @@ public class OssIndexPluginExtension
   private boolean colorEnabled;
 
   private boolean dependencyGraph;
+
+  private ProxyConfiguration proxyConfiguration;
 
   public OssIndexPluginExtension(Project project) {
     username = "";
@@ -134,5 +141,23 @@ public class OssIndexPluginExtension
 
   public void setDependencyGraph(boolean dependencyGraph) {
     this.dependencyGraph = dependencyGraph;
+  }
+
+  public ProxyConfiguration getProxyConfiguration() {
+    return proxyConfiguration;
+  }
+
+  public void setProxyConfiguration(Closure<ProxyConfiguration> closure) {
+    proxyConfiguration = new ProxyConfiguration();
+    AuthConfiguration authConfiguration = new AuthConfiguration();
+    proxyConfiguration.setAuthConfiguration(authConfiguration);
+
+    closure.setResolveStrategy(Closure.DELEGATE_FIRST);
+    closure.setDelegate(proxyConfiguration);
+    closure.call();
+
+    if (StringUtils.isAllBlank(authConfiguration.getUsername(), authConfiguration.getPassword())) {
+      proxyConfiguration.setAuthConfiguration(null);
+    }
   }
 }

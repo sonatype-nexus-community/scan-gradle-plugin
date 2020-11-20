@@ -20,7 +20,10 @@ import java.nio.file.Paths;
 import org.sonatype.ossindex.service.client.OssindexClientConfiguration;
 import org.sonatype.ossindex.service.client.cache.DirectoryCache;
 import org.sonatype.ossindex.service.client.cache.DirectoryCache.Configuration;
+import org.sonatype.ossindex.service.client.transport.AuthConfiguration;
+import org.sonatype.ossindex.service.client.transport.ProxyConfiguration;
 
+import groovy.lang.Closure;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,6 +56,7 @@ public class OssIndexClientConfigurationBuilderTest
     assertThat(result).isNotNull();
     assertThat(result).isEqualToIgnoringGivenFields(expected, "cacheConfiguration");
     assertThat(result.getCacheConfiguration()).isInstanceOf(DirectoryCache.Configuration.class);
+    assertThat(result.getProxyConfiguration()).isNull();
   }
 
   @Test
@@ -100,5 +104,72 @@ public class OssIndexClientConfigurationBuilderTest
 
     Configuration cacheConfiguration = (Configuration) result.getCacheConfiguration();
     assertThat(cacheConfiguration.getExpireAfter()).isEqualTo(expectedDuration);
+  }
+
+  @Test
+  @SuppressWarnings("serial")
+  public void testBuild_usingProxy() {
+    OssIndexPluginExtension extension = new OssIndexPluginExtension(null);
+    extension.setProxyConfiguration(new Closure<ProxyConfiguration>(null)
+    {
+      @Override
+      public ProxyConfiguration call() {
+        ProxyConfiguration proxyConfiguration = (ProxyConfiguration) getDelegate();
+        proxyConfiguration.setHost("test-host");
+        proxyConfiguration.setPort(8080);
+        return proxyConfiguration;
+      }
+    });
+
+    OssindexClientConfiguration result = builder.build(extension);
+
+    assertThat(result.getProxyConfiguration()).isNotNull();
+    assertThat(result.getProxyConfiguration().getHost()).isEqualTo("test-host");
+    assertThat(result.getProxyConfiguration().getPort()).isEqualTo(8080);
+    assertThat(result.getProxyConfiguration().getProtocol()).isEqualTo(ProxyConfiguration.HTTP);
+    assertThat(result.getProxyConfiguration().getAuthConfiguration()).isNull();
+  }
+
+  @Test
+  @SuppressWarnings("serial")
+  public void testBuild_usingProxyHttps() {
+    OssIndexPluginExtension extension = new OssIndexPluginExtension(null);
+    extension.setProxyConfiguration(new Closure<ProxyConfiguration>(null)
+    {
+      @Override
+      public ProxyConfiguration call() {
+        ProxyConfiguration proxyConfiguration = (ProxyConfiguration) getDelegate();
+        proxyConfiguration.setProtocol(ProxyConfiguration.HTTPS);
+        return proxyConfiguration;
+      }
+    });
+
+    OssindexClientConfiguration result = builder.build(extension);
+
+    assertThat(result.getProxyConfiguration().getProtocol()).isEqualTo(ProxyConfiguration.HTTPS);
+  }
+
+  @Test
+  @SuppressWarnings("serial")
+  public void testBuild_usingProxyWithAuthentication() {
+    OssIndexPluginExtension extension = new OssIndexPluginExtension(null);
+    extension.setProxyConfiguration(new Closure<ProxyConfiguration>(null)
+    {
+      @Override
+      public ProxyConfiguration call() {
+        ProxyConfiguration proxyConfiguration = (ProxyConfiguration) getDelegate();
+        AuthConfiguration authConfiguration = proxyConfiguration.getAuthConfiguration();
+        authConfiguration.setUsername("test-username");
+        authConfiguration.setPassword("test-password");
+        return proxyConfiguration;
+      }
+    });
+
+    OssindexClientConfiguration result = builder.build(extension);
+
+    AuthConfiguration authConfiguration = result.getProxyConfiguration().getAuthConfiguration();
+    assertThat(authConfiguration).isNotNull();
+    assertThat(authConfiguration.getUsername()).isEqualTo("test-username");
+    assertThat(authConfiguration.getPassword()).isEqualTo("test-password");
   }
 }

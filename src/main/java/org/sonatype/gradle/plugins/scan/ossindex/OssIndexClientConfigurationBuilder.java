@@ -65,6 +65,8 @@ public class OssIndexClientConfigurationBuilder
 
         clientConfiguration.setCacheConfiguration(cacheConfig);
       }
+
+      clientConfiguration.setProxyConfiguration(extension.getProxyConfiguration());
     }
 
     return clientConfiguration;
