@@ -98,7 +98,6 @@ public class DefaultResponseHandler
       packageUrlProcessingText += vulnerabilities.size() + " vulnerabilities found!";
     }
 
-
     if (extension.isColorEnabled()) {
       if (vulnerabilities.isEmpty()) {
         packageUrlProcessingText =
