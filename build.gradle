@@ -31,7 +31,7 @@ java {
   targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
+if (JavaVersion.current() != targetCompatibility) {
   throw new GradleException(
       "The java version used ${JavaVersion.current()} is not the expected version ${project.targetCompatibility}.")
 }
