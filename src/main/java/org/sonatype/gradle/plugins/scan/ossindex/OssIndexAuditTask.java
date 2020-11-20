@@ -83,14 +83,10 @@ public class OssIndexAuditTask
         response = ossIndexClient.requestComponentReports(packageUrls);
       }
 
-      if (extension.isDependencyGraph()) {
-        hasVulnerabilities = new DependencyGraphResponseHandler(extension)
-            .handleOssIndexResponse(dependencies, dependenciesMap, response);
-      }
-      else {
-        hasVulnerabilities = new DefaultResponseHandler(extension)
-            .handleOssIndexResponse(dependencies, dependenciesMap, response);
-      }
+      OssIndexResponseHandler responseHandler = extension.isDependencyGraph()
+              ? new DependencyGraphResponseHandler(extension)
+              : new DefaultResponseHandler(extension);
+      hasVulnerabilities = responseHandler.handleOssIndexResponse(dependencies, dependenciesMap, response);
     }
     catch (TransportException e) {
       throw new GradleException("Connection to OSS Index failed, check your credentials: " + e.getMessage(), e);
