@@ -16,10 +16,9 @@ nexusIQScan {
   password = 'admin123'
   applicationId = 'testing-gradle-plugin'
   simulationEnabled = true
-  simulatedPolicyActionId = 'fail'
 }
 
 ossIndexAudit {
   simulationEnabled = true
-  simulatedVulnerabilityFound = true
+  dependencyGraph = true
 }
