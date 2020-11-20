@@ -228,8 +228,8 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testAuditTask_ExcludeTestDependencies_OssIndex() throws IOException {
-    writeFile(buildFile, "exclude-test-dependency.gradle");
+  public void testAuditTask_ExcludeTestDependencies_OssIndex_DependencyGraph() throws IOException {
+    writeFile(buildFile, "exclude-test-dependency-graph.gradle");
 
     BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -243,8 +243,23 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testAuditTask_IncludeTestDependencies_OssIndex() throws IOException {
-    writeFile(buildFile, "include-test-dependency.gradle");
+  public void testAuditTask_ExcludeTestDependencies_OssIndex_Default() throws IOException {
+    writeFile(buildFile, "exclude-test-default.gradle");
+
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    assertThat(result.getOutput()).contains("0 dependencies");
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_IncludeTestDependencies_OssIndex_DependencyGraph() throws IOException {
+    writeFile(buildFile, "include-test-dependency-graph.gradle");
 
     BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -254,6 +269,22 @@ public abstract class ScanPluginIntegrationTestBase
         .build();
 
     assertBuildOutputText_OssIndex_DependencyGraph(result, 0);
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_IncludeTestDependencies_OssIndex_Default() throws IOException {
+    writeFile(buildFile, "include-test-default.gradle");
+
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    assertBuildOutputText_OssIndex_Default(result,
+        " - pkg:maven/commons-collections/commons-collections@3.1 - No vulnerabilities found!");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
