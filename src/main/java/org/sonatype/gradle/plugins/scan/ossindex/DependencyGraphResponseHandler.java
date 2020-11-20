@@ -93,7 +93,6 @@ public class DependencyGraphResponseHandler
         .map(vulnerability -> handleComponentReportVulnerability(vulnerability, prefix))
         .collect(Collectors.joining("")));
 
-
     String id = getDependencyId(dependency);
     boolean isRepeated = !processedPackageUrls.add(packageUrl);
     String repeatedMarker = isRepeated && !dependency.getChildren().isEmpty() ? " " + REPEATED_MARKER : "";
