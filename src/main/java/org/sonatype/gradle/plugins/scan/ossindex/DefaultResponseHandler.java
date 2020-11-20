@@ -127,7 +127,7 @@ public class DefaultResponseHandler
         .append(addColour(cvssScore, "   ID:  ")).append(vulnerability.getId())
         .append(System.lineSeparator())
         .append(addColour(cvssScore, "   Description:  "))
-        .append(StringUtils.abbreviate(vulnerability.getDescription().replaceAll("\n", " "), 140))
+        .append(StringUtils.abbreviate(Objects.toString(vulnerability.getDescription(),"").replaceAll("\n", " "), 140))
         .append(System.lineSeparator())
         .append(addColour(cvssScore, "   CVSS Score:  ")).append("(").append(vulnerability.getCvssScore()).append("/10")
         .append(", ").append(VulnerabilityUtils.getAssessment(cvssScore)).append(")")

@@ -99,7 +99,6 @@ public class OssIndexAuditTaskTest
 
     OssIndexPluginExtension extension = new OssIndexPluginExtension(project);
     extension.setSimulationEnabled(isSimulated);
-    extension.setDependencyGraph(true);
     project.getExtensions().add("ossIndexAudit", extension);
 
     OssIndexAuditTask task = spy(project.getTasks().create("ossIndexAudit", OssIndexAuditTask.class));
