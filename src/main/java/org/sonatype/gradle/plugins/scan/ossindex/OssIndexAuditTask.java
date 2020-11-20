@@ -185,4 +185,19 @@ public class OssIndexAuditTask
   public boolean isAllConfigurations() {
     return extension.isAllConfigurations();
   }
+
+  @Input
+  public boolean isColorEnabled() {
+    return extension.isColorEnabled();
+  }
+
+  @Input
+  public boolean isDependencyGraph() {
+    return extension.isDependencyGraph();
+  }
+
+  @Input
+  public ProxyConfiguration getProxyConfiguration() {
+    return extension.getProxyConfiguration();
+  }
 }
