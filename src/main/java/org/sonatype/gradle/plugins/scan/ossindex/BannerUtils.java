@@ -18,7 +18,6 @@ package org.sonatype.gradle.plugins.scan.ossindex;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,17 +44,16 @@ class BannerUtils
       while ((line = reader.readLine()) != null) {
         sb.append(line).append(System.lineSeparator());
       }
-      sb.append("Gradle Scan version: ").append(getVersion()).append(System.lineSeparator());
-      sb.append(StringUtils.repeat("-", 150)).append(System.lineSeparator());
+
+      sb.append("Gradle Scan version: ")
+          .append(PluginVersionUtils.getPluginVersion())
+          .append(System.lineSeparator());
+
+      sb.append(StringUtils.repeat("-", 150))
+          .append(System.lineSeparator());
     } catch (IOException e) {
       log.error(e.getMessage(), e);
     }
     return sb.toString();
-  }
-
-  private static String getVersion() throws IOException {
-    Properties properties = new Properties();
-    properties.load(BannerUtils.class.getClassLoader().getResourceAsStream(PROPERTIES_PATH));
-    return properties.getProperty("version");
   }
 }

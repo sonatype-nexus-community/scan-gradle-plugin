@@ -15,11 +15,6 @@
  */
 package org.sonatype.gradle.plugins.scan.ossindex;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
-import org.sonatype.ossindex.service.client.internal.Version;
 import org.sonatype.ossindex.service.client.internal.VersionSupplier;
 import org.sonatype.ossindex.service.client.transport.HttpClientTransport;
 import org.sonatype.ossindex.service.client.transport.UserAgentBuilder;
@@ -42,19 +37,8 @@ public class TransportBuilder
     {
       @Override
       protected void customize(UserAgentBuilder builder) {
-        String pluginVersion;
-
-        try (InputStream stream = getClass().getResourceAsStream("/com/sonatype/insight/client.properties")) {
-          Properties properties = new Properties();
-          properties.load(stream);
-          pluginVersion = properties.getProperty("version", Version.UNKNOWN);
-        }
-        catch (IOException e) {
-          pluginVersion = Version.UNKNOWN;
-        }
-
         builder.product(new Product("Gradle", project.getGradle().getGradleVersion()));
-        builder.product(new Product("Gradle-Plugin", pluginVersion));
+        builder.product(new Product("Gradle-Plugin", PluginVersionUtils.getPluginVersion()));
       }
     };
   }
