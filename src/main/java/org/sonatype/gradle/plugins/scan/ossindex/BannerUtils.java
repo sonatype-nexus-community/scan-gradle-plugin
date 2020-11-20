@@ -29,8 +29,6 @@ class BannerUtils
 
   private static final String HEADER_PATH = "org/sonatype/gradle/plugins/scan/ossindex/banner.txt";
 
-  private static final String PROPERTIES_PATH = "com/sonatype/insight/client.properties";
-
   private BannerUtils() {
     // Utils class
   }
