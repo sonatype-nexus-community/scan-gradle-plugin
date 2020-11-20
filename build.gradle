@@ -36,7 +36,6 @@ if (JavaVersion.current() != targetCompatibility) {
       "The java version used ${JavaVersion.current()} is not the expected version ${project.targetCompatibility}.")
 }
 
-
 jar {
   manifest {
     attributes(
