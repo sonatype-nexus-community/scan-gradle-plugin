@@ -35,7 +35,6 @@ import org.sonatype.ossindex.service.client.OssindexClientConfiguration;
 import org.sonatype.ossindex.service.client.internal.OssindexClientImpl;
 import org.sonatype.ossindex.service.client.marshal.GsonMarshaller;
 import org.sonatype.ossindex.service.client.marshal.Marshaller;
-import org.sonatype.ossindex.service.client.transport.ProxyConfiguration;
 import org.sonatype.ossindex.service.client.transport.Transport;
 import org.sonatype.ossindex.service.client.transport.Transport.TransportException;
 
@@ -195,10 +194,5 @@ public class OssIndexAuditTask
   @Input
   public boolean isDependencyGraph() {
     return extension.isDependencyGraph();
-  }
-
-  @Input
-  public ProxyConfiguration getProxyConfiguration() {
-    return extension.getProxyConfiguration();
   }
 }
