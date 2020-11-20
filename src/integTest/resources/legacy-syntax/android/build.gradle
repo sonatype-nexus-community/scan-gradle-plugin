@@ -37,4 +37,5 @@ nexusIQScan {
 
 ossIndexAudit {
   simulationEnabled = true
+  dependencyGraph = true
 }
