@@ -59,6 +59,9 @@ public class DependencyGraphResponseHandler
         log.info("No vulnerabilities found!");
         return false;
       }
+      else {
+        log.info("Found vulnerabilities in {} dependencies", dependenciesMap.size());
+      }
     }
 
     Set<PackageUrl> processedPackageUrls = new HashSet<>();
