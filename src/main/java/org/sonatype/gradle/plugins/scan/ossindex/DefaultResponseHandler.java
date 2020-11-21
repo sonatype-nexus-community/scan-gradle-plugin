@@ -45,11 +45,22 @@ public class DefaultResponseHandler
       final Map<ResolvedDependency, PackageUrl> dependenciesMap,
       final Map<PackageUrl, ComponentReport> response)
   {
-    log.info(BannerUtils.createBanner());
-    log.info("Checking vulnerabilities in {} dependencies", dependenciesMap.size());
-
     boolean hasVulnerabilities = false;
     int index = 1;
+    int dependenciesCount = dependenciesMap.size();
+
+    if (!extension.isShowAll()) {
+      dependenciesCount = (int) dependenciesMap.values().parallelStream()
+          .filter(packageUrl -> !response.get(packageUrl).getVulnerabilities().isEmpty())
+          .count();
+
+      if (dependenciesCount == 0) {
+        log.info("No vulnerabilities found!");
+      }
+      else {
+        log.info("Found vulnerabilities in {} dependencies", dependenciesCount);
+      }
+    }
 
     for (Entry<ResolvedDependency, PackageUrl> entry : dependenciesMap.entrySet()) {
       PackageUrl packageUrl = entry.getValue();
@@ -57,12 +68,11 @@ public class DefaultResponseHandler
 
       List<ComponentReportVulnerability> vulnerabilities = getSortedVulnerabilities(componentReport);
       if (!vulnerabilities.isEmpty() || extension.isShowAll()) {
-        log.info(getProcessingPackageUrlString(packageUrl, vulnerabilities, index, dependenciesMap.size()));
+        log.info(getProcessingPackageUrlString(packageUrl, vulnerabilities, index++, dependenciesCount));
         for (ComponentReportVulnerability vulnerability : vulnerabilities) {
-          log.info((getVulnerabilityDetailsString(vulnerability)));
+          log.info(getVulnerabilityDetailsString(vulnerability));
         }
       }
-      index++;
 
       boolean vulnerable = !vulnerabilities.isEmpty();
       if (vulnerable) {

@@ -68,7 +68,7 @@ ossIndexAudit {
     cacheDirectory = 'some/path' // by default it uses the user data directory (according to OS)
     cacheExpiration = 'PT12H' // 12 hours if omitted. It must follow the Joda Time specification at https://www.javadoc.io/doc/joda-time/joda-time/2.10.4/org/joda/time/Duration.html#parse-java.lang.String-
     colorEnabled = false // if true prints vulnerability description in color. By default is true.
-    dependencyGraph = true // if true prints dependency graph showing direct/transitive dependencies. By default is false.  
+    dependencyGraph = true // if true prints dependency graph showing direct/transitive dependencies. By default is false.
     proxyConfiguration { // extra configuration when running behind a proxy without direct internet access
         protocol = 'http' // can be 'http' (default) or 'https'
         host = 'proxy-host' // hostname for the proxy
@@ -76,7 +76,7 @@ ossIndexAudit {
         authConfiguration.username = 'username' // username for the proxy (if credentials are required)
         authConfiguration.password = 'password' // password for the proxy (if credentials are required)
     }
-    showAll = true // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.   
+    showAll = true // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
 }
 ```
 - Open Terminal on the project's root and run `./gradlew ossIndexAudit`
