@@ -51,6 +51,8 @@ public class OssIndexPluginExtension
 
   private ProxyConfiguration proxyConfiguration;
 
+  private boolean showAll;
+
   public OssIndexPluginExtension(Project project) {
     username = "";
     password = "";
@@ -61,6 +63,7 @@ public class OssIndexPluginExtension
     simulatedVulnerabilityFound = false;
     colorEnabled = true;
     dependencyGraph = false;
+    showAll = false;
   }
 
   public String getUsername() {
@@ -159,5 +162,13 @@ public class OssIndexPluginExtension
     if (StringUtils.isAllBlank(authConfiguration.getUsername(), authConfiguration.getPassword())) {
       proxyConfiguration.setAuthConfiguration(null);
     }
+  }
+
+  public boolean isShowAll() {
+    return showAll;
+  }
+
+  public void setShowAll(boolean showAll) {
+    this.showAll = showAll;
   }
 }

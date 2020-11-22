@@ -46,10 +46,14 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OssIndexAuditTask
     extends DefaultTask
 {
+  private static Logger log = LoggerFactory.getLogger(OssIndexResponseHandler.class);
+
   private final OssIndexPluginExtension extension;
 
   private final DependenciesFinder dependenciesFinder;
@@ -75,6 +79,9 @@ public class OssIndexAuditTask
       List<PackageUrl> packageUrls = new ArrayList<>(dependenciesMap.values());
 
       Map<PackageUrl, ComponentReport> response;
+
+      log.info(BannerUtils.createBanner());
+      log.info("Checking vulnerabilities in {} dependencies", dependenciesMap.size());
 
       if (extension.isSimulationEnabled()) {
         response = buildSimulatedResponse(packageUrls);
@@ -194,5 +201,10 @@ public class OssIndexAuditTask
   @Input
   public boolean isDependencyGraph() {
     return extension.isDependencyGraph();
+  }
+
+  @Input
+  public boolean isShowAll() {
+    return extension.isShowAll();
   }
 }

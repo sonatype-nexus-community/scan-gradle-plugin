@@ -15,4 +15,5 @@ ossIndexAudit {
   allConfigurations = true
   simulationEnabled = true
   dependencyGraph = true
+  showAll = true
 }
