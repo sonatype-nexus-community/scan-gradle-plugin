@@ -56,6 +56,7 @@ plugins {
 ```
 
 Some basic examples will be provided next, which we strongly advice to read :)
+
 After doing so, specific usage on CI tools can be found at https://github.com/guillermo-varela/example-scan-gradle-plugin
 
 ### OSS Index
