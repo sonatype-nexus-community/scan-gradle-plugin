@@ -55,6 +55,9 @@ plugins {
 }
 ```
 
+Some basic examples will be provided next, which we strongly advice to read :)
+After doing so, specific usage on CI tools can be found at https://github.com/guillermo-varela/example-scan-gradle-plugin
+
 ### OSS Index
 OSS Index can be used without any extra configuration, but to avoid reaching the limit for anonymous queries every user
 is encouraged to create a free account on [OSS Index](https://ossindex.sonatype.org/user/signin) and use the credentials
