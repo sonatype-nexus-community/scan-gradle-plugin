@@ -12,4 +12,5 @@ dependencies {
 ossIndexAudit {
   colorEnabled = false
   dependencyGraph = true
+  showAll = true
 }

@@ -149,7 +149,24 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testAuditTask_NoVulnerabilities_OssIndex_Default() throws IOException {
+  public void testAuditTask_NoVulnerabilities_OssIndex_Default_Empty() throws IOException {
+    writeFile(buildFile, "control_default_not_all.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains("No vulnerabilities found!");
+    assertThat(resultOutput).doesNotContain("commons-collections");
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_NoVulnerabilities_OssIndex_Default_ShowAll() throws IOException {
     writeFile(buildFile, "control_default.gradle");
 
     final BuildResult result = GradleRunner.create()
@@ -165,7 +182,24 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testAuditTask_NoVulnerabilities_OssIndex_DependencyGraph() throws IOException {
+  public void testAuditTask_NoVulnerabilities_OssIndex_DependencyGraph_Empty() throws IOException {
+    writeFile(buildFile, "control_dependency_graph_not_all.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains("No vulnerabilities found!");
+    assertThat(resultOutput).doesNotContain("commons-collections");
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_NoVulnerabilities_OssIndex_DependencyGraph_ShowAll() throws IOException {
     writeFile(buildFile, "control_dependency_graph.gradle");
 
     final BuildResult result = GradleRunner.create()

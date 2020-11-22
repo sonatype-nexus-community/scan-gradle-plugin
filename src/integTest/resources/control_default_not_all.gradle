@@ -20,6 +20,5 @@ nexusIQScan {
 
 ossIndexAudit {
   simulationEnabled = true
-  dependencyGraph = true
-  showAll = true
+  colorEnabled = false
 }

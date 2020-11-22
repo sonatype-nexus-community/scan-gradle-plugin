@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -50,11 +51,18 @@ public class DependencyGraphResponseHandler
       Set<ResolvedDependency> dependencies,
       Map<ResolvedDependency, PackageUrl> dependenciesMap,
       Map<PackageUrl, ComponentReport> response) {
-
-    log.info(BannerUtils.createBanner());
-    log.info("Checking vulnerabilities in {} dependencies", dependenciesMap.size());
-
     boolean hasVulnerabilities = false;
+
+    if (!extension.isShowAll()) {
+      dependenciesMap = getDependenciesMapWithVulnerabilities(dependenciesMap, response);
+      if (dependenciesMap.isEmpty()) {
+        log.info("No vulnerabilities found!");
+        return false;
+      }
+      else {
+        log.info("Found vulnerabilities in {} dependencies", dependenciesMap.size());
+      }
+    }
 
     Set<PackageUrl> processedPackageUrls = new HashSet<>();
     for (ResolvedDependency dependency : dependencies) {
@@ -80,6 +88,11 @@ public class DependencyGraphResponseHandler
       String prefix)
   {
     PackageUrl packageUrl = dependenciesMap.get(dependency);
+
+    if (packageUrl == null) {
+      return false;
+    }
+
     ComponentReport report = response.get(packageUrl);
     List<ComponentReportVulnerability> vulnerabilities =
         report != null ? report.getVulnerabilities() : Collections.emptyList();
@@ -131,8 +144,7 @@ public class DependencyGraphResponseHandler
     String indent = System.lineSeparator() +
         StringUtils.replaceOnce(prefix, DEPENDENCY_PREFIX, StringUtils.repeat(" ", DEPENDENCY_PREFIX.length()));
 
-    StringBuilder builder = new StringBuilder()
-        .append(vulnerability.getTitle());
+    StringBuilder builder = new StringBuilder(vulnerability.getTitle());
 
     Float cvssScore = vulnerability.getCvssScore();
     if (cvssScore != null) {
@@ -151,5 +163,26 @@ public class DependencyGraphResponseHandler
       vulnerabilityText = VulnerabilityUtils.addColorBasedOnCvssScore(cvssScore, vulnerabilityText);
     }
     return indent + vulnerabilityText;
+  }
+
+  private Map<ResolvedDependency, PackageUrl> getDependenciesMapWithVulnerabilities(
+      Map<ResolvedDependency, PackageUrl> dependenciesMap,
+      Map<PackageUrl, ComponentReport> response)
+  {
+    return dependenciesMap.entrySet().parallelStream()
+        .filter(entry -> hasVulnerabilities(entry.getKey(), dependenciesMap, response))
+        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+  }
+
+  private boolean hasVulnerabilities(
+      ResolvedDependency dependency,
+      Map<ResolvedDependency, PackageUrl> dependenciesMap,
+      Map<PackageUrl, ComponentReport> response)
+  {
+    PackageUrl packageUrl = dependenciesMap.get(dependency);
+    return !response.get(packageUrl).getVulnerabilities().isEmpty() || dependency.getChildren().parallelStream()
+        .map(child -> hasVulnerabilities(child, dependenciesMap, response))
+        .collect(Collectors.toList())
+        .contains(true);
   }
 }
