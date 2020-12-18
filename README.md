@@ -15,7 +15,12 @@
     limitations under the License.
 
 -->
-# Sonatype Scan Gradle Plugin #
+
+<p align="center">
+    <img src="https://github.com/sonatype-nexus-community/scan-gradle-plugin/blob/main/docs/images/sherlocktrunks.png" width="350"/>
+</p>
+
+# Sonatype Scan Gradle Plugin - AKA Sherlock Trunks #
 [![Maven Central](https://img.shields.io/maven-central/v/org.sonatype.gradle.plugins/scan-gradle-plugin.svg?label=Maven%20Central)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.sonatype.gradle.plugins%22%20AND%20a%3A%22scan-gradle-plugin%22)
 
 [![Gradle Plugins Portal](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/org/sonatype/gradle/plugins/scan/org.sonatype.gradle.plugins.scan.gradle.plugin/maven-metadata.xml.svg?colorB=007ec6&label=Gradle%20Plugins%20Portal)](https://plugins.gradle.org/plugin/org.sonatype.gradle.plugins.scan)
