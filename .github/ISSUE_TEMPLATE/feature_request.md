@@ -15,4 +15,4 @@ assignees: ''
 
 * **Anything else?**
 
-cc @bhamail / @DarthHater / @guillermo-varela
+cc @bhamail / @DarthHater / @guillermo-varela / @shaikhu
