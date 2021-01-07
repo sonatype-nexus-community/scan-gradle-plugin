@@ -15,6 +15,9 @@
  */
 package org.sonatype.gradle.plugins.scan.ossindex;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.sonatype.ossindex.service.client.transport.AuthConfiguration;
 import org.sonatype.ossindex.service.client.transport.ProxyConfiguration;
 
@@ -53,6 +56,10 @@ public class OssIndexPluginExtension
 
   private boolean showAll;
 
+  private Set<String> excludeVulnerabilityIds;
+
+  private Set<String> excludeCoordinates;
+
   public OssIndexPluginExtension(Project project) {
     username = "";
     password = "";
@@ -64,6 +71,8 @@ public class OssIndexPluginExtension
     colorEnabled = true;
     dependencyGraph = false;
     showAll = false;
+    excludeVulnerabilityIds = new HashSet<>();
+    excludeCoordinates = new HashSet<>();
   }
 
   public String getUsername() {
@@ -170,5 +179,21 @@ public class OssIndexPluginExtension
 
   public void setShowAll(boolean showAll) {
     this.showAll = showAll;
+  }
+
+  public Set<String> getExcludeVulnerabilityIds() {
+    return excludeVulnerabilityIds;
+  }
+
+  public void setExcludeVulnerabilityIds(Set<String> excludeVulnerabilityIds) {
+    this.excludeVulnerabilityIds = excludeVulnerabilityIds;
+  }
+
+  public Set<String> getExcludeCoordinates() {
+    return excludeCoordinates;
+  }
+
+  public void setExcludeCoordinates(Set<String> excludeCoordinates) {
+    this.excludeCoordinates = excludeCoordinates;
   }
 }
