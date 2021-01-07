@@ -19,7 +19,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +40,7 @@ import org.sonatype.ossindex.service.client.transport.Transport.TransportExcepti
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -138,10 +138,11 @@ public class OssIndexAuditTask
 
       if (extension.isSimulatedVulnerabilityFound()) {
         ComponentReportVulnerability vulnerability = new ComponentReportVulnerability();
+        vulnerability.setId("123-456-789");
         vulnerability.setTitle("Simulated");
         vulnerability.setCvssScore(4f);
         vulnerability.setReference(new URI("http://test/123"));
-        report.setVulnerabilities(Arrays.asList(vulnerability));
+        report.setVulnerabilities(Lists.newArrayList(vulnerability));
       }
 
       map.put(packageUrl, report);
