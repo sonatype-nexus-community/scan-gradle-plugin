@@ -1,0 +1,53 @@
+buildscript {
+  repositories {
+    google()
+    mavenCentral()
+    jcenter()
+  }
+
+  // Mapping between Gradle and Android plugin versions: https://developer.android.com/studio/releases/gradle-plugin
+  def androidGradlePluginVersion = '3.0.0'
+  if (gradle.gradleVersion.compareTo('6.1.1') >= 0) {
+    androidGradlePluginVersion = '4.0.0'
+  } else if (gradle.gradleVersion.compareTo('5.6.4') >= 0) {
+    androidGradlePluginVersion = '3.6.4'
+  } else if (gradle.gradleVersion.compareTo('5.0') >= 0) {
+    androidGradlePluginVersion = '3.3.3'
+  }
+  dependencies {
+    classpath "com.android.tools.build:gradle:$androidGradlePluginVersion"
+  }
+}
+
+plugins {
+  id 'org.sonatype.gradle.plugins.scan'
+}
+
+allprojects {
+  repositories {
+    google()
+    mavenCentral()
+    jcenter()
+  }
+}
+
+ext {
+  compileSdkVersion=28
+  minSdkVersion=10
+  targetSdkVersion=28
+  buildToolsVersion='26.0.2'
+}
+
+nexusIQScan {
+  serverUrl = 'http://localhost:8081'
+  username = 'admin'
+  password = 'admin123'
+  applicationId = 'testing-gradle-plugin'
+  simulationEnabled = true
+}
+
+ossIndexAudit {
+  simulationEnabled = true
+  dependencyGraph = true
+  showAll = true
+}

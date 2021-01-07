@@ -59,21 +59,21 @@ public class DependenciesFinder
   private static final String ATTRIBUTES_SUPPORTED_GRADLE_VERSION = "4.0";
 
   public Set<ResolvedDependency> findResolvedDependencies(Project rootProject, boolean allConfigurations) {
-    Configuration copyConfiguration = createCopyConfiguration(rootProject);
-
-    return rootProject.getAllprojects().stream().flatMap(project -> project.getConfigurations().stream())
+    rootProject.getAllprojects().forEach(p -> p.getConfigurations().forEach(c -> {
+      System.out.println(c.getAllArtifacts().size() + ": " + c.getName());
+    }));
+    return new LinkedHashSet<>(rootProject.getAllprojects()).stream()
+        .flatMap(project -> project.getConfigurations().stream())
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> getDependencies(rootProject, configuration, copyConfiguration,
+        .flatMap(configuration -> getDependencies(rootProject, configuration,
             resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   public Set<ResolvedArtifact> findResolvedArtifacts(Project project, boolean allConfigurations) {
-    Configuration copyConfiguration = createCopyConfiguration(project);
-
-    return project.getConfigurations().stream()
+    return new LinkedHashSet<>(project.getConfigurations()).stream()
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> getDependencies(project, configuration, copyConfiguration,
+        .flatMap(configuration -> getDependencies(project, configuration,
             resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream()))
         .collect(Collectors.toSet());
   }
@@ -116,7 +116,12 @@ public class DependenciesFinder
 
   @VisibleForTesting
   Configuration createCopyConfiguration(Project project) {
-    Configuration copyConfiguration = project.getConfigurations().maybeCreate(COPY_CONFIGURATION_NAME);
+    String configurationName = COPY_CONFIGURATION_NAME;
+    int i = 0;
+    while (project.getConfigurations().findByName(configurationName) != null) {
+      configurationName += ++i;
+    }
+    Configuration copyConfiguration = project.getConfigurations().create(configurationName);
     if (isGradleVersionSupportedForAttributes(project.getGradle().getGradleVersion())) {
       copyConfiguration.attributes(attributeContainer -> {
         ObjectFactory factory = project.getObjects();
@@ -135,13 +140,14 @@ public class DependenciesFinder
   <T> Stream<T> getDependencies(
       Project project,
       Configuration originalConfiguration,
-      Configuration copyConfiguration,
       Function<ResolvedConfiguration, Stream<T>> function)
   {
     try {
       return function.apply(originalConfiguration.getResolvedConfiguration());
     }
     catch (ResolveException e) {
+      Configuration copyConfiguration = createCopyConfiguration(project);
+
       originalConfiguration.getAllDependencies().all(dependency -> {
         if (dependency instanceof ProjectDependency) {
           Project dependencyProject = ((ProjectDependency) dependency).getDependencyProject();
@@ -151,6 +157,7 @@ public class DependenciesFinder
           copyConfiguration.getDependencies().add(dependency);
         }
       });
+
       return function.apply(copyConfiguration.getResolvedConfiguration());
     }
   }
