@@ -92,10 +92,10 @@ public class OssIndexAuditTask
         response = ossIndexClient.requestComponentReports(packageUrls);
       }
 
-      Set<String> vulnerabilityIds = extension.getExcludeVulnerabilityIds();
-      Set<PackageUrl> coordinates = toPackageUrls(extension.getExcludeCoordinates());
+      Set<String> vulnerabilityIdsToExclude = extension.getExcludeVulnerabilityIds();
+      Set<PackageUrl> coordinatesToExclude = toPackageUrls(extension.getExcludeCoordinates());
       VulnerabilityExclusionFilter vulnerabilityExclusionFilter =
-          new VulnerabilityExclusionFilter(vulnerabilityIds, coordinates);
+          new VulnerabilityExclusionFilter(vulnerabilityIdsToExclude, coordinatesToExclude);
       vulnerabilityExclusionFilter.apply(response);
 
       OssIndexResponseHandler responseHandler = extension.isDependencyGraph()
