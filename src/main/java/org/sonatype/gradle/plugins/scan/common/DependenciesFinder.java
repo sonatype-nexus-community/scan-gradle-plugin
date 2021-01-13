@@ -59,9 +59,6 @@ public class DependenciesFinder
   private static final String ATTRIBUTES_SUPPORTED_GRADLE_VERSION = "4.0";
 
   public Set<ResolvedDependency> findResolvedDependencies(Project rootProject, boolean allConfigurations) {
-    rootProject.getAllprojects().forEach(p -> p.getConfigurations().forEach(c -> {
-      System.out.println(c.getAllArtifacts().size() + ": " + c.getName());
-    }));
     return new LinkedHashSet<>(rootProject.getAllprojects()).stream()
         .flatMap(project -> project.getConfigurations().stream())
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
@@ -117,9 +114,8 @@ public class DependenciesFinder
   @VisibleForTesting
   Configuration createCopyConfiguration(Project project) {
     String configurationName = COPY_CONFIGURATION_NAME;
-    int i = 0;
-    while (project.getConfigurations().findByName(configurationName) != null) {
-      configurationName += ++i;
+    for (int i = 0; project.getConfigurations().findByName(configurationName) != null; i++) {
+      configurationName += i;
     }
     Configuration copyConfiguration = project.getConfigurations().create(configurationName);
     if (isGradleVersionSupportedForAttributes(project.getGradle().getGradleVersion())) {
