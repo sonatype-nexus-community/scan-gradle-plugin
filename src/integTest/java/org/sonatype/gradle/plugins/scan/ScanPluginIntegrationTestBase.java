@@ -149,6 +149,23 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
+  public void testScanTask_AndroidMultipleFlavors_NexusIQ() {
+    String resource =
+        useLegacySyntax ? "legacy-syntax" + File.separator + "android-multiple-flavors" : "android-multiple-flavors";
+    ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(new File(testProjectDir.getRoot(), resource))
+        .withPluginClasspath()
+        .withArguments("nexusIQScan", "--info")
+        .build();
+
+    assertBuildOutputText_NexusIQ(result, "None");
+    assertThat(result.task(":nexusIQScan").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
   public void testAuditTask_NoVulnerabilities_OssIndex_Default_Empty() throws IOException {
     writeFile(buildFile, "control_default_not_all.gradle");
 
@@ -353,6 +370,30 @@ public abstract class ScanPluginIntegrationTestBase
   @Test
   public void testAuditTask_Android_OssIndex() {
     String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
+    ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
+
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(new File(testProjectDir.getRoot(), resource))
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains(String.format(
+        "%scom.android.support:appcompat-v7:24.2.1: 0 vulnerabilities detected%n"
+            + "|    %scom.android.support:animated-vector-drawable:24.2.1: 0 vulnerabilities detected",
+        DEPENDENCY_PREFIX, DEPENDENCY_PREFIX));
+    assertThat(resultOutput).contains(
+        String.format("%scommons-collections:commons-collections:3.1: 0 vulnerabilities detected", DEPENDENCY_PREFIX));
+
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_AndroidMultipleFlavors_OssIndex() {
+    String resource =
+        useLegacySyntax ? "legacy-syntax" + File.separator + "android-multiple-flavors" : "android-multiple-flavors";
     ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
 
     BuildResult result = GradleRunner.create()
