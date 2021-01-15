@@ -86,6 +86,10 @@ ossIndexAudit {
         authConfiguration.password = 'password' // password for the proxy (if credentials are required)
     }
     showAll = true // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
+    
+    // ossIndexAudit can be configued to exclude vulnerabilities from matching
+    excludeVulnerabilityIds = ['39d74cc8-457a-4e57-89ef-a258420138c5'] list containing ids of vulnerabilities to be ignored
+    excludeCoordinates = ['commons-fileupload:commons-fileupload:1.3'] list containing coordinate of components which if vulnerable should be ignored
 }
 ```
 - Open Terminal on the project's root and run `./gradlew ossIndexAudit`

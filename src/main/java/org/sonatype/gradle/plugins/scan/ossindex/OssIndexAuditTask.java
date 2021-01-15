@@ -19,8 +19,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,8 +40,10 @@ import org.sonatype.ossindex.service.client.transport.Transport.TransportExcepti
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
@@ -90,6 +92,12 @@ public class OssIndexAuditTask
         response = ossIndexClient.requestComponentReports(packageUrls);
       }
 
+      Set<String> vulnerabilityIdsToExclude = extension.getExcludeVulnerabilityIds();
+      Set<PackageUrl> coordinatesToExclude = toPackageUrls(extension.getExcludeCoordinates());
+      VulnerabilityExclusionFilter vulnerabilityExclusionFilter =
+          new VulnerabilityExclusionFilter(vulnerabilityIdsToExclude, coordinatesToExclude);
+      vulnerabilityExclusionFilter.apply(response);
+
       OssIndexResponseHandler responseHandler = extension.isDependencyGraph()
               ? new DependencyGraphResponseHandler(extension)
               : new DefaultResponseHandler(extension);
@@ -130,10 +138,11 @@ public class OssIndexAuditTask
 
       if (extension.isSimulatedVulnerabilityFound()) {
         ComponentReportVulnerability vulnerability = new ComponentReportVulnerability();
+        vulnerability.setId("123-456-789");
         vulnerability.setTitle("Simulated");
         vulnerability.setCvssScore(4f);
         vulnerability.setReference(new URI("http://test/123"));
-        report.setVulnerabilities(Arrays.asList(vulnerability));
+        report.setVulnerabilities(Lists.newArrayList(vulnerability));
       }
 
       map.put(packageUrl, report);
@@ -154,12 +163,34 @@ public class OssIndexAuditTask
     });
   }
 
+  private Set<PackageUrl> toPackageUrls(Set<String> coordinates) {
+    Set<PackageUrl> packageUrls = new HashSet<>();
+
+    for (String coordinate : coordinates) {
+      String[] sections = coordinate.split(":");
+      if (sections.length != 3) {
+        continue;
+      }
+      String group = sections[0];
+      String name = sections[1];
+      String version = sections[2];
+      packageUrls.add(toPackageUrl(group, name, version));
+    }
+
+    return packageUrls;
+  }
+
   private PackageUrl toPackageUrl(ResolvedDependency dependency) {
+    ModuleVersionIdentifier id = dependency.getModule().getId();
+    return toPackageUrl(id.getGroup(), id.getName(), id.getVersion());
+  }
+
+  private PackageUrl toPackageUrl(String namespace, String name, String version) {
     return new PackageUrlBuilder()
         .type("maven")
-        .namespace(dependency.getModule().getId().getGroup())
-        .name(dependency.getModule().getId().getName())
-        .version(dependency.getModule().getId().getVersion())
+        .namespace(namespace)
+        .name(name)
+        .version(version)
         .build();
   }
 
