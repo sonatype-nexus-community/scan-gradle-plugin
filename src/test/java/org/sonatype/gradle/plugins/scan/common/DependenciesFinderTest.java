@@ -221,9 +221,8 @@ public class DependenciesFinderTest
   public void testGetDependencies_ModuleDependencies() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
     Configuration originalConfiguration = project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME);
-    Configuration copyConfiguration = finder.createCopyConfiguration(project);
 
-    Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration, copyConfiguration,
+    Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration,
         resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream());
 
     assertThat(dependencies).isNotNull();
@@ -246,9 +245,7 @@ public class DependenciesFinderTest
     when(originalConfiguration.getAllDependencies())
         .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
 
-    Configuration copyConfiguration = finder.createCopyConfiguration(project);
-
-    Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration, copyConfiguration,
+    Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration,
         resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream());
 
     assertThat(dependencies).isNotNull();
@@ -266,9 +263,8 @@ public class DependenciesFinderTest
   public void testGetDependencies_ResolvedArtifacts() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
     Configuration originalConfiguration = project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME);
-    Configuration copyConfiguration = finder.createCopyConfiguration(project);
 
-    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration, copyConfiguration,
+    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration,
         resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
 
     assertThat(dependencies).isNotNull();
@@ -288,9 +284,7 @@ public class DependenciesFinderTest
     when(originalConfiguration.getAllDependencies())
         .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
 
-    Configuration copyConfiguration = finder.createCopyConfiguration(project);
-
-    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration, copyConfiguration,
+    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration,
         resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
 
     assertThat(dependencies).isNotNull();
