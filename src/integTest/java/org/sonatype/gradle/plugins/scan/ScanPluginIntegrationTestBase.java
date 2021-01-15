@@ -245,6 +245,34 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
+  public void testAuditTask_ExcludeVulnerabilities_ByVulnerabilityId_OssIndex() throws IOException {
+    writeFile(buildFile, "exclude_vulnerabilities_by_vulnerability_id.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    assertBuildOutputText_ExcludeVulnerabilities_OssIndex(result);
+  }
+
+  @Test
+  public void testAuditTask_ExcludeVulnerabilities_ByCoordinate_OssIndex() throws IOException {
+    writeFile(buildFile, "exclude_vulnerabilities_by_coordinate.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    assertBuildOutputText_ExcludeVulnerabilities_OssIndex(result);
+  }
+
+  @Test
   public void testAuditTask_TransitiveDepdendencies_OssIndex() throws IOException {
     writeFile(buildFile, "transitive-dependencies.gradle");
 
@@ -372,5 +400,12 @@ public abstract class ScanPluginIntegrationTestBase
   private void assertBuildOutputText_OssIndex_Default(BuildResult result, String expectedText) {
     String resultOutput = result.getOutput();
     assertThat(resultOutput).contains(expectedText);
+  }
+
+  private void assertBuildOutputText_ExcludeVulnerabilities_OssIndex(BuildResult result) {
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains("No vulnerabilities found!");
+    assertThat(resultOutput).doesNotContain("commons-collections");
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 }
