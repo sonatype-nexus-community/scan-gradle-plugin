@@ -241,4 +241,9 @@ public class OssIndexAuditTask
   public boolean isShowAll() {
     return extension.isShowAll();
   }
+
+  @Input
+  public boolean isPrintBanner() {
+    return extension.isPrintBanner();
+  }
 }
