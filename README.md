@@ -86,6 +86,7 @@ ossIndexAudit {
         authConfiguration.password = 'password' // password for the proxy (if credentials are required)
     }
     showAll = true // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
+    printBanner = false // if true will print ASCII text banner. By default is true.
     
     // ossIndexAudit can be configued to exclude vulnerabilities from matching
     excludeVulnerabilityIds = ['39d74cc8-457a-4e57-89ef-a258420138c5'] list containing ids of vulnerabilities to be ignored
