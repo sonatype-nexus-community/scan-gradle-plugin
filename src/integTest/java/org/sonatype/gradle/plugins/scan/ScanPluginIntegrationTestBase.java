@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import org.sonatype.gradle.plugins.scan.ossindex.BannerUtils;
+
 import com.github.ardenliu.common.file.ResourcesUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.testkit.runner.BuildResult;
@@ -412,6 +414,36 @@ public abstract class ScanPluginIntegrationTestBase
         String.format("%scommons-collections:commons-collections:3.1: 0 vulnerabilities detected", DEPENDENCY_PREFIX));
 
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_PrintBanner_True() throws IOException {
+    testAuditTask_PrintBanner("print_banner_true.gradle", true);
+  }
+
+  @Test
+  public void testAuditTask_PrintBanner_False() throws IOException {
+    testAuditTask_PrintBanner("print_banner_false.gradle", false);
+  }
+
+  private void testAuditTask_PrintBanner(String resourceName, boolean showBanner) throws IOException {
+    writeFile(buildFile, resourceName);
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    String bannerText = BannerUtils.createBanner();
+    String resultOutput = result.getOutput();
+    if (showBanner) {
+      assertThat(resultOutput).contains(bannerText);
+    }
+    else {
+      assertThat(resultOutput).doesNotContain(bannerText);
+    }
   }
 
   private void writeFile(File destination, String resourceName) throws IOException {

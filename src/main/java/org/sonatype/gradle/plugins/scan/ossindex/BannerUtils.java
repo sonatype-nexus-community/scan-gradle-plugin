@@ -23,7 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class BannerUtils
+public class BannerUtils
 {
   private static final Logger log = LoggerFactory.getLogger(BannerUtils.class);
 
