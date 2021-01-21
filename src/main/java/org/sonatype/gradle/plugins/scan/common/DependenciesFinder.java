@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.scan.module.model.Artifact;
+import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
 
 import org.apache.commons.lang3.StringUtils;
@@ -85,6 +86,10 @@ public class DependenciesFinder
         Artifact artifact = new Artifact().setId(resolvedArtifact.getId().getComponentIdentifier().getDisplayName())
             .setPathname(resolvedArtifact.getFile()).setMonitored(true);
         module.addConsumedArtifact(artifact);
+      });
+
+      findResolvedDependencies(project, allConfigurations).forEach(resolvedDependency -> {
+        module.addDependency(processDependency(resolvedDependency, true));
       });
 
       modules.add(module);
@@ -167,5 +172,15 @@ public class DependenciesFinder
     return configuration.isCanBeResolved() && (CONFIGURATION_NAMES.contains(configuration.getName())
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME)
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME));
+  }
+
+  private Dependency processDependency(ResolvedDependency resolvedDependency, boolean isDirect) {
+    Dependency dependency = new Dependency()
+        .setId(resolvedDependency.getName())
+        .setDirect(isDirect);
+    resolvedDependency.getChildren().forEach(child -> {
+      dependency.addDependency(processDependency(child, false));
+    });
+    return dependency;
   }
 }
