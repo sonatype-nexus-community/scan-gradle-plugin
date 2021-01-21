@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import org.sonatype.gradle.plugins.scan.ossindex.BannerUtils;
+
 import com.github.ardenliu.common.file.ResourcesUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.testkit.runner.BuildResult;
@@ -196,6 +198,7 @@ public abstract class ScanPluginIntegrationTestBase
     assertBuildOutputText_OssIndex_Default(result,
         " - pkg:maven/commons-collections/commons-collections@3.1 - No vulnerabilities found!");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+    assertBannerText(result.getOutput(), true);
   }
 
   @Test
@@ -412,6 +415,30 @@ public abstract class ScanPluginIntegrationTestBase
         String.format("%scommons-collections:commons-collections:3.1: 0 vulnerabilities detected", DEPENDENCY_PREFIX));
 
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_HideBanner() throws IOException {
+    writeFile(buildFile, "hide_banner.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    assertBannerText(result.getOutput(), false);
+  }
+
+  private void assertBannerText(String resultOutput, boolean showBanner) {
+    String bannerText = BannerUtils.createBanner();
+    if (showBanner) {
+      assertThat(resultOutput).contains(bannerText);
+    }
+    else {
+      assertThat(resultOutput).doesNotContain(bannerText);
+    }
   }
 
   private void writeFile(File destination, String resourceName) throws IOException {

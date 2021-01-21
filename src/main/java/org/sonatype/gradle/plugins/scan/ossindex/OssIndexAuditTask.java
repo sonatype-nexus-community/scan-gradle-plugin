@@ -82,7 +82,10 @@ public class OssIndexAuditTask
 
       Map<PackageUrl, ComponentReport> response;
 
-      log.info(BannerUtils.createBanner());
+      if (extension.isPrintBanner()) {
+        log.info(BannerUtils.createBanner());
+      }
+
       log.info("Checking vulnerabilities in {} dependencies", dependenciesMap.size());
 
       if (extension.isSimulationEnabled()) {
@@ -237,5 +240,10 @@ public class OssIndexAuditTask
   @Input
   public boolean isShowAll() {
     return extension.isShowAll();
+  }
+
+  @Input
+  public boolean isPrintBanner() {
+    return extension.isPrintBanner();
   }
 }
