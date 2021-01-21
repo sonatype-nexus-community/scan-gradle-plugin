@@ -56,6 +56,8 @@ public class OssIndexPluginExtension
 
   private boolean showAll;
 
+  private boolean printBanner;
+
   private Set<String> excludeVulnerabilityIds;
 
   private Set<String> excludeCoordinates;
@@ -71,6 +73,7 @@ public class OssIndexPluginExtension
     colorEnabled = true;
     dependencyGraph = false;
     showAll = false;
+    printBanner = true;
     excludeVulnerabilityIds = new HashSet<>();
     excludeCoordinates = new HashSet<>();
   }
@@ -179,6 +182,14 @@ public class OssIndexPluginExtension
 
   public void setShowAll(boolean showAll) {
     this.showAll = showAll;
+  }
+
+  public boolean isPrintBanner() {
+    return printBanner;
+  }
+
+  public void setPrintBanner(boolean printBanner) {
+    this.printBanner = printBanner;
   }
 
   public Set<String> getExcludeVulnerabilityIds() {
