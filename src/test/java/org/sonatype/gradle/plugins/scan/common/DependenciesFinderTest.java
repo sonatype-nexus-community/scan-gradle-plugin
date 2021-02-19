@@ -357,7 +357,7 @@ public class DependenciesFinderTest
     Dependency subChild = child2.getDependencies().get(0);
     assertThat(subChild.isDirect()).isFalse();
     assertThat(subChild.getId()).isEqualTo("g4:a4:v4");
-    assertThat(subChild.getDependencies()).hasSize(1);
+    assertThat(subChild.getDependencies()).isEmpty();
   }
 
   private Project buildProject(String configurationName, boolean needToCreateConfiguration) {
