@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.scan.module.model.Artifact;
+import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
 
 import org.apache.commons.lang3.StringUtils;
@@ -86,6 +87,10 @@ public class DependenciesFinder
             .setPathname(resolvedArtifact.getFile()).setMonitored(true);
         module.addConsumedArtifact(artifact);
       });
+
+      findResolvedDependencies(project, allConfigurations).forEach(resolvedDependency ->
+        module.addDependency(processDependency(resolvedDependency, true))
+      );
 
       modules.add(module);
     });
@@ -156,6 +161,15 @@ public class DependenciesFinder
 
       return function.apply(copyConfiguration.getResolvedConfiguration());
     }
+  }
+
+  @VisibleForTesting
+  Dependency processDependency(ResolvedDependency resolvedDependency, boolean isDirect) {
+    Dependency dependency = new Dependency()
+            .setId(resolvedDependency.getName())
+            .setDirect(isDirect);
+    resolvedDependency.getChildren().forEach(child -> dependency.addDependency(processDependency(child, false)));
+    return dependency;
   }
 
   private boolean isAcceptableConfiguration(Configuration configuration, boolean allConfigurations) {
