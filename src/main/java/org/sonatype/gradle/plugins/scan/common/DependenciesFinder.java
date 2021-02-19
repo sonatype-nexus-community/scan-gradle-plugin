@@ -88,9 +88,9 @@ public class DependenciesFinder
         module.addConsumedArtifact(artifact);
       });
 
-      findResolvedDependencies(project, allConfigurations).forEach(resolvedDependency -> {
-        module.addDependency(processDependency(resolvedDependency, true));
-      });
+      findResolvedDependencies(project, allConfigurations).forEach(resolvedDependency ->
+        module.addDependency(processDependency(resolvedDependency, true))
+      );
 
       modules.add(module);
     });
@@ -168,9 +168,7 @@ public class DependenciesFinder
     Dependency dependency = new Dependency()
             .setId(resolvedDependency.getName())
             .setDirect(isDirect);
-    resolvedDependency.getChildren().forEach(child -> {
-      dependency.addDependency(processDependency(child, false));
-    });
+    resolvedDependency.getChildren().forEach(child -> dependency.addDependency(processDependency(child, false)));
     return dependency;
   }
 
