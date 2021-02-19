@@ -21,15 +21,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.scan.module.model.Artifact;
+import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Before;
 import org.junit.Test;
@@ -170,6 +171,11 @@ public class DependenciesFinderTest
     Module module = modules.get(0);
     assertThat(module.getId()).isEqualTo(project.getName());
     assertThat(module.getConsumedArtifacts()).hasSize(1);
+    assertThat(module.getDependencies()).hasSize(1);
+
+    Dependency dependency = module.getDependencies().get(0);
+    assertThat(dependency.getId()).isEqualTo(COMMONS_COLLECTIONS_DEPENDENCY);
+    assertThat(dependency.isDirect()).isTrue();
 
     Artifact artifact = module.getConsumedArtifacts().get(0);
     assertThat(artifact.getId()).isEqualTo(COMMONS_COLLECTIONS_DEPENDENCY);
@@ -190,6 +196,11 @@ public class DependenciesFinderTest
     Module childModule = modules.get(1);
     assertThat(childModule.getId()).isEqualTo(parentProject.getName() + ":" + childProject.getName());
     assertThat(childModule.getConsumedArtifacts()).hasSize(1);
+    assertThat(childModule.getDependencies()).hasSize(1);
+
+    Dependency dependency = childModule.getDependencies().get(0);
+    assertThat(dependency.getId()).isEqualTo(COMMONS_COLLECTIONS_DEPENDENCY);
+    assertThat(dependency.isDirect()).isTrue();
 
     Artifact artifact = childModule.getConsumedArtifacts().get(0);
     assertThat(artifact.getId()).isEqualTo(COMMONS_COLLECTIONS_DEPENDENCY);
@@ -293,6 +304,60 @@ public class DependenciesFinderTest
 
     assertThat(list).hasSize(1);
     assertThat(list.get(0).getId().getComponentIdentifier().toString()).isEqualTo(COMMONS_COLLECTIONS_DEPENDENCY);
+  }
+
+  @Test
+  public void testProcessDependency() {
+    ModuleVersionIdentifier parentModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g", "a", "v");
+    ResolvedConfigurationIdentifier parentResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
+            parentModuleVersionIdentifier, "");
+    DefaultResolvedDependency parentDependency = new DefaultResolvedDependency(
+            parentResolvedConfigurationIdentifier, null);
+
+    ModuleVersionIdentifier singleChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId(
+            "g2", "a2", "v2");
+    ResolvedConfigurationIdentifier singleChildResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
+            singleChildModuleVersionIdentifier, "");
+    DefaultResolvedDependency singleChildDependency = new DefaultResolvedDependency(
+            singleChildResolvedConfigurationIdentifier, null);
+
+    ModuleVersionIdentifier multiChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g3", "a3", "v3");
+    ResolvedConfigurationIdentifier multiChildResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
+            multiChildModuleVersionIdentifier, "");
+    DefaultResolvedDependency multiChildDependency = new DefaultResolvedDependency(
+            multiChildResolvedConfigurationIdentifier, null);
+
+    ModuleVersionIdentifier subChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g4", "a4", "v4");
+    ResolvedConfigurationIdentifier subChildResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
+            subChildModuleVersionIdentifier, "");
+    DefaultResolvedDependency subChildDependency = new DefaultResolvedDependency(
+            subChildResolvedConfigurationIdentifier, null);
+
+    multiChildDependency.addChild(subChildDependency);
+
+    parentDependency.addChild(singleChildDependency);
+    parentDependency.addChild(multiChildDependency);
+
+    Dependency dependency = finder.processDependency(parentDependency, true);
+    assertThat(dependency).isNotNull();
+    assertThat(dependency.isDirect()).isTrue();
+    assertThat(dependency.getId()).isEqualTo("g:a:v");
+    assertThat(dependency.getDependencies()).hasSize(2);
+
+    Dependency child1 = dependency.getDependencies().get(0);
+    assertThat(child1.isDirect()).isFalse();
+    assertThat(child1.getId()).isEqualTo("g2:a2:v2");
+    assertThat(child1.getDependencies()).isEmpty();
+
+    Dependency child2 = dependency.getDependencies().get(1);
+    assertThat(child2.isDirect()).isFalse();
+    assertThat(child2.getId()).isEqualTo("g3:a3:v3");
+    assertThat(child2.getDependencies()).hasSize(1);
+
+    Dependency subChild = child2.getDependencies().get(0);
+    assertThat(subChild.isDirect()).isFalse();
+    assertThat(subChild.getId()).isEqualTo("g4:a4:v4");
+    assertThat(subChild.getDependencies()).hasSize(1);
   }
 
   private Project buildProject(String configurationName, boolean needToCreateConfiguration) {

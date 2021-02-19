@@ -163,6 +163,17 @@ public class DependenciesFinder
     }
   }
 
+  @VisibleForTesting
+  Dependency processDependency(ResolvedDependency resolvedDependency, boolean isDirect) {
+    Dependency dependency = new Dependency()
+            .setId(resolvedDependency.getName())
+            .setDirect(isDirect);
+    resolvedDependency.getChildren().forEach(child -> {
+      dependency.addDependency(processDependency(child, false));
+    });
+    return dependency;
+  }
+
   private boolean isAcceptableConfiguration(Configuration configuration, boolean allConfigurations) {
     if (configuration.getName().endsWith(COPY_CONFIGURATION_NAME))
       return false;
@@ -172,15 +183,5 @@ public class DependenciesFinder
     return configuration.isCanBeResolved() && (CONFIGURATION_NAMES.contains(configuration.getName())
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME)
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME));
-  }
-
-  private Dependency processDependency(ResolvedDependency resolvedDependency, boolean isDirect) {
-    Dependency dependency = new Dependency()
-        .setId(resolvedDependency.getName())
-        .setDirect(isDirect);
-    resolvedDependency.getChildren().forEach(child -> {
-      dependency.addDependency(processDependency(child, false));
-    });
-    return dependency;
   }
 }
