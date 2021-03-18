@@ -14,6 +14,11 @@ shadowJar {
   mergeServiceFiles()
   classifier = null
 
+  exclude 'groovy/**'
+  exclude 'groovyjarjarantlr/**'
+  exclude 'groovyjarjarasm/**'
+  exclude 'groovyjarjarcommonscli/**'
+
   def prefix = 'nexus.shadow.'
   relocate('com.', "${prefix}com.") {
     exclude 'com.sonatype.**'
