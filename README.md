@@ -56,7 +56,7 @@ Gradle can be used to build projects developed in various programming languages.
 - Edit its `build.gradle` file adding this:
 ```
 plugins {
-  id 'org.sonatype.gradle.plugins.scan' version '2.0.0' // Update the version as needed
+  id 'org.sonatype.gradle.plugins.scan' version '2.0.6' // Update the version as needed
 }
 ```
 
@@ -107,6 +107,7 @@ nexusIQScan {
     applicationId = 'app'
     stage = 'build' // build is used if omitted
     allConfigurations = true // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath' and 'releaseCompileClasspath' are considered
+    resultFilePath = 'results.json' // Optional. JSON file containing results of the evaluation
 }
 ```
 - Open Terminal on the project's root and run `./gradlew nexusIQScan`
