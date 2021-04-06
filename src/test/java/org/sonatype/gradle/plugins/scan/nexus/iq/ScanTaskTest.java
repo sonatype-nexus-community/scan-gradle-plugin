@@ -68,9 +68,9 @@ public class ScanTaskTest
     when(builderMock.withLogger(any(Logger.class))).thenReturn(builderMock);
     when(InternalIqClientBuilder.create()).thenReturn(builderMock);
 
-    when(iqClientMock.evaluateApplication(anyString(), anyString(), nullable(ScanResult.class), any(File.class)))
-        .thenReturn(
-            new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
+    when(iqClientMock.evaluateApplication(anyString(), anyString(), nullable(ScanResult.class), any(File.class),
+        nullable(File.class))).thenReturn(
+        new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
     when(builderMock.build()).thenReturn(iqClientMock);
 
     when(dependenciesFinderMock.findModules(any(Project.class), eq(false))).thenReturn(Collections.emptyList());
@@ -99,7 +99,7 @@ public class ScanTaskTest
     verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()));
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
     verify(iqClientMock).evaluateApplication(eq(task.getApplicationId()), eq(task.getStage()),
-        nullable(ScanResult.class), any(File.class));
+        nullable(ScanResult.class), any(File.class), nullable(File.class));
   }
 
   @Test
