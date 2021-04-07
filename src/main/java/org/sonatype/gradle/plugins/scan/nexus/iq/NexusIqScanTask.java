@@ -28,6 +28,7 @@ import com.sonatype.nexus.api.common.Authentication;
 import com.sonatype.nexus.api.common.ServerConfig;
 import com.sonatype.nexus.api.iq.Action;
 import com.sonatype.nexus.api.iq.ApplicationPolicyEvaluation;
+import com.sonatype.nexus.api.iq.PolicyActionResolver;
 import com.sonatype.nexus.api.iq.PolicyAlert;
 import com.sonatype.nexus.api.iq.PolicyFact;
 import com.sonatype.nexus.api.iq.ProprietaryConfig;
