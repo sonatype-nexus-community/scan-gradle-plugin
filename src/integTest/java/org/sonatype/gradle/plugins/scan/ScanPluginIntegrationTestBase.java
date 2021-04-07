@@ -456,6 +456,7 @@ public abstract class ScanPluginIntegrationTestBase
     assertThat(resultOutput).contains("Number of components affected: 0 critical, 0 severe, 0 moderate");
     assertThat(resultOutput).contains("Number of grandfathered policy violations: 0");
     assertThat(resultOutput).contains("The detailed report can be viewed online at simulated/report");
+    assertThat(resultOutput).contains("Number of components: 0");
   }
 
   private void assertBuildOutputText_OssIndex_DependencyGraph(BuildResult result, int vulnerabilities) {
