@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -52,7 +53,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({InternalIqClientBuilder.class})
-public class ScanTaskTest
+public class NexusIqScanTaskTest
 {
   @Mock
   private InternalIqClient iqClientMock;
@@ -78,7 +79,7 @@ public class ScanTaskTest
 
   @Test
   public void testScan_simulated() throws Exception {
-    NexusIqScanTask task = buildScanTask(true);
+    NexusIqScanTask task = buildScanTask(true, null);
     task.scan();
 
     verify(iqClientMock, never()).validateServerVersion(anyString());
@@ -88,7 +89,7 @@ public class ScanTaskTest
 
   @Test
   public void testScan_real() throws Exception {
-    NexusIqScanTask task = buildScanTask(false);
+    NexusIqScanTask task = buildScanTask(false, null);
     task.setDependenciesFinder(dependenciesFinderMock);
     when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
@@ -99,22 +100,34 @@ public class ScanTaskTest
     verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()));
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
     verify(iqClientMock).evaluateApplication(eq(task.getApplicationId()), eq(task.getStage()),
-        nullable(ScanResult.class), any(File.class), nullable(File.class));
+        nullable(ScanResult.class), any(File.class), isNull());
   }
 
   @Test
-  public void testScan_realUnabledToCreateApp() throws Exception {
-    NexusIqScanTask task = buildScanTask(false);
+  public void testScan_realWithResultFilePath() throws Exception {
+    NexusIqScanTask task = buildScanTask(false, "some/path");
+    task.setDependenciesFinder(dependenciesFinderMock);
+    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
+
+    task.scan();
+
+    verify(iqClientMock).evaluateApplication(eq(task.getApplicationId()), eq(task.getStage()),
+            nullable(ScanResult.class), any(File.class), eq(new File("some/path")));
+  }
+
+  @Test
+  public void testScan_realUnableToCreateApp() throws Exception {
+    NexusIqScanTask task = buildScanTask(false, null);
     task.setDependenciesFinder(dependenciesFinderMock);
     when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(false);
 
-    assertThatThrownBy(() -> task.scan())
+    assertThatThrownBy(task::scan)
         .isInstanceOf(GradleException.class)
         .hasMessageContaining("Application ID test doesn't exist and couldn't be created or the user user doesn't have"
             + " the 'Application Evaluator' role for that application.");
   }
 
-  private NexusIqScanTask buildScanTask(boolean isSimulated) {
+  private NexusIqScanTask buildScanTask(boolean isSimulated, String resultFilePath) {
     Project project = ProjectBuilder.builder().build();
 
     NexusIqPluginExtension extension = new NexusIqPluginExtension(project);
@@ -123,6 +136,7 @@ public class ScanTaskTest
     extension.setUsername("user");
     extension.setPassword("password");
     extension.setSimulationEnabled(isSimulated);
+    extension.setResultFilePath(resultFilePath);
 
     project.getExtensions().add("nexusIQScan", extension);
     return project.getTasks().create("nexusIQScan", NexusIqScanTask.class);
