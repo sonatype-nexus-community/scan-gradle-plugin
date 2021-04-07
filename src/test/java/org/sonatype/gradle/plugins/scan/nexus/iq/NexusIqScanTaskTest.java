@@ -79,7 +79,7 @@ public class NexusIqScanTaskTest
 
   @Test
   public void testScan_simulated() throws Exception {
-    NexusIqScanTask task = buildScanTask(true, null);
+    NexusIqScanTask task = buildScanTask(true);
     task.scan();
 
     verify(iqClientMock, never()).validateServerVersion(anyString());
@@ -89,7 +89,7 @@ public class NexusIqScanTaskTest
 
   @Test
   public void testScan_real() throws Exception {
-    NexusIqScanTask task = buildScanTask(false, null);
+    NexusIqScanTask task = buildScanTask(false);
     task.setDependenciesFinder(dependenciesFinderMock);
     when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
@@ -105,19 +105,19 @@ public class NexusIqScanTaskTest
 
   @Test
   public void testScan_realWithResultFilePath() throws Exception {
-    NexusIqScanTask task = buildScanTask(false, "some/path");
+    NexusIqScanTask task = buildScanTask(false, "some/path/file.json");
     task.setDependenciesFinder(dependenciesFinderMock);
     when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
     task.scan();
 
     verify(iqClientMock).evaluateApplication(eq(task.getApplicationId()), eq(task.getStage()),
-            nullable(ScanResult.class), any(File.class), eq(new File("some/path")));
+            nullable(ScanResult.class), any(File.class), eq(new File("some/path/file.json")));
   }
 
   @Test
   public void testScan_realUnableToCreateApp() throws Exception {
-    NexusIqScanTask task = buildScanTask(false, null);
+    NexusIqScanTask task = buildScanTask(false);
     task.setDependenciesFinder(dependenciesFinderMock);
     when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(false);
 
@@ -125,6 +125,10 @@ public class NexusIqScanTaskTest
         .isInstanceOf(GradleException.class)
         .hasMessageContaining("Application ID test doesn't exist and couldn't be created or the user user doesn't have"
             + " the 'Application Evaluator' role for that application.");
+  }
+
+  private NexusIqScanTask buildScanTask(boolean isSimulated) {
+    return buildScanTask(isSimulated, null);
   }
 
   private NexusIqScanTask buildScanTask(boolean isSimulated, String resultFilePath) {
