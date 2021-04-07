@@ -79,7 +79,7 @@ public class NexusIqScanTask
         dependenciesFinder.findModules(getProject(), extension.isAllConfigurations());
 
         applicationPolicyEvaluation =
-            new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 0, alerts, "simulated/report");
+            new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 1, alerts, "simulated/report");
       }
       else {
         InternalIqClient iqClient = InternalIqClientBuilder.create()
