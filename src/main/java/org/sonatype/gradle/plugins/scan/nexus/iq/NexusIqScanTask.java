@@ -28,6 +28,7 @@ import com.sonatype.nexus.api.common.Authentication;
 import com.sonatype.nexus.api.common.ServerConfig;
 import com.sonatype.nexus.api.iq.Action;
 import com.sonatype.nexus.api.iq.ApplicationPolicyEvaluation;
+import com.sonatype.nexus.api.iq.PolicyActionResolver;
 import com.sonatype.nexus.api.iq.PolicyAlert;
 import com.sonatype.nexus.api.iq.PolicyFact;
 import com.sonatype.nexus.api.iq.ProprietaryConfig;
@@ -35,6 +36,7 @@ import com.sonatype.nexus.api.iq.internal.InternalIqClient;
 import com.sonatype.nexus.api.iq.internal.InternalIqClientBuilder;
 import com.sonatype.nexus.api.iq.scan.ScanResult;
 
+import org.apache.commons.lang3.StringUtils;
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
 
 import org.gradle.api.DefaultTask;
@@ -78,7 +80,7 @@ public class NexusIqScanTask
         dependenciesFinder.findModules(getProject(), extension.isAllConfigurations());
 
         applicationPolicyEvaluation =
-            new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, alerts, "simulated/report");
+            new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 1, alerts, "simulated/report");
       }
       else {
         InternalIqClient iqClient = InternalIqClientBuilder.create()
@@ -105,8 +107,12 @@ public class NexusIqScanTask
         ScanResult scanResult = iqClient.scan(extension.getApplicationId(), proprietaryConfig, new Properties(),
             Collections.emptyList(), scanFolder, Collections.emptyMap(), modules);
 
-        applicationPolicyEvaluation =
-            iqClient.evaluateApplication(extension.getApplicationId(), extension.getStage(), scanResult, scanFolder);
+        File jsonResultsFile = null;
+        if (StringUtils.isNotBlank(extension.getResultFilePath())) {
+          jsonResultsFile = new File(extension.getResultFilePath());
+        }
+        applicationPolicyEvaluation = iqClient.evaluateApplication(
+                extension.getApplicationId(), extension.getStage(), scanResult, scanFolder, jsonResultsFile);
       }
 
       PolicyActionResolver resolver = new PolicyActionResolver();
@@ -142,6 +148,7 @@ public class NexusIqScanTask
     message.append(
         String.format("Number of grandfathered policy violations: %s\n",
             applicationPolicyEvaluation.getGrandfatheredPolicyViolationCount()));
+    message.append(String.format("Number of components: %s\n", applicationPolicyEvaluation.getTotalComponentCount()));
     message.append("The detailed report can be viewed online at ").append(reportUrl).append("\n");
 
     if (PolicyAction.FAIL == policyAction) {
