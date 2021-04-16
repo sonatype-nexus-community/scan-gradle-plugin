@@ -74,9 +74,7 @@ public class OssIndexAuditTask
           dependenciesFinder.findResolvedDependencies(getProject(), extension.isAllConfigurations());
       BiMap<ResolvedDependency, PackageUrl> dependenciesMap = HashBiMap.create();
 
-      dependencies.forEach(dependency -> {
-        buildDependenciesMap(dependency, dependenciesMap);
-      });
+      dependencies.forEach(dependency -> buildDependenciesMap(dependency, dependenciesMap));
 
       List<PackageUrl> packageUrls = new ArrayList<>(dependenciesMap.values());
 
