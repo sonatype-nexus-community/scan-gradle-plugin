@@ -16,7 +16,7 @@
 package org.sonatype.gradle.plugins.scan.ossindex;
 
 import java.net.URI;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 import org.sonatype.goodies.packageurl.PackageUrl;
@@ -67,7 +67,7 @@ public class OssIndexAuditTaskTest
 
     taskSpy.audit();
 
-    verify(ossIndexClientMock).requestComponentReports(eq(Arrays.asList(COMMONS_COLLECTIONS_PURL)));
+    verify(ossIndexClientMock).requestComponentReports(eq(Collections.singletonList(COMMONS_COLLECTIONS_PURL)));
   }
 
   @Test
@@ -75,11 +75,11 @@ public class OssIndexAuditTaskTest
     setupComponentReport(true);
     OssIndexAuditTask taskSpy = buildAuditTaskSpy(false);
 
-    assertThatThrownBy(() -> taskSpy.audit())
+    assertThatThrownBy(taskSpy::audit)
         .isInstanceOf(GradleException.class)
         .hasMessageContaining("Vulnerabilities detected, check log output to review them");
 
-    verify(ossIndexClientMock).requestComponentReports(eq(Arrays.asList(COMMONS_COLLECTIONS_PURL)));
+    verify(ossIndexClientMock).requestComponentReports(eq(Collections.singletonList(COMMONS_COLLECTIONS_PURL)));
   }
 
   @Test
@@ -117,10 +117,11 @@ public class OssIndexAuditTaskTest
       vulnerability.setCvssScore(4f);
       vulnerability.setReference(new URI("http://test/123"));
 
-      report.setVulnerabilities(Arrays.asList(vulnerability));
+      report.setVulnerabilities(Collections.singletonList(vulnerability));
     }
 
     Map<PackageUrl, ComponentReport> response = ImmutableMap.of(COMMONS_COLLECTIONS_PURL, report);
-    when(ossIndexClientMock.requestComponentReports(eq(Arrays.asList(COMMONS_COLLECTIONS_PURL)))).thenReturn(response);
+    when(ossIndexClientMock.requestComponentReports(eq(Collections.singletonList(COMMONS_COLLECTIONS_PURL))))
+        .thenReturn(response);
   }
 }

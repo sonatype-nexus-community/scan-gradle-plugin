@@ -45,7 +45,7 @@ public class OssIndexClientConfigurationBuilderTest
     OssindexClientConfiguration result = builder.build(null);
 
     assertThat(result).isNotNull();
-    assertThat(result).isEqualToComparingFieldByField(expected);
+    assertThat(result).usingRecursiveComparison().isEqualTo(expected);
   }
 
   @Test
@@ -54,7 +54,7 @@ public class OssIndexClientConfigurationBuilderTest
     OssindexClientConfiguration result = builder.build(new OssIndexPluginExtension(null));
 
     assertThat(result).isNotNull();
-    assertThat(result).isEqualToIgnoringGivenFields(expected, "cacheConfiguration");
+    assertThat(result).usingRecursiveComparison().ignoringFields("cacheConfiguration").isEqualTo(expected);
     assertThat(result.getCacheConfiguration()).isInstanceOf(DirectoryCache.Configuration.class);
     assertThat(result.getProxyConfiguration()).isNull();
   }

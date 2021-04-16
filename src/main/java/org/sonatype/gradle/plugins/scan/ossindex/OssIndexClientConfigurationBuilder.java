@@ -47,9 +47,7 @@ public class OssIndexClientConfigurationBuilder
 
         if (StringUtils.isNotBlank(extension.getCacheDirectory())) {
           File cacheDirectory = new File(extension.getCacheDirectory());
-          if (cacheDirectory != null) {
-            cacheConfig.setBaseDir(cacheDirectory.toPath());
-          }
+          cacheConfig.setBaseDir(cacheDirectory.toPath());
         }
 
         if (StringUtils.isNotBlank(extension.getCacheExpiration())) {

@@ -5,12 +5,11 @@ plugins {
   id 'maven-publish'
   id 'signing'
   id 'net.researchgate.release' version '2.8.1'
-  id 'io.codearte.nexus-staging' version '0.21.2'
-  id 'com.gradle.plugin-publish' version '0.11.0'
-  id 'com.github.johnrengelman.shadow' version '5.2.0'
+  id 'io.codearte.nexus-staging' version '0.30.0'
+  id 'com.gradle.plugin-publish' version '0.14.0'
+  id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
-apply plugin: 'maven'
 apply from: 'gradle/integration-test.gradle'
 
 def pluginDescription = 'Scan, evaluate and audit Gradle projects using Sonatype platforms'
@@ -29,6 +28,8 @@ gradlePlugin {
 java {
   sourceCompatibility = JavaVersion.VERSION_1_8
   targetCompatibility = JavaVersion.VERSION_1_8
+  withJavadocJar()
+  withSourcesJar()
 }
 
 if (JavaVersion.current() != targetCompatibility) {
@@ -39,7 +40,7 @@ if (JavaVersion.current() != targetCompatibility) {
 jar {
   manifest {
     attributes(
-      'Build-Timestamp' : new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
+      'Build-Timestamp' : new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
       'Build-Revision'  : project.version,
       'Built-By'        : 'Sonatype',
       'Created-By'      : "Gradle ${gradle.gradleVersion}",
@@ -48,22 +49,13 @@ jar {
   }
 }
 
-task sourceJar(type: Jar) {
-  classifier 'sources'
-  from sourceSets.main.allJava
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-  classifier 'javadoc'
-  from javadoc.destinationDir
-}
-
 shadowJar {
   mergeServiceFiles()
-  classifier = null
+  archiveClassifier.set('')
 }
 
 task relocateShadowJar(type: ConfigureShadowRelocation) {
+  dependsOn(':nexus-platform-api:shadowJar')
   target = tasks.shadowJar
 }
 
@@ -71,12 +63,12 @@ tasks.shadowJar.dependsOn tasks.relocateShadowJar
 
 artifacts {
   archives shadowJar
-  archives sourceJar
-  archives javadocJar
 }
 
-repositories {
-  mavenCentral()
+allprojects {
+  repositories {
+    mavenCentral()
+  }
 }
 
 // Compiles and shades the nexus-platform-api before compiling the plugin project
@@ -89,13 +81,13 @@ dependencies {
   implementation files ("nexus-platform-api/build/libs/nexus-platform-api-${version}.jar")
   implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
 
-  testCompile gradleTestKit()
-  testCompile "junit:junit:$junitVersion"
-  testCompile "org.assertj:assertj-core:$assertJVersion"
-  testCompile "commons-io:commons-io:$commonsIoVersion"
-  testCompile "org.powermock:powermock-module-junit4:$powermockVersion"
-  testCompile "org.powermock:powermock-api-mockito2:$powermockVersion"
-  testCompile "com.github.ardenliu:arden-file:$ardenFileVersion"
+  testImplementation gradleTestKit()
+  testImplementation "junit:junit:$junitVersion"
+  testImplementation "org.assertj:assertj-core:$assertJVersion"
+  testImplementation "commons-io:commons-io:$commonsIoVersion"
+  testImplementation "org.powermock:powermock-module-junit4:$powermockVersion"
+  testImplementation "org.powermock:powermock-api-mockito2:$powermockVersion"
+  testImplementation "com.github.ardenliu:arden-file:$ardenFileVersion"
 }
 
 processResources {
@@ -200,19 +192,11 @@ publishing {
         }
 
         artifactId = project.name
-
-        artifact(sourceJar) {
-          classifier = 'sources'
-        }
-
-        artifact(javadocJar) {
-          classifier = 'javadoc'
-        }
       }
     }
 
     // configure signing if performing release
-    if ('do-release'.equals(System.getenv('CIRCLE_JOB'))) {
+    if ('do-release' == System.getenv('CIRCLE_JOB')) {
       signing {
         def final encodedKey = System.getenv('SECRING_GPG_ASC_BASE64')
         def final signingKey = new String(encodedKey.decodeBase64())
