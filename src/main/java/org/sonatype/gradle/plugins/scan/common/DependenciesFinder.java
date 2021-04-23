@@ -32,6 +32,7 @@ import com.sonatype.insight.scan.module.model.Module;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -83,8 +84,13 @@ public class DependenciesFinder
       Module module = buildModule(project);
 
       findResolvedArtifacts(project, allConfigurations).forEach(resolvedArtifact -> {
-        Artifact artifact = new Artifact().setId(resolvedArtifact.getId().getComponentIdentifier().getDisplayName())
-            .setPathname(resolvedArtifact.getFile()).setMonitored(true);
+        ModuleVersionIdentifier artifactId = resolvedArtifact.getModuleVersion().getId();
+
+        Artifact artifact = new Artifact()
+            .setId(artifactId.getGroup() + ":" + artifactId.getName() + ":" + artifactId.getVersion())
+            .setPathname(resolvedArtifact.getFile())
+            .setMonitored(true);
+
         module.addConsumedArtifact(artifact);
       });
 
