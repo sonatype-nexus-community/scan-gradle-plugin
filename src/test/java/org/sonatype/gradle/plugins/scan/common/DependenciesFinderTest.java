@@ -37,6 +37,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,29 +61,64 @@ public class DependenciesFinderTest
   }
 
   @Test
-  public void testFindResolvedDependencies_includeLegacyAndroidDependencies() {
+  public void testFindResolvedDependencies_includeRuntimeDependencies() {
+    Project project = buildProject(RUNTIME_CLASSPATH_CONFIGURATION_NAME, false);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_includeLegacyCompileAndroidDependencies() {
     Project project = buildProject("_releaseCompile", true);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
     assertThat(result).hasSize(1);
   }
 
   @Test
-  public void testFindResolvedDependencies_includeAndroidDependencies() {
+  public void testFindResolvedDependencies_includeLegacyRuntimeApkAndroidDependencies() {
+    Project project = buildProject("_releaseApk", true);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_includeCompileAndroidDependencies() {
     Project project = buildProject("releaseCompileClasspath", true);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
     assertThat(result).hasSize(1);
   }
 
   @Test
-  public void testFindResolvedDependencies_includeLegacyAndroidDependenciesUsingVariant() {
+  public void testFindResolvedDependencies_includeRuntimeAndroidDependencies() {
+    Project project = buildProject("releaseRuntimeClasspath", true);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_includeLegacyCompileApkAndroidDependenciesUsingVariant() {
     Project project = buildProject("variantProd_ReleaseCompile", true);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
     assertThat(result).hasSize(1);
   }
 
   @Test
-  public void testFindResolvedDependencies_includeAndroidDependenciesUsingVariant() {
+  public void testFindResolvedDependencies_includeLegacyRuntimeApkAndroidDependenciesUsingVariant() {
+    Project project = buildProject("variantProd_ReleaseApk", true);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_includeAndroidCompileDependenciesUsingVariant() {
     Project project = buildProject("variantProdReleaseCompileClasspath", true);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_includeAndroidRuntimeDependenciesUsingVariant() {
+    Project project = buildProject("variantProdReleaseRuntimeClasspath", true);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
     assertThat(result).hasSize(1);
   }
@@ -109,8 +145,22 @@ public class DependenciesFinderTest
   }
 
   @Test
-  public void testFindResolvedArtifacts_includeAndroidDependencies() {
+  public void testFindResolvedArtifacts_includeRuntimeDependencies() {
+    Project project = buildProject(RUNTIME_CLASSPATH_CONFIGURATION_NAME, false);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedArtifacts_includeAndroidCompileDependencies() {
     Project project = buildProject("releaseCompileClasspath", true);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedArtifacts_includeAndroidRuntimeDependencies() {
+    Project project = buildProject("releaseRuntimeClasspath", true);
     Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
     assertThat(result).hasSize(1);
   }

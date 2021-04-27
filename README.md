@@ -72,7 +72,7 @@ on this plugin. Cache can also be configured optionally.
 ossIndexAudit {
     username = 'email' // if not provided, an anonymous query will be made
     password = 'pass'
-    allConfigurations = true // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath' and 'releaseCompileClasspath' are considered
+    allConfigurations = true // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath', 'runtimeClasspath', 'releaseCompileClasspath' and 'releaseRuntimeClasspath' are considered
     useCache = true // true by default
     cacheDirectory = 'some/path' // by default it uses the user data directory (according to OS)
     cacheExpiration = 'PT12H' // 12 hours if omitted. It must follow the Joda Time specification at https://www.javadoc.io/doc/joda-time/joda-time/2.10.4/org/joda/time/Duration.html#parse-java.lang.String-
@@ -106,7 +106,7 @@ nexusIQScan {
     serverUrl = 'http://localhost:8070'
     applicationId = 'app'
     stage = 'build' // build is used if omitted
-    allConfigurations = true // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath' and 'releaseCompileClasspath' are considered
+    allConfigurations = true // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath', 'runtimeClasspath', 'releaseCompileClasspath' and 'releaseRuntimeClasspath' are considered
     resultFilePath = 'results.json' // Optional. JSON file containing results of the evaluation
 }
 ```
