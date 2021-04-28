@@ -43,18 +43,29 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
 public class DependenciesFinder
 {
   private static final String RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME = "_releaseCompile";
 
+  private static final String RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME = "_releaseApk";
+
+  private static final String RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME = "_releasePublish";
+
   private static final String RELEASE_COMPILE_CONFIGURATION_NAME = "releaseCompileClasspath";
+
+  private static final String RELEASE_RUNTIME_CONFIGURATION_NAME = "releaseRuntimeClasspath";
 
   private static final Set<String> CONFIGURATION_NAMES =
       new HashSet<>(Arrays.asList(
           COMPILE_CLASSPATH_CONFIGURATION_NAME,
+          RUNTIME_CLASSPATH_CONFIGURATION_NAME,
           RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME,
-          RELEASE_COMPILE_CONFIGURATION_NAME));
+          RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME,
+          RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME,
+          RELEASE_COMPILE_CONFIGURATION_NAME,
+          RELEASE_RUNTIME_CONFIGURATION_NAME));
 
   private static final String COPY_CONFIGURATION_NAME = "sonatypeCopyConfiguration";
 
@@ -186,6 +197,9 @@ public class DependenciesFinder
     }
     return configuration.isCanBeResolved() && (CONFIGURATION_NAMES.contains(configuration.getName())
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME)
-        || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME));
+        || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME)
+        || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME)
+        || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME)
+        || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_CONFIGURATION_NAME));
   }
 }
