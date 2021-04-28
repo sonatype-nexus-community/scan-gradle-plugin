@@ -82,6 +82,13 @@ public class DependenciesFinderTest
   }
 
   @Test
+  public void testFindResolvedDependencies_includeLegacyRuntimeLibraryAndroidDependencies() {
+    Project project = buildProject("_releasePublish", true);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
   public void testFindResolvedDependencies_includeCompileAndroidDependencies() {
     Project project = buildProject("releaseCompileClasspath", true);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
@@ -105,6 +112,13 @@ public class DependenciesFinderTest
   @Test
   public void testFindResolvedDependencies_includeLegacyRuntimeApkAndroidDependenciesUsingVariant() {
     Project project = buildProject("variantProd_ReleaseApk", true);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_includeLegacyRuntimeLibraryAndroidDependenciesUsingVariant() {
+    Project project = buildProject("variantProd_ReleasePublish", true);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false);
     assertThat(result).hasSize(1);
   }
