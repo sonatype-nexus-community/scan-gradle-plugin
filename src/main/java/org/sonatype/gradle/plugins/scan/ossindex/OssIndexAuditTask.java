@@ -160,7 +160,9 @@ public class OssIndexAuditTask
 
     dependency.getChildren().forEach(child -> {
       mapAccumulator.forcePut(child, toPackageUrl(child));
-      buildDependenciesMap(child, mapAccumulator);
+      if (!mapAccumulator.containsKey(child)) {
+        buildDependenciesMap(child, mapAccumulator);
+      }
     });
   }
 
