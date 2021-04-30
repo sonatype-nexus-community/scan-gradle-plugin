@@ -15,6 +15,7 @@
  */
 package org.sonatype.gradle.plugins.scan.common;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -419,7 +420,7 @@ public class DependenciesFinderTest
     parentDependency.addChild(singleChildDependency);
     parentDependency.addChild(multiChildDependency);
 
-    Dependency dependency = finder.processDependency(parentDependency, true);
+    Dependency dependency = finder.processDependency(parentDependency, true, new HashSet<>());
     assertThat(dependency).isNotNull();
     assertThat(dependency.isDirect()).isTrue();
     assertThat(dependency.getId()).isEqualTo("g:a:v");
