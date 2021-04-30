@@ -106,7 +106,7 @@ public class DependenciesFinder
       });
 
       findResolvedDependencies(project, allConfigurations).forEach(resolvedDependency ->
-        module.addDependency(processDependency(resolvedDependency, true))
+        module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
       );
 
       modules.add(module);
@@ -181,11 +181,20 @@ public class DependenciesFinder
   }
 
   @VisibleForTesting
-  Dependency processDependency(ResolvedDependency resolvedDependency, boolean isDirect) {
+  Dependency processDependency(
+      ResolvedDependency resolvedDependency,
+      boolean isDirect,
+      Set<String> processedDependencies)
+  {
     Dependency dependency = new Dependency()
-            .setId(resolvedDependency.getName())
-            .setDirect(isDirect);
-    resolvedDependency.getChildren().forEach(child -> dependency.addDependency(processDependency(child, false)));
+        .setId(resolvedDependency.getName())
+        .setDirect(isDirect);
+    processedDependencies.add(resolvedDependency.getName());
+    resolvedDependency.getChildren().forEach(child -> {
+      if (!processedDependencies.contains(child.getName())) {
+        dependency.addDependency(processDependency(child, false, processedDependencies));
+      }
+    });
     return dependency;
   }
 
