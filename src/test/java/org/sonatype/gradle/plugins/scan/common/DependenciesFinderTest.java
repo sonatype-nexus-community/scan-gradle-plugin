@@ -390,32 +390,45 @@ public class DependenciesFinderTest
 
   @Test
   public void testProcessDependency() {
+    testProcessDependency(false);
+  }
+
+  @Test
+  public void testProcessDependency_avoidCircularDependenciesStackOverflowError() {
+    testProcessDependency(true);
+  }
+
+  private void testProcessDependency(boolean setupCircularDependencies) {
     ModuleVersionIdentifier parentModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g", "a", "v");
     ResolvedConfigurationIdentifier parentResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
-            parentModuleVersionIdentifier, "");
+        parentModuleVersionIdentifier, "");
     DefaultResolvedDependency parentDependency = new DefaultResolvedDependency(
-            parentResolvedConfigurationIdentifier, null);
+        parentResolvedConfigurationIdentifier, null);
 
     ModuleVersionIdentifier singleChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId(
-            "g2", "a2", "v2");
+        "g2", "a2", "v2");
     ResolvedConfigurationIdentifier singleChildResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
-            singleChildModuleVersionIdentifier, "");
+        singleChildModuleVersionIdentifier, "");
     DefaultResolvedDependency singleChildDependency = new DefaultResolvedDependency(
-            singleChildResolvedConfigurationIdentifier, null);
+        singleChildResolvedConfigurationIdentifier, null);
 
     ModuleVersionIdentifier multiChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g3", "a3", "v3");
     ResolvedConfigurationIdentifier multiChildResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
-            multiChildModuleVersionIdentifier, "");
+        multiChildModuleVersionIdentifier, "");
     DefaultResolvedDependency multiChildDependency = new DefaultResolvedDependency(
-            multiChildResolvedConfigurationIdentifier, null);
+        multiChildResolvedConfigurationIdentifier, null);
 
     ModuleVersionIdentifier subChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g4", "a4", "v4");
     ResolvedConfigurationIdentifier subChildResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
-            subChildModuleVersionIdentifier, "");
+        subChildModuleVersionIdentifier, "");
     DefaultResolvedDependency subChildDependency = new DefaultResolvedDependency(
-            subChildResolvedConfigurationIdentifier, null);
+        subChildResolvedConfigurationIdentifier, null);
 
     multiChildDependency.addChild(subChildDependency);
+
+    if (setupCircularDependencies) {
+      singleChildDependency.addChild(parentDependency);
+    }
 
     parentDependency.addChild(singleChildDependency);
     parentDependency.addChild(multiChildDependency);
