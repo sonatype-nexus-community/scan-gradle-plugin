@@ -189,12 +189,26 @@ public class DependenciesFinder
     Dependency dependency = new Dependency()
         .setId(resolvedDependency.getName())
         .setDirect(isDirect);
-    processedDependencies.add(resolvedDependency.getName());
+
     resolvedDependency.getChildren().forEach(child -> {
-      if (!processedDependencies.contains(child.getName())) {
+      if (processedDependencies.add(child.getName())) {
         dependency.addDependency(processDependency(child, false, processedDependencies));
       }
+      else {
+        Dependency childDependency = new Dependency()
+            .setId(child.getName())
+            .setDirect(false);
+
+        child.getChildren().forEach(grandchild -> {
+          childDependency.addDependency(new Dependency()
+              .setId(grandchild.getName())
+              .setDirect(false));
+        });
+
+        dependency.addDependency(childDependency);
+      }
     });
+
     return dependency;
   }
 
