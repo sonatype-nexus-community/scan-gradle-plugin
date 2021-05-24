@@ -73,7 +73,7 @@ public class DependenciesFinder
 
   public Set<ResolvedDependency> findResolvedDependencies(Project rootProject, boolean allConfigurations) {
     return new LinkedHashSet<>(rootProject.getAllprojects()).stream()
-        .flatMap(project -> project.getConfigurations().stream())
+        .flatMap(project -> new LinkedHashSet<>(project.getConfigurations()).stream())
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
         .flatMap(configuration -> getDependencies(rootProject, configuration,
             resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream()))
