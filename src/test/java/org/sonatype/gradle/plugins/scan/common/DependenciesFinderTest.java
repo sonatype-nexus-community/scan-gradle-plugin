@@ -24,6 +24,7 @@ import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -40,6 +41,7 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class DependenciesFinderTest
@@ -147,6 +149,21 @@ public class DependenciesFinderTest
   @Test
   public void testFindResolvedDependencies_includeTestDependencies() {
     Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true);
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_copyConfigurationAfterResolveException() {
+    Project project = spy(buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false));
+    ConfigurationContainer configurationContainer = spy(project.getConfigurations());
+    Configuration configuration = spy(configurationContainer.iterator().next());
+
+    when(configuration.getResolvedConfiguration()).thenThrow(ResolveException.class);
+    when(configurationContainer.stream()).thenReturn(Stream.of(configuration));
+    when(project.getConfigurations()).thenReturn(configurationContainer);
+    when(project.getAllprojects()).thenReturn(Sets.newHashSet(project));
+
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true);
     assertThat(result).hasSize(1);
   }
