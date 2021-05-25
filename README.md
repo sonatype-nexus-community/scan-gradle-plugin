@@ -56,7 +56,7 @@ Gradle can be used to build projects developed in various programming languages.
 - Edit its `build.gradle` file adding this:
 ```
 plugins {
-  id 'org.sonatype.gradle.plugins.scan' version '2.0.9' // Update the version as needed
+  id 'org.sonatype.gradle.plugins.scan' version '2.0.10' // Update the version as needed
 }
 ```
 
@@ -72,12 +72,12 @@ on this plugin. Cache can also be configured optionally.
 ossIndexAudit {
     username = 'email' // if not provided, an anonymous query will be made
     password = 'pass'
-    allConfigurations = true // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath', 'runtimeClasspath', 'releaseCompileClasspath' and 'releaseRuntimeClasspath' are considered
+    allConfigurations = false // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath', 'runtimeClasspath', 'releaseCompileClasspath' and 'releaseRuntimeClasspath' are considered
     useCache = true // true by default
     cacheDirectory = 'some/path' // by default it uses the user data directory (according to OS)
     cacheExpiration = 'PT12H' // 12 hours if omitted. It must follow the Joda Time specification at https://www.javadoc.io/doc/joda-time/joda-time/2.10.4/org/joda/time/Duration.html#parse-java.lang.String-
     colorEnabled = false // if true prints vulnerability description in color. By default is true.
-    dependencyGraph = true // if true prints dependency graph showing direct/transitive dependencies. By default is false.
+    dependencyGraph = false // if true prints dependency graph showing direct/transitive dependencies. By default is false.
     proxyConfiguration { // extra configuration when running behind a proxy without direct internet access
         protocol = 'http' // can be 'http' (default) or 'https'
         host = 'proxy-host' // hostname for the proxy
@@ -87,8 +87,8 @@ ossIndexAudit {
     }
     showAll = true // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
     printBanner = false // if true will print ASCII text banner. By default is true.
-    
-    // ossIndexAudit can be configued to exclude vulnerabilities from matching
+
+    // ossIndexAudit can be configured to exclude vulnerabilities from matching
     excludeVulnerabilityIds = ['39d74cc8-457a-4e57-89ef-a258420138c5'] list containing ids of vulnerabilities to be ignored
     excludeCoordinates = ['commons-fileupload:commons-fileupload:1.3'] list containing coordinate of components which if vulnerable should be ignored
 }
@@ -106,7 +106,7 @@ nexusIQScan {
     serverUrl = 'http://localhost:8070'
     applicationId = 'app'
     stage = 'build' // build is used if omitted
-    allConfigurations = true // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath', 'runtimeClasspath', 'releaseCompileClasspath' and 'releaseRuntimeClasspath' are considered
+    allConfigurations = false // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath', 'runtimeClasspath', 'releaseCompileClasspath' and 'releaseRuntimeClasspath' are considered
     resultFilePath = 'results.json' // Optional. JSON file containing results of the evaluation
 }
 ```
