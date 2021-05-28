@@ -13,11 +13,15 @@ jobs:
         issue-message: >
           Hi!
           
+          
           Thank you for opening your first issue. Elementary, we appreciate all feedback that help us to keep improving this plugin.
+          
           
           As this is a [community project](https://github.com/sonatype-nexus-community/scan-gradle-plugin#the-fine-print) we can't commit to official due dates for reviews and developing, but we're definitely committed to deliver services, integrations and plugins of quality.
           
+          
           So please be patiente while we're able to review issues and get back to you.
+          
           
           
           Regards,
