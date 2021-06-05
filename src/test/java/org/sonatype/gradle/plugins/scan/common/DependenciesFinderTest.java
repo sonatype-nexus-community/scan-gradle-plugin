@@ -442,17 +442,27 @@ public class DependenciesFinderTest
     Dependency child1 = dependency.getDependencies().get(0);
     assertThat(child1.isDirect()).isFalse();
     assertThat(child1.getId()).isEqualTo("g2:a2:v2");
-    assertThat(child1.getDependencies()).isEmpty();
+
+    if (!setupCircularDependencies) {
+      assertThat(child1.getDependencies()).isEmpty();
+    }
+      else {
+      assertThat(child1.getDependencies()).hasSize(1);
+      Dependency subChild1 = child1.getDependencies().get(0);
+      assertThat(subChild1.isDirect()).isFalse();
+      assertThat(subChild1.getId()).isEqualTo("g:a:v");
+      assertThat(subChild1.getDependencies()).hasSize(2);
+    }
 
     Dependency child2 = dependency.getDependencies().get(1);
     assertThat(child2.isDirect()).isFalse();
     assertThat(child2.getId()).isEqualTo("g3:a3:v3");
     assertThat(child2.getDependencies()).hasSize(1);
 
-    Dependency subChild = child2.getDependencies().get(0);
-    assertThat(subChild.isDirect()).isFalse();
-    assertThat(subChild.getId()).isEqualTo("g4:a4:v4");
-    assertThat(subChild.getDependencies()).isEmpty();
+    Dependency subChild2 = child2.getDependencies().get(0);
+    assertThat(subChild2.isDirect()).isFalse();
+    assertThat(subChild2.getId()).isEqualTo("g4:a4:v4");
+    assertThat(subChild2.getDependencies()).isEmpty();
   }
 
   private Project buildProject(String configurationName, boolean needToCreateConfiguration) {
