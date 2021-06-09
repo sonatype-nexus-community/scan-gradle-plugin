@@ -78,8 +78,7 @@ dependencies {
   shadow localGroovy()
   shadow gradleApi()
 
-  //implementation files ("nexus-platform-api/build/libs/nexus-platform-api-${version}.jar")
-  implementation "com.sonatype.nexus:nexus-platform-api:$nexusPlatformApiVersion:internal"
+  implementation files ("nexus-platform-api/build/libs/nexus-platform-api-${version}.jar")
   implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
 
   testImplementation gradleTestKit()
