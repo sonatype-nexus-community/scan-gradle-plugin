@@ -105,7 +105,7 @@ public class NexusIqScanTask
         List<Module> modules = dependenciesFinder.findModules(getProject(), extension.isAllConfigurations());
 
         ScanResult scanResult = iqClient.scan(extension.getApplicationId(), proprietaryConfig, new Properties(),
-            Collections.emptyList(), scanFolder, Collections.emptyMap(), modules);
+            Collections.emptyList(), scanFolder, Collections.emptyMap(), Collections.emptySet(), modules);
 
         File jsonResultsFile = null;
         if (StringUtils.isNotBlank(extension.getResultFilePath())) {
