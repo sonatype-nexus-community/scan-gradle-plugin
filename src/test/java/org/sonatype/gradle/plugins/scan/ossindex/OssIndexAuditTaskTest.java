@@ -25,16 +25,24 @@ import org.sonatype.ossindex.service.api.componentreport.ComponentReport;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReportVulnerability;
 import org.sonatype.ossindex.service.client.OssindexClient;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -87,6 +95,47 @@ public class OssIndexAuditTaskTest
     OssIndexAuditTask taskSpy = buildAuditTaskSpy(true);
     taskSpy.audit();
     verify(ossIndexClientMock, never()).requestComponentReports(anyList());
+  }
+
+  @Test
+  public void testBuildDependenciesMap_avoidCircularDependenciesStackOverflowError() {
+    ModuleVersionIdentifier parentModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g", "a", "v");
+    ResolvedConfigurationIdentifier parentResolvedConfigurationIdentifier =
+        new ResolvedConfigurationIdentifier(parentModuleVersionIdentifier, "");
+    DefaultResolvedDependency parentDependency =
+        new DefaultResolvedDependency(parentResolvedConfigurationIdentifier, null);
+
+    ModuleVersionIdentifier singleChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g2", "a2", "v2");
+    ResolvedConfigurationIdentifier singleChildResolvedConfigurationIdentifier =
+        new ResolvedConfigurationIdentifier(singleChildModuleVersionIdentifier, "");
+    DefaultResolvedDependency singleChildDependency =
+        new DefaultResolvedDependency(singleChildResolvedConfigurationIdentifier, null);
+
+    ModuleVersionIdentifier multiChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g3", "a3", "v3");
+    ResolvedConfigurationIdentifier multiChildResolvedConfigurationIdentifier =
+        new ResolvedConfigurationIdentifier(multiChildModuleVersionIdentifier, "");
+    DefaultResolvedDependency multiChildDependency =
+        new DefaultResolvedDependency(multiChildResolvedConfigurationIdentifier, null);
+
+    ModuleVersionIdentifier subChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g4", "a4", "v4");
+    ResolvedConfigurationIdentifier subChildResolvedConfigurationIdentifier =
+        new ResolvedConfigurationIdentifier(subChildModuleVersionIdentifier, "");
+    DefaultResolvedDependency subChildDependency =
+        new DefaultResolvedDependency(subChildResolvedConfigurationIdentifier, null);
+
+    multiChildDependency.addChild(subChildDependency);
+
+    // circular dependency
+    singleChildDependency.addChild(parentDependency);
+    parentDependency.addChild(singleChildDependency);
+    parentDependency.addChild(multiChildDependency);
+
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(true);
+    BiMap<ResolvedDependency, PackageUrl> dependenciesMap = HashBiMap.create();
+    taskSpy.buildDependenciesMap(parentDependency, dependenciesMap);
+
+    assertThat(dependenciesMap).containsOnlyKeys(parentDependency, singleChildDependency, multiChildDependency,
+        subChildDependency);
   }
 
   private OssIndexAuditTask buildAuditTaskSpy(boolean isSimulated) {
