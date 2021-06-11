@@ -152,15 +152,14 @@ public class OssIndexAuditTask
     return map;
   }
 
-  private void buildDependenciesMap(
-      ResolvedDependency dependency,
-      BiMap<ResolvedDependency, PackageUrl> mapAccumulator)
-  {
+  @VisibleForTesting
+  void buildDependenciesMap(ResolvedDependency dependency, BiMap<ResolvedDependency, PackageUrl> mapAccumulator) {
     mapAccumulator.forcePut(dependency, toPackageUrl(dependency));
 
     dependency.getChildren().forEach(child -> {
-      mapAccumulator.forcePut(child, toPackageUrl(child));
-      buildDependenciesMap(child, mapAccumulator);
+      if (mapAccumulator.forcePut(child, toPackageUrl(child)) == null) {
+        buildDependenciesMap(child, mapAccumulator);
+      }
     });
   }
 
