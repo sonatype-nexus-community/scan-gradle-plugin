@@ -15,6 +15,7 @@
  */
 package org.sonatype.gradle.plugins.scan.common;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -389,37 +390,50 @@ public class DependenciesFinderTest
 
   @Test
   public void testProcessDependency() {
+    testProcessDependency(false);
+  }
+
+  @Test
+  public void testProcessDependency_avoidCircularDependenciesStackOverflowError() {
+    testProcessDependency(true);
+  }
+
+  private void testProcessDependency(boolean setupCircularDependencies) {
     ModuleVersionIdentifier parentModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g", "a", "v");
     ResolvedConfigurationIdentifier parentResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
-            parentModuleVersionIdentifier, "");
+        parentModuleVersionIdentifier, "");
     DefaultResolvedDependency parentDependency = new DefaultResolvedDependency(
-            parentResolvedConfigurationIdentifier, null);
+        parentResolvedConfigurationIdentifier, null);
 
     ModuleVersionIdentifier singleChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId(
-            "g2", "a2", "v2");
+        "g2", "a2", "v2");
     ResolvedConfigurationIdentifier singleChildResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
-            singleChildModuleVersionIdentifier, "");
+        singleChildModuleVersionIdentifier, "");
     DefaultResolvedDependency singleChildDependency = new DefaultResolvedDependency(
-            singleChildResolvedConfigurationIdentifier, null);
+        singleChildResolvedConfigurationIdentifier, null);
 
     ModuleVersionIdentifier multiChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g3", "a3", "v3");
     ResolvedConfigurationIdentifier multiChildResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
-            multiChildModuleVersionIdentifier, "");
+        multiChildModuleVersionIdentifier, "");
     DefaultResolvedDependency multiChildDependency = new DefaultResolvedDependency(
-            multiChildResolvedConfigurationIdentifier, null);
+        multiChildResolvedConfigurationIdentifier, null);
 
     ModuleVersionIdentifier subChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g4", "a4", "v4");
     ResolvedConfigurationIdentifier subChildResolvedConfigurationIdentifier = new ResolvedConfigurationIdentifier(
-            subChildModuleVersionIdentifier, "");
+        subChildModuleVersionIdentifier, "");
     DefaultResolvedDependency subChildDependency = new DefaultResolvedDependency(
-            subChildResolvedConfigurationIdentifier, null);
+        subChildResolvedConfigurationIdentifier, null);
 
     multiChildDependency.addChild(subChildDependency);
+
+    if (setupCircularDependencies) {
+      singleChildDependency.addChild(parentDependency);
+    }
 
     parentDependency.addChild(singleChildDependency);
     parentDependency.addChild(multiChildDependency);
 
-    Dependency dependency = finder.processDependency(parentDependency, true);
+    Dependency dependency = finder.processDependency(parentDependency, true, new HashSet<>());
     assertThat(dependency).isNotNull();
     assertThat(dependency.isDirect()).isTrue();
     assertThat(dependency.getId()).isEqualTo("g:a:v");
@@ -435,10 +449,10 @@ public class DependenciesFinderTest
     assertThat(child2.getId()).isEqualTo("g3:a3:v3");
     assertThat(child2.getDependencies()).hasSize(1);
 
-    Dependency subChild = child2.getDependencies().get(0);
-    assertThat(subChild.isDirect()).isFalse();
-    assertThat(subChild.getId()).isEqualTo("g4:a4:v4");
-    assertThat(subChild.getDependencies()).isEmpty();
+    Dependency subChild2 = child2.getDependencies().get(0);
+    assertThat(subChild2.isDirect()).isFalse();
+    assertThat(subChild2.getId()).isEqualTo("g4:a4:v4");
+    assertThat(subChild2.getDependencies()).isEmpty();
   }
 
   private Project buildProject(String configurationName, boolean needToCreateConfiguration) {
