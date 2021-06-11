@@ -190,26 +190,40 @@ public class DependenciesFinder
         .setId(resolvedDependency.getName())
         .setDirect(isDirect);
 
+    processedDependencies.add(resolvedDependency.getName());
+
     resolvedDependency.getChildren().forEach(child -> {
       if (processedDependencies.add(child.getName())) {
         dependency.addDependency(processDependency(child, false, processedDependencies));
       }
-      else {
+      else if (!isParent(resolvedDependency, child, new HashSet<>())) {
         Dependency childDependency = new Dependency()
             .setId(child.getName())
             .setDirect(false);
-
-        child.getChildren().forEach(grandchild -> {
-          childDependency.addDependency(new Dependency()
-              .setId(grandchild.getName())
-              .setDirect(false));
-        });
 
         dependency.addDependency(childDependency);
       }
     });
 
     return dependency;
+  }
+
+  private boolean isParent(
+      ResolvedDependency dependency,
+      ResolvedDependency possibleParent,
+      Set<String> processedParents)
+  {
+    Set<ResolvedDependency> parents = dependency.getParents();
+    for (ResolvedDependency parent : parents) {
+      if (parent.getName().equals(possibleParent.getName())) {
+        return true;
+      }
+      if (processedParents.add(parent.getName())) {
+        isParent(parent, possibleParent, processedParents);
+      }
+    }
+
+    return false;
   }
 
   private boolean isAcceptableConfiguration(Configuration configuration, boolean allConfigurations) {
