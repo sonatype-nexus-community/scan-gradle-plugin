@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sonatype.gradle.plugins.scan.ossindex;
+package org.sonatype.gradle.plugins.scan.common;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +24,7 @@ import org.sonatype.ossindex.service.client.internal.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class PluginVersionUtils
+public class PluginVersionUtils
 {
   private static final Logger log = LoggerFactory.getLogger(PluginVersionUtils.class);
 
