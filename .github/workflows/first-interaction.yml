@@ -27,3 +27,23 @@ jobs:
           Regards,
           
           Sherlock Trunks 🐘
+        pr-message: >
+          Hi!
+          
+          
+          First of all, thank you for opening your first pull-request. Elementary, we appreciate all submissions that helps us continue improving this plugin.
+          
+          
+          Please take a look to our [contributing guidelines](https://github.com/sonatype-nexus-community/scan-gradle-plugin/blob/master/.github/CONTRIBUTING.md) and make sure all requirements are fulfilled.
+          
+          
+          As this is a [community project](https://github.com/sonatype-nexus-community/scan-gradle-plugin#the-fine-print) we can't commit to official due dates for reviews and developing, but we're definitely committed to delivering services, integrations and plugins of top quality.
+          
+          
+          So please be patient, we will review your pull-request and get back to you as soon as we can!
+          
+          
+          
+          Regards,
+          
+          Sherlock Trunks 🐘
