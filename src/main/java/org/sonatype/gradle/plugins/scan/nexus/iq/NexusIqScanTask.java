@@ -90,7 +90,7 @@ public class NexusIqScanTask
             .withServerConfig(new ServerConfig(new URI(getServerUrl()),
                     new Authentication(extension.getUsername(), extension.getPassword())))
             .withLogger(log)
-            .withUserAgent(USER_AGENT_NAME + " " + PluginVersionUtils.getPluginVersion())
+            .withUserAgent(buildUserAgent())
             .build();
 
         iqClient.validateServerVersion(MINIMAL_SERVER_VERSION_REQUIRED);
@@ -164,6 +164,16 @@ public class NexusIqScanTask
     else {
       log.info(message.toString());
     }
+  }
+
+  private String buildUserAgent() {
+    return String.format("%s/%s (Java %s; %s %s; Gradle %s)",
+        USER_AGENT_NAME,
+        PluginVersionUtils.getPluginVersion(),
+        System.getProperty("java.version"),
+        System.getProperty("os.name"),
+        System.getProperty("os.version"),
+        getProject().getGradle().getGradleVersion());
   }
 
   @Input

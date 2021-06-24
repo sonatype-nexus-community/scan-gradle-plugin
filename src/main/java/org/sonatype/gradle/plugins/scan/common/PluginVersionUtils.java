@@ -28,7 +28,7 @@ public class PluginVersionUtils
 {
   private static final Logger log = LoggerFactory.getLogger(PluginVersionUtils.class);
 
-  private static final String PROPERTIES_PATH = "com/sonatype/insight/client.properties";
+  private static final String PROPERTIES_PATH = "nexus/shadow/com/sonatype/insight/client.properties";
 
   private PluginVersionUtils() {
     // Utils class
