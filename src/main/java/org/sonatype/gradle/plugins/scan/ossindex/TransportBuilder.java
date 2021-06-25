@@ -15,6 +15,7 @@
  */
 package org.sonatype.gradle.plugins.scan.ossindex;
 
+import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 import org.sonatype.ossindex.service.client.internal.VersionSupplier;
 import org.sonatype.ossindex.service.client.transport.HttpClientTransport;
 import org.sonatype.ossindex.service.client.transport.UserAgentBuilder;
