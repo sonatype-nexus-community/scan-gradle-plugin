@@ -36,9 +36,10 @@ import com.sonatype.nexus.api.iq.internal.InternalIqClient;
 import com.sonatype.nexus.api.iq.internal.InternalIqClientBuilder;
 import com.sonatype.nexus.api.iq.scan.ScanResult;
 
-import org.apache.commons.lang3.StringUtils;
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
+import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.Input;
@@ -53,6 +54,8 @@ public class NexusIqScanTask
   private final Logger log = LoggerFactory.getLogger(NexusIqScanTask.class);
 
   private static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.69.0";
+
+  private static final String USER_AGENT_NAME = "Sonatype_Nexus_Gradle";
 
   private final NexusIqPluginExtension extension;
 
@@ -87,6 +90,7 @@ public class NexusIqScanTask
             .withServerConfig(new ServerConfig(new URI(getServerUrl()),
                     new Authentication(extension.getUsername(), extension.getPassword())))
             .withLogger(log)
+            .withUserAgent(buildUserAgent())
             .build();
 
         iqClient.validateServerVersion(MINIMAL_SERVER_VERSION_REQUIRED);
@@ -160,6 +164,16 @@ public class NexusIqScanTask
     else {
       log.info(message.toString());
     }
+  }
+
+  private String buildUserAgent() {
+    return String.format("%s/%s (Java %s; %s %s; Gradle %s)",
+        USER_AGENT_NAME,
+        PluginVersionUtils.getPluginVersion(),
+        System.getProperty("java.version"),
+        System.getProperty("os.name"),
+        System.getProperty("os.version"),
+        getProject().getGradle().getGradleVersion());
   }
 
   @Input
