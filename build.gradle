@@ -91,7 +91,7 @@ dependencies {
 }
 
 processResources {
-  filesMatching('com/sonatype/insight/client.properties') {
+  filesMatching('nexus/shadow/com/sonatype/insight/client.properties') {
       expand(project.properties)
   }
 }

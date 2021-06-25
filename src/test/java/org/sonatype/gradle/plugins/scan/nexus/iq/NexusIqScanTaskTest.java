@@ -33,12 +33,15 @@ import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -61,12 +64,16 @@ public class NexusIqScanTaskTest
   @Mock
   private DependenciesFinder dependenciesFinderMock;
 
+  @Captor
+  private ArgumentCaptor<String> userAgentCaptor;
+
   @Before
   public void setup() throws IqClientException {
     PowerMockito.mockStatic(InternalIqClientBuilder.class);
     InternalIqClientBuilder builderMock = mock(InternalIqClientBuilder.class);
     when(builderMock.withServerConfig(any(ServerConfig.class))).thenReturn(builderMock);
     when(builderMock.withLogger(any(Logger.class))).thenReturn(builderMock);
+    when(builderMock.withUserAgent(userAgentCaptor.capture())).thenReturn(builderMock);
     when(InternalIqClientBuilder.create()).thenReturn(builderMock);
 
     when(iqClientMock.evaluateApplication(anyString(), anyString(), nullable(ScanResult.class), any(File.class),
@@ -96,6 +103,8 @@ public class NexusIqScanTaskTest
     task.scan();
 
     verify(dependenciesFinderMock).findModules(any(Project.class), eq(false));
+    assertThat(userAgentCaptor.getValue())
+        .matches("Sonatype_Nexus_Gradle/[^\\s]+ \\(Java [^;]+; [^;]+ [^;]+; Gradle [^;]+\\)");
     verify(iqClientMock).validateServerVersion(anyString());
     verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()));
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
