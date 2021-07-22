@@ -80,7 +80,7 @@ public class NexusIqScanTask
               Collections.singletonList(new Action(extension.getSimulatedPolicyActionId()))));
         }
 
-        dependenciesFinder.findModules(getProject(), extension.isAllConfigurations());
+        dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(), extension.getModulesExcluded());
 
         applicationPolicyEvaluation =
             new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 1, alerts, "simulated/report");
@@ -106,7 +106,8 @@ public class NexusIqScanTask
             iqClient.getProprietaryConfigForApplicationEvaluation(extension.getApplicationId());
 
         File scanFolder = new File(extension.getScanFolderPath());
-        List<Module> modules = dependenciesFinder.findModules(getProject(), extension.isAllConfigurations());
+        List<Module> modules = dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(),
+            extension.getModulesExcluded());
 
         ScanResult scanResult = iqClient.scan(extension.getApplicationId(), proprietaryConfig, new Properties(),
             Collections.emptyList(), scanFolder, Collections.emptyMap(), Collections.emptySet(), modules);
@@ -209,6 +210,11 @@ public class NexusIqScanTask
   @Input
   public boolean isAllConfigurations() {
     return extension.isAllConfigurations();
+  }
+
+  @Input
+  public List<String> getModulesExcluded() {
+    return extension.getModulesExcluded();
   }
 
   @VisibleForTesting

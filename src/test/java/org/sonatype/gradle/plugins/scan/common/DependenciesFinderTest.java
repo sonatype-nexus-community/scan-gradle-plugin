@@ -15,6 +15,7 @@
  */
 package org.sonatype.gradle.plugins.scan.common;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -246,7 +247,7 @@ public class DependenciesFinderTest
   @Test
   public void testFindModules_singleModule() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    List<Module> modules = finder.findModules(project, false);
+    List<Module> modules = finder.findModules(project, false, Collections.emptyList());
 
     assertThat(modules).hasSize(1);
 
@@ -267,7 +268,7 @@ public class DependenciesFinderTest
   public void testFindModules_multiModule() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
     Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
-    List<Module> modules = finder.findModules(parentProject, false);
+    List<Module> modules = finder.findModules(parentProject, false, Collections.emptyList());
 
     assertThat(modules).hasSize(2);
 
@@ -286,6 +287,16 @@ public class DependenciesFinderTest
 
     Artifact artifact = childModule.getConsumedArtifacts().get(0);
     assertThat(artifact.getId()).isEqualTo(COMMONS_COLLECTIONS_DEPENDENCY);
+  }
+
+  @Test
+  public void testFindModules_multiModuleWithModuleExcluded() {
+    Project parentProject = ProjectBuilder.builder().withName("parent").build();
+    Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
+    List<Module> modules = finder.findModules(parentProject, false, Collections.singletonList(childProject.getName()));
+
+    assertThat(modules).hasSize(1);
+    assertThat(modules.get(0).getId()).isEqualTo(parentProject.getName());
   }
 
   @Test

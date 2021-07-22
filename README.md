@@ -108,6 +108,7 @@ nexusIQScan {
     stage = 'build' // build is used if omitted
     allConfigurations = false // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath', 'runtimeClasspath', 'releaseCompileClasspath' and 'releaseRuntimeClasspath' are considered
     resultFilePath = 'results.json' // Optional. JSON file containing results of the evaluation
+    modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules that are not wanted to be scanned and evaluated.
 }
 ```
 - Open Terminal on the project's root and run `./gradlew nexusIQScan`

@@ -88,28 +88,30 @@ public class DependenciesFinder
         .collect(Collectors.toSet());
   }
 
-  public List<Module> findModules(Project rootProject, boolean allConfigurations) {
+  public List<Module> findModules(Project rootProject, boolean allConfigurations, List<String> modulesExcluded) {
     List<Module> modules = new ArrayList<>();
 
     rootProject.allprojects(project -> {
-      Module module = buildModule(project);
+      if (!modulesExcluded.contains(project.getName())) {
+        Module module = buildModule(project);
 
-      findResolvedArtifacts(project, allConfigurations).forEach(resolvedArtifact -> {
-        ModuleVersionIdentifier artifactId = resolvedArtifact.getModuleVersion().getId();
+        findResolvedArtifacts(project, allConfigurations).forEach(resolvedArtifact -> {
+          ModuleVersionIdentifier artifactId = resolvedArtifact.getModuleVersion().getId();
 
-        Artifact artifact = new Artifact()
-            .setId(artifactId.getGroup() + ":" + artifactId.getName() + ":" + artifactId.getVersion())
-            .setPathname(resolvedArtifact.getFile())
-            .setMonitored(true);
+          Artifact artifact = new Artifact()
+              .setId(artifactId.getGroup() + ":" + artifactId.getName() + ":" + artifactId.getVersion())
+              .setPathname(resolvedArtifact.getFile())
+              .setMonitored(true);
 
-        module.addConsumedArtifact(artifact);
-      });
+          module.addConsumedArtifact(artifact);
+        });
 
-      findResolvedDependencies(project, allConfigurations).forEach(resolvedDependency ->
-        module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
-      );
+        findResolvedDependencies(project, allConfigurations).forEach(resolvedDependency ->
+          module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
+        );
 
-      modules.add(module);
+        modules.add(module);
+      }
     });
 
     return modules;
