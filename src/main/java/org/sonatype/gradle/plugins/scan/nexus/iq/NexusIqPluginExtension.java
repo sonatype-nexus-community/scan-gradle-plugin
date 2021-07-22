@@ -47,12 +47,18 @@ public class NexusIqPluginExtension
 
   private Set<String> modulesExcluded;
 
+  private String dirIncludes;
+
+  private String dirExcludes;
+
   public NexusIqPluginExtension(Project project) {
     stage = Stage.ID_BUILD;
     simulationEnabled = false;
     simulatedPolicyActionId = PolicyAction.NONE.toString();
     scanFolderPath = project.getBuildDir() + "/sonatype-clm/";
     modulesExcluded = Collections.emptySet();
+    dirIncludes = "";
+    dirExcludes = "";
   }
 
   public String getUsername() {
@@ -142,5 +148,21 @@ public class NexusIqPluginExtension
 
   public void setModulesExcluded(Set<String> modulesExcluded) {
     this.modulesExcluded = modulesExcluded;
+  }
+
+  public String getDirIncludes() {
+    return dirIncludes;
+  }
+
+  public void setDirIncludes(String dirIncludes) {
+    this.dirIncludes = dirIncludes;
+  }
+
+  public String getDirExcludes() {
+    return dirExcludes;
+  }
+
+  public void setDirExcludes(String dirExcludes) {
+    this.dirExcludes = dirExcludes;
   }
 }

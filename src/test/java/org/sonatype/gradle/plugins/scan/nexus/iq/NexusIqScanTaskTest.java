@@ -17,10 +17,12 @@ package org.sonatype.gradle.plugins.scan.nexus.iq;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Properties;
 
 import com.sonatype.nexus.api.common.ServerConfig;
 import com.sonatype.nexus.api.exception.IqClientException;
 import com.sonatype.nexus.api.iq.ApplicationPolicyEvaluation;
+import com.sonatype.nexus.api.iq.ProprietaryConfig;
 import com.sonatype.nexus.api.iq.internal.InternalIqClient;
 import com.sonatype.nexus.api.iq.internal.InternalIqClientBuilder;
 import com.sonatype.nexus.api.iq.scan.ScanResult;
@@ -44,6 +46,8 @@ import org.slf4j.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -138,11 +142,37 @@ public class NexusIqScanTaskTest
             + " the 'Application Evaluator' role for that application.");
   }
 
+  @Test
+  public void testScan_realWithDirIncludesAndExcludes() throws Exception {
+    NexusIqScanTask task = buildScanTask(false, null, "dir-include", "dir-exclude");
+    task.setDependenciesFinder(dependenciesFinderMock);
+    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
+
+    task.scan();
+
+    Properties expected = new Properties();
+    expected.setProperty("dirIncludes", task.getDirIncludes());
+    expected.setProperty("dirExcludes", task.getDirExcludes());
+
+    verify(iqClientMock).scan(eq(task.getApplicationId()), nullable(ProprietaryConfig.class), eq(expected), anyList(),
+        any(File.class), anyMap(), anySet(), anyList());
+
+  }
+
   private NexusIqScanTask buildScanTask(boolean isSimulated) {
     return buildScanTask(isSimulated, null);
   }
 
   private NexusIqScanTask buildScanTask(boolean isSimulated, String resultFilePath) {
+    return buildScanTask(isSimulated, resultFilePath, "", "");
+  }
+
+  private NexusIqScanTask buildScanTask(
+      boolean isSimulated,
+      String resultFilePath,
+      String dirIncludes,
+      String dirExcludes)
+  {
     Project project = ProjectBuilder.builder().build();
 
     NexusIqPluginExtension extension = new NexusIqPluginExtension(project);
@@ -152,6 +182,8 @@ public class NexusIqScanTaskTest
     extension.setPassword("password");
     extension.setSimulationEnabled(isSimulated);
     extension.setResultFilePath(resultFilePath);
+    extension.setDirIncludes(dirIncludes);
+    extension.setDirExcludes(dirExcludes);
 
     project.getExtensions().add("nexusIQScan", extension);
     return project.getTasks().create("nexusIQScan", NexusIqScanTask.class);
