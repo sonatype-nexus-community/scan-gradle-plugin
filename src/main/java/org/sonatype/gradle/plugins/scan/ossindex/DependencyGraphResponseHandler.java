@@ -180,9 +180,13 @@ public class DependencyGraphResponseHandler
       Map<PackageUrl, ComponentReport> response)
   {
     PackageUrl packageUrl = dependenciesMap.get(dependency);
-    return !response.get(packageUrl).getVulnerabilities().isEmpty() || dependency.getChildren().parallelStream()
-        .map(child -> hasVulnerabilities(child, dependenciesMap, response))
-        .collect(Collectors.toList())
-        .contains(true);
+    ComponentReport componentReport = response.get(packageUrl);
+    if (componentReport != null) {
+      return !componentReport.getVulnerabilities().isEmpty() || dependency.getChildren().parallelStream()
+          .map(child -> hasVulnerabilities(child, dependenciesMap, response))
+          .collect(Collectors.toList())
+          .contains(true);
+    }
+    return false;
   }
 }
