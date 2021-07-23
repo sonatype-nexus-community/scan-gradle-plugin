@@ -247,7 +247,7 @@ public class DependenciesFinderTest
   @Test
   public void testFindModules_singleModule() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    List<Module> modules = finder.findModules(project, false, Collections.emptyList());
+    List<Module> modules = finder.findModules(project, false, Collections.emptySet());
 
     assertThat(modules).hasSize(1);
 
@@ -268,7 +268,7 @@ public class DependenciesFinderTest
   public void testFindModules_multiModule() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
     Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
-    List<Module> modules = finder.findModules(parentProject, false, Collections.emptyList());
+    List<Module> modules = finder.findModules(parentProject, false, Collections.emptySet());
 
     assertThat(modules).hasSize(2);
 
@@ -293,7 +293,7 @@ public class DependenciesFinderTest
   public void testFindModules_multiModuleWithModuleExcluded() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
     Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
-    List<Module> modules = finder.findModules(parentProject, false, Collections.singletonList(childProject.getName()));
+    List<Module> modules = finder.findModules(parentProject, false, Collections.singleton(childProject.getName()));
 
     assertThat(modules).hasSize(1);
     assertThat(modules.get(0).getId()).isEqualTo(parentProject.getName());

@@ -16,7 +16,7 @@
 package org.sonatype.gradle.plugins.scan.nexus.iq;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.PolicyAction;
@@ -45,14 +45,14 @@ public class NexusIqPluginExtension
 
   private String simulatedPolicyActionId;
 
-  private List<String> modulesExcluded;
+  private Set<String> modulesExcluded;
 
   public NexusIqPluginExtension(Project project) {
     stage = Stage.ID_BUILD;
     simulationEnabled = false;
     simulatedPolicyActionId = PolicyAction.NONE.toString();
     scanFolderPath = project.getBuildDir() + "/sonatype-clm/";
-    modulesExcluded = Collections.emptyList();
+    modulesExcluded = Collections.emptySet();
   }
 
   public String getUsername() {
@@ -136,11 +136,11 @@ public class NexusIqPluginExtension
     this.simulatedPolicyActionId = simulatedPolicyActionId;
   }
 
-  public List<String> getModulesExcluded() {
+  public Set<String> getModulesExcluded() {
     return modulesExcluded;
   }
 
-  public void setModulesExcluded(List<String> modulesExcluded) {
+  public void setModulesExcluded(Set<String> modulesExcluded) {
     this.modulesExcluded = modulesExcluded;
   }
 }

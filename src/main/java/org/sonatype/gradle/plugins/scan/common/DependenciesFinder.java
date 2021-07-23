@@ -88,7 +88,7 @@ public class DependenciesFinder
         .collect(Collectors.toSet());
   }
 
-  public List<Module> findModules(Project rootProject, boolean allConfigurations, List<String> modulesExcluded) {
+  public List<Module> findModules(Project rootProject, boolean allConfigurations, Set<String> modulesExcluded) {
     List<Module> modules = new ArrayList<>();
 
     rootProject.allprojects(project -> {

@@ -44,7 +44,7 @@ import org.slf4j.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -82,7 +82,7 @@ public class NexusIqScanTaskTest
         new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
     when(builderMock.build()).thenReturn(iqClientMock);
 
-    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anyList()))
+    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet()))
         .thenReturn(Collections.emptyList());
   }
 
@@ -104,7 +104,7 @@ public class NexusIqScanTaskTest
 
     task.scan();
 
-    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anyList());
+    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet());
     assertThat(userAgentCaptor.getValue())
         .matches("Sonatype_Nexus_Gradle/[^\\s]+ \\(Java [^;]+; [^;]+ [^;]+; Gradle [^;]+\\)");
     verify(iqClientMock).validateServerVersion(anyString());

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import com.sonatype.insight.brain.client.PolicyAction;
 import com.sonatype.insight.scan.module.model.Module;
@@ -213,7 +214,7 @@ public class NexusIqScanTask
   }
 
   @Input
-  public List<String> getModulesExcluded() {
+  public Set<String> getModulesExcluded() {
     return extension.getModulesExcluded();
   }
 
