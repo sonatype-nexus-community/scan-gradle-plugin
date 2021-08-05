@@ -110,7 +110,7 @@ public class NexusIqScanTask
         List<Module> modules = dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(),
             extension.getModulesExcluded());
 
-        ScanResult scanResult = iqClient.scan(extension.getApplicationId(), proprietaryConfig, new Properties(),
+        ScanResult scanResult = iqClient.scan(extension.getApplicationId(), proprietaryConfig, buildProperties(),
             Collections.emptyList(), scanFolder, Collections.emptyMap(), Collections.emptySet(), modules);
 
         File jsonResultsFile = null;
@@ -129,6 +129,17 @@ public class NexusIqScanTask
     catch (Exception e) {
       throw new GradleException("Could not scan the project: " + e.getMessage(), e);
     }
+  }
+
+  private Properties buildProperties() {
+    Properties properties = new Properties();
+    if (StringUtils.isNotBlank(extension.getDirIncludes())) {
+      properties.setProperty("dirIncludes", extension.getDirIncludes());
+    }
+    if (StringUtils.isNotBlank(extension.getDirExcludes())) {
+      properties.setProperty("dirExcludes", extension.getDirExcludes());
+    }
+    return properties;
   }
 
   private void logReport(PolicyAction policyAction, ApplicationPolicyEvaluation applicationPolicyEvaluation) {
@@ -216,6 +227,16 @@ public class NexusIqScanTask
   @Input
   public Set<String> getModulesExcluded() {
     return extension.getModulesExcluded();
+  }
+
+  @Input
+  public String getDirIncludes() {
+    return extension.getDirIncludes();
+  }
+
+  @Input
+  public String getDirExcludes() {
+    return extension.getDirExcludes();
   }
 
   @VisibleForTesting
