@@ -124,6 +124,7 @@ publishing {
     release {
       // avoid infinite CircleCI builds triggered by release commits
       preCommitText = '[skip ci] '
+      buildTasks = ['assemble']
     }
 
     def sonatypeUsername = System.getenv('SONATYPE_USERNAME')
