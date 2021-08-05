@@ -143,8 +143,8 @@ public class NexusIqScanTaskTest
   }
 
   @Test
-  public void testScan_realWithDirIncludesAndExcludes() throws Exception {
-    NexusIqScanTask task = buildScanTask(false, null, "dir-include", "dir-exclude");
+  public void testScan_realWithDirIncludes() throws Exception {
+    NexusIqScanTask task = buildScanTask(false, null, "dir-include", null);
     task.setDependenciesFinder(dependenciesFinderMock);
     when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
@@ -152,6 +152,21 @@ public class NexusIqScanTaskTest
 
     Properties expected = new Properties();
     expected.setProperty("dirIncludes", task.getDirIncludes());
+
+    verify(iqClientMock).scan(eq(task.getApplicationId()), nullable(ProprietaryConfig.class), eq(expected), anyList(),
+        any(File.class), anyMap(), anySet(), anyList());
+
+  }
+
+  @Test
+  public void testScan_realWithDirExcludes() throws Exception {
+    NexusIqScanTask task = buildScanTask(false, null, null, "dir-exclude");
+    task.setDependenciesFinder(dependenciesFinderMock);
+    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
+
+    task.scan();
+
+    Properties expected = new Properties();
     expected.setProperty("dirExcludes", task.getDirExcludes());
 
     verify(iqClientMock).scan(eq(task.getApplicationId()), nullable(ProprietaryConfig.class), eq(expected), anyList(),

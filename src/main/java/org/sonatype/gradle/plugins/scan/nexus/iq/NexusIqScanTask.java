@@ -133,8 +133,10 @@ public class NexusIqScanTask
 
   private Properties buildProperties() {
     Properties properties = new Properties();
-    if (!StringUtils.isAllBlank(extension.getDirIncludes(), extension.getDirExcludes())) {
+    if (StringUtils.isNotBlank(extension.getDirIncludes())) {
       properties.setProperty("dirIncludes", extension.getDirIncludes());
+    }
+    if (StringUtils.isNotBlank(extension.getDirExcludes())) {
       properties.setProperty("dirExcludes", extension.getDirExcludes());
     }
     return properties;

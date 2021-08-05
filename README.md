@@ -109,8 +109,8 @@ nexusIQScan {
     allConfigurations = false // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath', 'runtimeClasspath', 'releaseCompileClasspath' and 'releaseRuntimeClasspath' are considered
     resultFilePath = 'results.json' // Optional. JSON file containing results of the evaluation
     modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to exclude from scanning and evaluation.
-    dirIncludes = 'some-ant-pattern' // Optional. Ant-like glob patterns to select directories/archives that should be examined
-    dirExcludes = 'some-ant-pattern' // Optional. Ant-like glob patterns to select directories/archives that should be excluded. For Android we suggest using '**/classes.jar,**/annotations.zip,**/lint.jar'
+    dirExcludes = 'some-ant-pattern' // Optional. Comma separated ant-like glob patterns to select directories/archives that should be excluded. For Android projects we suggest using '**/classes.jar,**/annotations.zip,**/lint.jar,**/internal_impl-*.jar'
+    dirIncludes = 'some-ant-pattern' // Optional. Comma separated ant-like glob patterns to select directories/archives that should be examined
 }
 ```
 - Open Terminal on the project's root and run `./gradlew nexusIQScan`
