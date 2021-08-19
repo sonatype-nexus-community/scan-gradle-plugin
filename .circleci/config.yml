@@ -101,7 +101,7 @@ workflows:
           type: approval
           filters:
             branches:
-              only: master
+              only: main
       - do-release:
           ssh-fingerprints: "13:f3:b7:44:ef:87:83:87:87:f9:ae:b7:5f:7f:51:33"
           context: rso-base
@@ -109,4 +109,4 @@ workflows:
             - approve-release
           filters:
             branches:
-              only: master
+              only: main
