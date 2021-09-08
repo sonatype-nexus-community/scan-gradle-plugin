@@ -21,9 +21,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.sonatype.goodies.packageurl.PackageUrl;
 import org.sonatype.goodies.packageurl.PackageUrlBuilder;
@@ -70,8 +72,10 @@ public class OssIndexAuditTask
     boolean hasVulnerabilities;
 
     try (OssindexClient ossIndexClient = buildOssIndexClient()) {
-      Set<ResolvedDependency> dependencies =
-          dependenciesFinder.findResolvedDependencies(getProject(), extension.isAllConfigurations());
+      Set<ResolvedDependency> dependencies = getProject().getAllprojects().stream()
+          .flatMap(
+              project -> dependenciesFinder.findResolvedDependencies(project, extension.isAllConfigurations()).stream())
+          .collect(Collectors.toCollection(LinkedHashSet::new));
       BiMap<ResolvedDependency, PackageUrl> dependenciesMap = HashBiMap.create();
 
       dependencies.forEach(dependency -> buildDependenciesMap(dependency, dependenciesMap));

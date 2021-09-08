@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sonatype.gradle.plugins.scan.nexus.iq;
+package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
 import java.util.Collections;
 import java.util.Set;
@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.client.PolicyAction;
 
 import org.gradle.api.Project;
 
-public class NexusIqPluginExtension
+public class NexusIqPluginScanExtension
 {
   private String stage;
 
@@ -51,7 +51,7 @@ public class NexusIqPluginExtension
 
   private String dirExcludes;
 
-  public NexusIqPluginExtension(Project project) {
+  public NexusIqPluginScanExtension(Project project) {
     stage = Stage.ID_BUILD;
     simulationEnabled = false;
     simulatedPolicyActionId = PolicyAction.NONE.toString();

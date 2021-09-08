@@ -15,8 +15,10 @@
  */
 package org.sonatype.gradle.plugins.scan;
 
-import org.sonatype.gradle.plugins.scan.nexus.iq.NexusIqPluginExtension;
-import org.sonatype.gradle.plugins.scan.nexus.iq.NexusIqScanTask;
+import org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqIndexTask;
+import org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqPluginIndexExtension;
+import org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanExtension;
+import org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqScanTask;
 import org.sonatype.gradle.plugins.scan.ossindex.OssIndexAuditTask;
 import org.sonatype.gradle.plugins.scan.ossindex.OssIndexPluginExtension;
 
@@ -29,10 +31,16 @@ public class ScanPlugin implements Plugin<Project>
 
   @Override
   public void apply(Project project) {
-    project.getExtensions().create("nexusIQScan", NexusIqPluginExtension.class, project);
+    project.getExtensions().create("nexusIQScan", NexusIqPluginScanExtension.class, project);
     NexusIqScanTask nexusIqScanTask = project.getTasks().create("nexusIQScan", NexusIqScanTask.class);
     nexusIqScanTask.setGroup(SONATYPE_GROUP);
     nexusIqScanTask.setDescription("Scan and evaluate the dependencies of the project using Nexus IQ Server.");
+
+    project.getExtensions().create("nexusIQIndex", NexusIqPluginIndexExtension.class, project);
+    NexusIqIndexTask nexusIqIndexTask = project.getTasks().create("nexusIQIndex", NexusIqIndexTask.class);
+    nexusIqIndexTask.setGroup(SONATYPE_GROUP);
+    nexusIqIndexTask.setDescription("Saves information about the dependencies of a project into a module information "
+        + "file that Sonatype CI tools can use to include these dependencies in a scan.");
 
     project.getExtensions().create("ossIndexAudit", OssIndexPluginExtension.class, project);
     OssIndexAuditTask ossIndexAuditTask = project.getTasks().create("ossIndexAudit", OssIndexAuditTask.class);
