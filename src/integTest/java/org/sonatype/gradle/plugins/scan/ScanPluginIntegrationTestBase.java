@@ -168,6 +168,23 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
+  public void testIndexTask_NexusIQ() throws IOException {
+    writeFile(buildFile, "control_default.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("nexusIQIndex", "--info")
+        .build();
+
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains("Saved module information to");
+    assertThat(resultOutput).contains("sonatype-clm" + File.separator + "module.xml");
+    assertThat(result.task(":nexusIQIndex").getOutcome()).isEqualTo(SUCCESS);
+  }
+  
+  @Test
   public void testAuditTask_NoVulnerabilities_OssIndex_Default_Empty() throws IOException {
     writeFile(buildFile, "control_default_not_all.gradle");
 
