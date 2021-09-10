@@ -16,6 +16,7 @@
 package org.sonatype.gradle.plugins.scan.nexus.iq.index;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +26,6 @@ import com.sonatype.insight.scan.module.model.io.ModuleIoManager;
 
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
 
-import com.google.common.io.Files;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -57,21 +57,12 @@ public class NexusIqIndexTask
     try {
       List<Module> modules =
           dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(), extension.getModulesExcluded());
-      File file = new File(extension.getModuleFile());
       List<File> files = new ArrayList<>(modules.size());
 
-      if (modules.size() == 1) {
-        moduleIoManager.writeModule(file, modules.get(0));
+      for (Module module : modules) {
+        File file = Paths.get(module.getPathname(), "build", "sonatype-clm", "module.xml").toFile();
+        moduleIoManager.writeModule(file, module);
         files.add(file);
-      }
-      else {
-        File parent = new File(extension.getModuleFile()).getParentFile();
-        String filename = Files.getNameWithoutExtension(file.getName());
-        for (Module module : modules) {
-          File moduleFile = new File(parent, filename + "-" + module.getId().replace(':', '-') + ".xml");
-          moduleIoManager.writeModule(moduleFile, module);
-          files.add(moduleFile);
-        }
       }
 
       log.info("Saved module information to {}", StringUtils.join(files, ", "));
@@ -99,10 +90,5 @@ public class NexusIqIndexTask
   @Input
   public Set<String> getModulesExcluded() {
     return extension.getModulesExcluded();
-  }
-
-  @Input
-  public String getModuleFile() {
-    return extension.getModuleFile();
   }
 }

@@ -50,14 +50,16 @@ public class NexusIqIndexTaskTest
 
   @Test
   public void testSaveModule_singleModule() throws IOException {
-    Module module = new Module().setId("test-module");
-    File file = new File("test-file.xml");
+    Module module = new Module()
+        .setId("test-module")
+        .setPathname("test-module");
+    File file = new File("test-module/build/sonatype-clm/module.xml");
 
     when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet()))
         .thenReturn(Collections.singletonList(module));
     doNothing().when(moduleIoManagerMock).writeModule(file, module);
 
-    NexusIqIndexTask task = buildIndexTask(file.getPath());
+    NexusIqIndexTask task = buildIndexTask();
     task.setDependenciesFinder(dependenciesFinderMock);
     task.setModuleIoManager(moduleIoManagerMock);
     task.saveModule();
@@ -68,17 +70,21 @@ public class NexusIqIndexTaskTest
 
   @Test
   public void testSaveModule_multipleModules() throws IOException {
-    Module module1 = new Module().setId("test-module:1");
-    Module module2 = new Module().setId("test-module:2");
-    File file1 = new File("test-file-test-module-1.xml");
-    File file2 = new File("test-file-test-module-2.xml");
+    Module module1 = new Module()
+        .setId("test-module-1")
+        .setPathname("test-module-1");
+    Module module2 = new Module()
+        .setId("test-module-2")
+        .setPathname("test-module-2");
+    File file1 = new File("test-module-1/build/sonatype-clm/module.xml");
+    File file2 = new File("test-module-2/build/sonatype-clm/module.xml");
 
     when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet()))
         .thenReturn(Arrays.asList(module1, module2));
     doNothing().when(moduleIoManagerMock).writeModule(file1, module1);
     doNothing().when(moduleIoManagerMock).writeModule(file2, module2);
 
-    NexusIqIndexTask task = buildIndexTask("test-file.xml");
+    NexusIqIndexTask task = buildIndexTask();
     task.setDependenciesFinder(dependenciesFinderMock);
     task.setModuleIoManager(moduleIoManagerMock);
     task.saveModule();
@@ -88,12 +94,9 @@ public class NexusIqIndexTaskTest
     verify(moduleIoManagerMock).writeModule(file2, module2);
   }
 
-  private NexusIqIndexTask buildIndexTask(String moduleFile) {
+  private NexusIqIndexTask buildIndexTask() {
     Project project = ProjectBuilder.builder().build();
-
     NexusIqPluginIndexExtension extension = new NexusIqPluginIndexExtension(project);
-    extension.setModuleFile(moduleFile);
-
     project.getExtensions().add("nexusIQIndex", extension);
     return project.getTasks().create("nexusIQIndex", NexusIqIndexTask.class);
   }

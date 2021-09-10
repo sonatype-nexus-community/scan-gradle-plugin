@@ -15,7 +15,6 @@
  */
 package org.sonatype.gradle.plugins.scan.nexus.iq.index;
 
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Set;
 
@@ -27,11 +26,8 @@ public class NexusIqPluginIndexExtension
 
   private Set<String> modulesExcluded;
 
-  private String moduleFile;
-
   public NexusIqPluginIndexExtension(Project project) {
     modulesExcluded = Collections.emptySet();
-    moduleFile = Paths.get(project.getBuildDir().getAbsolutePath(), "sonatype-clm", "module.xml").toString();
   }
 
   public boolean isAllConfigurations() {
@@ -48,13 +44,5 @@ public class NexusIqPluginIndexExtension
 
   public void setModulesExcluded(Set<String> modulesExcluded) {
     this.modulesExcluded = modulesExcluded;
-  }
-
-  public String getModuleFile() {
-    return moduleFile;
-  }
-
-  public void setModuleFile(String moduleFile) {
-    this.moduleFile = moduleFile;
   }
 }

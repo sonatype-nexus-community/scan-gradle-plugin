@@ -56,7 +56,7 @@ Gradle can be used to build projects developed in various programming languages.
 - Edit its `build.gradle` file adding this:
 ```
 plugins {
-  id 'org.sonatype.gradle.plugins.scan' version '2.0.10' // Update the version as needed
+  id 'org.sonatype.gradle.plugins.scan' version '2.1.1' // Update the version as needed
 }
 ```
 
@@ -96,7 +96,7 @@ ossIndexAudit {
 - Open Terminal on the project's root and run `./gradlew ossIndexAudit`
 - You should see the audit result on Terminal.
 
-### Nexus IQ Server
+### Nexus IQ Server Scan and Evaluate
 - Start a local instance of IQ Server, or get the URL and credentials of a remote one.
 - Configure IQ Server settings inside the `nexusIQScan` configuration on the file `build.gradle` e.g.
 ```
@@ -115,6 +115,14 @@ nexusIQScan {
 ```
 - Open Terminal on the project's root and run `./gradlew nexusIQScan`
 - You should see the scan report URL report on Terminal.
+
+### Nexus IQ Index
+Allow to save information about the dependencies of a project into a module information file (module.xml) that Sonatype CI tools can use to include these dependencies in a scan.
+```
+nexusIQIndex {
+     modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to exclude from indexing.
+}
+```
 
 ### Sensitive Data
 Sometimes it's not desirable to keep sensitive data stored on `build.gradle`. For such cases it's possible to use project
