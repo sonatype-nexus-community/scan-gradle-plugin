@@ -40,6 +40,8 @@ import static org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanEx
 public class NexusIqIndexTask
     extends DefaultTask
 {
+  public static final String MODULE_XML_FILE = "module.xml";
+
   private final Logger log = LoggerFactory.getLogger(NexusIqIndexTask.class);
 
   private final NexusIqPluginIndexExtension extension;
@@ -62,7 +64,7 @@ public class NexusIqIndexTask
       List<File> files = new ArrayList<>(modules.size());
 
       for (Module module : modules) {
-        File file = Paths.get(module.getPathname(), "build", SONATYPE_CLM_FOLDER, "module.xml").toFile();
+        File file = Paths.get(module.getPathname(), "build", SONATYPE_CLM_FOLDER, MODULE_XML_FILE).toFile();
         moduleIoManager.writeModule(file, module);
         files.add(file);
       }
