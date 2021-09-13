@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -78,12 +79,7 @@ public class DependenciesFinder
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
         .flatMap(configuration -> getDependencies(project, configuration,
             resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream()))
-        .collect(Collectors.toMap(ResolvedDependency::getName, Function.identity(), (existing, replacement) -> {
-          if (StringUtils.containsAny(replacement.getConfiguration().toLowerCase(Locale.ROOT), "runtime", "release")) {
-            return replacement;
-          }
-          return existing;
-        }, LinkedHashMap::new)).values());
+        .collect(collectResolvedDependencies()).values());
   }
 
   public Set<ResolvedArtifact> findResolvedArtifacts(Project project, boolean allConfigurations) {
@@ -250,5 +246,14 @@ public class DependenciesFinder
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME)
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME)
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_CONFIGURATION_NAME));
+  }
+
+  private Collector<ResolvedDependency, ?, LinkedHashMap<String, ResolvedDependency>> collectResolvedDependencies() {
+    return Collectors.toMap(ResolvedDependency::getName, Function.identity(), (existing, replacement) -> {
+      if (StringUtils.containsAny(replacement.getConfiguration().toLowerCase(Locale.ROOT), "runtime", "release")) {
+        return replacement;
+      }
+      return existing;
+    }, LinkedHashMap::new);
   }
 }

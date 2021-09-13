@@ -35,6 +35,8 @@ import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesti
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanExtension.SONATYPE_CLM_FOLDER;
+
 public class NexusIqIndexTask
     extends DefaultTask
 {
@@ -60,7 +62,7 @@ public class NexusIqIndexTask
       List<File> files = new ArrayList<>(modules.size());
 
       for (Module module : modules) {
-        File file = Paths.get(module.getPathname(), "build", "sonatype-clm", "module.xml").toFile();
+        File file = Paths.get(module.getPathname(), "build", SONATYPE_CLM_FOLDER, "module.xml").toFile();
         moduleIoManager.writeModule(file, module);
         files.add(file);
       }

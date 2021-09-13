@@ -17,6 +17,7 @@ package org.sonatype.gradle.plugins.scan.nexus.iq.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -38,6 +39,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanExtension.SONATYPE_CLM_FOLDER;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NexusIqIndexTaskTest
@@ -53,7 +55,7 @@ public class NexusIqIndexTaskTest
     Module module = new Module()
         .setId("test-module")
         .setPathname("test-module");
-    File file = new File("test-module/build/sonatype-clm/module.xml");
+    File file = Paths.get("test-module", "build", SONATYPE_CLM_FOLDER, "module.xml").toFile();
 
     when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet()))
         .thenReturn(Collections.singletonList(module));
@@ -76,8 +78,8 @@ public class NexusIqIndexTaskTest
     Module module2 = new Module()
         .setId("test-module-2")
         .setPathname("test-module-2");
-    File file1 = new File("test-module-1/build/sonatype-clm/module.xml");
-    File file2 = new File("test-module-2/build/sonatype-clm/module.xml");
+    File file1 = Paths.get("test-module-1", "build", SONATYPE_CLM_FOLDER, "module.xml").toFile();
+    File file2 = Paths.get("test-module-2", "build", SONATYPE_CLM_FOLDER, "module.xml").toFile();
 
     when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet()))
         .thenReturn(Arrays.asList(module1, module2));

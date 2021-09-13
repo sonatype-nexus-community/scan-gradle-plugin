@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.gradle.testkit.runner.TaskOutcome.FAILED;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
+import static org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanExtension.SONATYPE_CLM_FOLDER;
 
 @RunWith(Parameterized.class)
 public abstract class ScanPluginIntegrationTestBase
@@ -180,7 +181,7 @@ public abstract class ScanPluginIntegrationTestBase
 
     String resultOutput = result.getOutput();
     assertThat(resultOutput).contains("Saved module information to");
-    assertThat(resultOutput).contains("sonatype-clm" + File.separator + "module.xml");
+    assertThat(resultOutput).contains(SONATYPE_CLM_FOLDER + File.separator + "module.xml");
     assertThat(result.task(":nexusIQIndex").getOutcome()).isEqualTo(SUCCESS);
   }
   

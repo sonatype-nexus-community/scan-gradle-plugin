@@ -15,6 +15,7 @@
  */
 package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
@@ -25,6 +26,8 @@ import org.gradle.api.Project;
 
 public class NexusIqPluginScanExtension
 {
+  public static final String SONATYPE_CLM_FOLDER = "sonatype-clm";
+
   private String stage;
 
   private String scanFolderPath;
@@ -55,7 +58,7 @@ public class NexusIqPluginScanExtension
     stage = Stage.ID_BUILD;
     simulationEnabled = false;
     simulatedPolicyActionId = PolicyAction.NONE.toString();
-    scanFolderPath = project.getBuildDir() + "/sonatype-clm/";
+    scanFolderPath = project.getBuildDir() + File.separator + SONATYPE_CLM_FOLDER + File.separator;
     modulesExcluded = Collections.emptySet();
     dirIncludes = "";
     dirExcludes = "";
