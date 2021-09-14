@@ -20,12 +20,14 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 
 import com.sonatype.insight.scan.module.model.Module;
 import com.sonatype.insight.scan.module.model.io.ModuleIoManager;
 
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Test;
@@ -62,7 +64,7 @@ public class NexusIqIndexTaskTest
         .thenReturn(Collections.singletonList(module));
     doNothing().when(moduleIoManagerMock).writeModule(file, module);
 
-    NexusIqIndexTask task = buildIndexTask();
+    NexusIqIndexTask task = buildIndexTask(Collections.emptySet());
     task.setDependenciesFinder(dependenciesFinderMock);
     task.setModuleIoManager(moduleIoManagerMock);
     task.saveModule();
@@ -87,7 +89,7 @@ public class NexusIqIndexTaskTest
     doNothing().when(moduleIoManagerMock).writeModule(file1, module1);
     doNothing().when(moduleIoManagerMock).writeModule(file2, module2);
 
-    NexusIqIndexTask task = buildIndexTask();
+    NexusIqIndexTask task = buildIndexTask(Collections.emptySet());
     task.setDependenciesFinder(dependenciesFinderMock);
     task.setModuleIoManager(moduleIoManagerMock);
     task.saveModule();
@@ -97,9 +99,25 @@ public class NexusIqIndexTaskTest
     verify(moduleIoManagerMock).writeModule(file2, module2);
   }
 
-  private NexusIqIndexTask buildIndexTask() {
+  @Test
+  public void testSaveModule_excludeModules() throws IOException {
+    Set<String> modulesExcluded = Sets.newHashSet("test-module-1", "test-module-2");
+
+    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), eq(modulesExcluded)))
+        .thenReturn(Collections.emptyList());
+
+    NexusIqIndexTask task = buildIndexTask(modulesExcluded);
+    task.setDependenciesFinder(dependenciesFinderMock);
+    // task.setModuleIoManager(moduleIoManagerMock);
+    task.saveModule();
+
+    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), eq(modulesExcluded));
+  }
+
+  private NexusIqIndexTask buildIndexTask(Set<String> modulesExcluded) {
     Project project = ProjectBuilder.builder().build();
     NexusIqPluginIndexExtension extension = new NexusIqPluginIndexExtension(project);
+    extension.setModulesExcluded(modulesExcluded);
     project.getExtensions().add("nexusIQIndex", extension);
     return project.getTasks().create("nexusIQIndex", NexusIqIndexTask.class);
   }

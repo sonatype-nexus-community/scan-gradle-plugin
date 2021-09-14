@@ -56,7 +56,7 @@ Gradle can be used to build projects developed in various programming languages.
 - Edit its `build.gradle` file adding this:
 ```
 plugins {
-  id 'org.sonatype.gradle.plugins.scan' version '2.1.1' // Update the version as needed
+  id 'org.sonatype.gradle.plugins.scan' version '2.2.0' // Update the version as needed
 }
 ```
 
