@@ -108,7 +108,6 @@ public class NexusIqIndexTaskTest
 
     NexusIqIndexTask task = buildIndexTask(modulesExcluded);
     task.setDependenciesFinder(dependenciesFinderMock);
-    // task.setModuleIoManager(moduleIoManagerMock);
     task.saveModule();
 
     verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), eq(modulesExcluded));
