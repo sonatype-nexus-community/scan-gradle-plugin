@@ -39,8 +39,8 @@ public class ScanPlugin implements Plugin<Project>
     project.getExtensions().create("nexusIQIndex", NexusIqPluginIndexExtension.class, project);
     NexusIqIndexTask nexusIqIndexTask = project.getTasks().create("nexusIQIndex", NexusIqIndexTask.class);
     nexusIqIndexTask.setGroup(SONATYPE_GROUP);
-    nexusIqIndexTask.setDescription("Saves information about the dependencies of a project into a module information "
-        + "file that Sonatype CI tools can use to include these dependencies in a scan.");
+    nexusIqIndexTask.setDescription("Saves information about the dependencies of a project into module information "
+        + "(module.xml) files that Sonatype CI tools can use to include these dependencies in a scan.");
 
     project.getExtensions().create("ossIndexAudit", OssIndexPluginExtension.class, project);
     OssIndexAuditTask ossIndexAuditTask = project.getTasks().create("ossIndexAudit", OssIndexAuditTask.class);
