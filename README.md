@@ -117,7 +117,7 @@ nexusIQScan {
 - You should see the scan report URL report on Terminal.
 
 ### Nexus IQ Index
-Allow to save information about the dependencies of a project into a module information file (module.xml) that Sonatype CI tools can use to include these dependencies in a scan.
+Allows you to save information about the dependencies of a project into module information (module.xml) files that Sonatype CI tools can use to include these dependencies in a scan.
 ```
 nexusIQIndex {
      modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to exclude from indexing.
