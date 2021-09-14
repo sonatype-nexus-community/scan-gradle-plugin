@@ -72,7 +72,7 @@ public class NexusIqIndexTask
       log.info("Saved module information to {}", StringUtils.join(files, ", "));
     }
     catch (Exception e) {
-      throw new GradleException("Could not save the module descriptor for the project: " + e.getMessage(), e);
+      throw new GradleException("Could not save the module information for the project: " + e.getMessage(), e);
     }
   }
 
