@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sonatype.gradle.plugins.scan.nexus.iq;
+package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
@@ -23,8 +24,10 @@ import com.sonatype.insight.brain.client.PolicyAction;
 
 import org.gradle.api.Project;
 
-public class NexusIqPluginExtension
+public class NexusIqPluginScanExtension
 {
+  public static final String SONATYPE_CLM_FOLDER = "sonatype-clm";
+
   private String stage;
 
   private String scanFolderPath;
@@ -51,11 +54,11 @@ public class NexusIqPluginExtension
 
   private String dirExcludes;
 
-  public NexusIqPluginExtension(Project project) {
+  public NexusIqPluginScanExtension(Project project) {
     stage = Stage.ID_BUILD;
     simulationEnabled = false;
     simulatedPolicyActionId = PolicyAction.NONE.toString();
-    scanFolderPath = project.getBuildDir() + "/sonatype-clm/";
+    scanFolderPath = project.getBuildDir() + File.separator + SONATYPE_CLM_FOLDER + File.separator;
     modulesExcluded = Collections.emptySet();
     dirIncludes = "";
     dirExcludes = "";

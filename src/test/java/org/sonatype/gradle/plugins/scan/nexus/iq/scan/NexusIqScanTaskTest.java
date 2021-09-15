@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sonatype.gradle.plugins.scan.nexus.iq;
+package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
 import java.io.File;
 import java.util.Collections;
@@ -190,7 +190,7 @@ public class NexusIqScanTaskTest
   {
     Project project = ProjectBuilder.builder().build();
 
-    NexusIqPluginExtension extension = new NexusIqPluginExtension(project);
+    NexusIqPluginScanExtension extension = new NexusIqPluginScanExtension(project);
     extension.setApplicationId("test");
     extension.setServerUrl("http://test");
     extension.setUsername("user");
