@@ -40,6 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.gradle.testkit.runner.TaskOutcome.FAILED;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
+import static org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqIndexTask.MODULE_XML_FILE;
+import static org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanExtension.SONATYPE_CLM_FOLDER;
 
 @RunWith(Parameterized.class)
 public abstract class ScanPluginIntegrationTestBase
@@ -167,6 +169,23 @@ public abstract class ScanPluginIntegrationTestBase
     assertThat(result.task(":nexusIQScan").getOutcome()).isEqualTo(SUCCESS);
   }
 
+  @Test
+  public void testIndexTask_NexusIQ() throws IOException {
+    writeFile(buildFile, "control_default.gradle");
+
+    final BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("nexusIQIndex", "--info")
+        .build();
+
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains("Saved module information to");
+    assertThat(resultOutput).contains(SONATYPE_CLM_FOLDER + File.separator + MODULE_XML_FILE);
+    assertThat(result.task(":nexusIQIndex").getOutcome()).isEqualTo(SUCCESS);
+  }
+  
   @Test
   public void testAuditTask_NoVulnerabilities_OssIndex_Default_Empty() throws IOException {
     writeFile(buildFile, "control_default_not_all.gradle");

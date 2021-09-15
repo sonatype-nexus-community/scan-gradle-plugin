@@ -156,6 +156,15 @@ public class DependenciesFinderTest
   }
 
   @Test
+  public void testFindResolvedDependencies_multiModuleProject() {
+    Project parentProject = ProjectBuilder.builder().withName("parent").build();
+    Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
+
+    assertThat(finder.findResolvedDependencies(childProject, false)).hasSize(1);
+    assertThat(finder.findResolvedDependencies(parentProject, false)).isEmpty();
+  }
+
+  @Test
   public void testFindResolvedDependencies_copyConfigurationAfterResolveException() {
     Project project = spy(buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false));
     ConfigurationContainer configurationContainer = spy(project.getConfigurations());
@@ -219,6 +228,8 @@ public class DependenciesFinderTest
 
     assertThat(module).isNotNull();
     assertThat(module.getIdKind()).isEqualTo("gradle");
+    assertThat(module.getBuilderInfo(Module.BI_CLM_TOOL)).isEqualTo("gradle");
+    assertThat(module.getBuilderInfo(Module.BI_CLM_VERSION)).isEqualTo(PluginVersionUtils.getPluginVersion());
     assertThat(module.getPathname()).isEqualTo(project.getProjectDir().getAbsolutePath());
     assertThat(module.getId()).isEqualTo(project.getName());
   }
