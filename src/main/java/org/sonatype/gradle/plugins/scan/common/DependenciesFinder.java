@@ -18,10 +18,13 @@ package org.sonatype.gradle.plugins.scan.common;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,13 +74,12 @@ public class DependenciesFinder
 
   private static final String ATTRIBUTES_SUPPORTED_GRADLE_VERSION = "4.0";
 
-  public Set<ResolvedDependency> findResolvedDependencies(Project rootProject, boolean allConfigurations) {
-    return new LinkedHashSet<>(rootProject.getAllprojects()).stream()
-        .flatMap(project -> new LinkedHashSet<>(project.getConfigurations()).stream())
+  public Set<ResolvedDependency> findResolvedDependencies(Project project, boolean allConfigurations) {
+    return new LinkedHashSet<>(new LinkedHashSet<>(project.getConfigurations()).stream()
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> getDependencies(rootProject, configuration,
+        .flatMap(configuration -> getDependencies(project, configuration,
             resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream()))
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+        .collect(collectResolvedDependencies()).values());
   }
 
   public Set<ResolvedArtifact> findResolvedArtifacts(Project project, boolean allConfigurations) {
@@ -119,7 +121,11 @@ public class DependenciesFinder
 
   @VisibleForTesting
   Module buildModule(Project project) {
-    Module module = new Module().setIdKind("gradle").setPathname(project.getProjectDir());
+    Module module = new Module()
+        .setIdKind("gradle")
+        .setPathname(project.getProjectDir())
+        .setBuilderInfo(Module.BI_CLM_TOOL, "gradle")
+        .setBuilderInfo(Module.BI_CLM_VERSION, PluginVersionUtils.getPluginVersion());
 
     StringBuilder idBuilder = new StringBuilder();
     if (StringUtils.isNotBlank(project.getGroup().toString())) {
@@ -240,5 +246,14 @@ public class DependenciesFinder
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME)
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME)
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_CONFIGURATION_NAME));
+  }
+
+  private Collector<ResolvedDependency, ?, LinkedHashMap<String, ResolvedDependency>> collectResolvedDependencies() {
+    return Collectors.toMap(ResolvedDependency::getName, Function.identity(), (existing, replacement) -> {
+      if (StringUtils.containsAny(replacement.getConfiguration().toLowerCase(Locale.ROOT), "runtime", "release")) {
+        return replacement;
+      }
+      return existing;
+    }, LinkedHashMap::new);
   }
 }

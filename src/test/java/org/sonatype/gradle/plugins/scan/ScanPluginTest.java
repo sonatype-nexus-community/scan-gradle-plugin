@@ -15,8 +15,10 @@
  */
 package org.sonatype.gradle.plugins.scan;
 
-import org.sonatype.gradle.plugins.scan.nexus.iq.NexusIqPluginExtension;
-import org.sonatype.gradle.plugins.scan.nexus.iq.NexusIqScanTask;
+import org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqPluginIndexExtension;
+import org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqIndexTask;
+import org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanExtension;
+import org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqScanTask;
 import org.sonatype.gradle.plugins.scan.ossindex.OssIndexAuditTask;
 import org.sonatype.gradle.plugins.scan.ossindex.OssIndexPluginExtension;
 
@@ -42,7 +44,10 @@ public class ScanPluginTest
     plugin.apply(project);
 
     assertThat(project.getTasks().getByName("nexusIQScan")).isInstanceOf(NexusIqScanTask.class);
-    assertThat(project.getExtensions().getByName("nexusIQScan")).isInstanceOf(NexusIqPluginExtension.class);
+    assertThat(project.getExtensions().getByName("nexusIQScan")).isInstanceOf(NexusIqPluginScanExtension.class);
+
+    assertThat(project.getTasks().getByName("nexusIQIndex")).isInstanceOf(NexusIqIndexTask.class);
+    assertThat(project.getExtensions().getByName("nexusIQIndex")).isInstanceOf(NexusIqPluginIndexExtension.class);
 
     assertThat(project.getTasks().getByName("ossIndexAudit")).isInstanceOf(OssIndexAuditTask.class);
     assertThat(project.getExtensions().getByName("ossIndexAudit")).isInstanceOf(OssIndexPluginExtension.class);
