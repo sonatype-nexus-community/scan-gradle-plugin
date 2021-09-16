@@ -89,8 +89,8 @@ ossIndexAudit {
     printBanner = true // if true will print ASCII text banner. By default is true.
 
     // ossIndexAudit can be configured to exclude vulnerabilities from matching
-    excludeVulnerabilityIds = ['39d74cc8-457a-4e57-89ef-a258420138c5'] list containing ids of vulnerabilities to be ignored
-    excludeCoordinates = ['commons-fileupload:commons-fileupload:1.3'] list containing coordinate of components which if vulnerable should be ignored
+    excludeVulnerabilityIds = ['39d74cc8-457a-4e57-89ef-a258420138c5'] // list containing ids of vulnerabilities to be ignored
+    excludeCoordinates = ['commons-fileupload:commons-fileupload:1.3'] // list containing coordinate of components which if vulnerable should be ignored
 }
 ```
 - Open Terminal on the project's root and run `./gradlew ossIndexAudit`
