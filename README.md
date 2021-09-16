@@ -125,9 +125,7 @@ nexusIQIndex {
 ```
 
 ### Sensitive Data
-Sometimes it's not desirable to keep sensitive data stored on `build.gradle`. For such cases it's possible to use project
-properties (-P arguments) or environment variables (-D arguments or injected from a tool) from command line when running
-the `nexusIQScan` or `ossIndexAudit` tasks.
+Sometimes it's not desirable to keep sensitive data stored on `build.gradle`. For such cases it's possible to use project properties (-P arguments) or system properties (-D arguments or injected from a tool) from command line or environment variables when running the `nexusIQScan` or `ossIndexAudit` tasks.
 
 Here is an example using project properties for the credentials:
 
@@ -156,8 +154,25 @@ On command line:
 
 Each property name can be set as needed.
 
-Here is an example using environment variables for the credentials:
+Here is an example using system properties for the credentials:
 
+```
+nexusIQScan {
+    username = System.properties['username']
+    password = System.properties['password']
+    serverUrl = 'http://localhost:8070'
+    applicationId = 'app'
+}
+
+ossIndexAudit {
+    username = System.properties['username']
+    password = System.properties['password']
+}
+```
+
+As mentioned above the values can be set on command line using -D arguments or injected via a tool (CI/CD for instance).
+
+Finally this is how environment variables can be used (usually values are injected from the local environment or by a CI tool):
 ```
 nexusIQScan {
     username = System.getenv('username')
@@ -171,8 +186,6 @@ ossIndexAudit {
     password = System.getenv('password')
 }
 ```
-
-As mentioned above the values can be set on command line using -D arguments or injected via a tool (CI/CD for instance).
 
 ### Multi-module projects
 Just apply the plugin on the root project and all sub-modules will be processed and the output will be a single report
