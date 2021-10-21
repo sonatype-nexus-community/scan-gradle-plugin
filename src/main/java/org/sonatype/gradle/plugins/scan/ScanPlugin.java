@@ -15,6 +15,9 @@
  */
 package org.sonatype.gradle.plugins.scan;
 
+import org.gradle.api.Action;
+import org.gradle.api.Task;
+import org.gradle.util.GradleVersion;
 import org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqIndexTask;
 import org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqPluginIndexExtension;
 import org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanExtension;
@@ -27,27 +30,36 @@ import org.gradle.api.Project;
 
 public class ScanPlugin implements Plugin<Project>
 {
+  private static final boolean IS_GRADLE_MIN_49 = GradleVersion.current().compareTo(GradleVersion.version("4.9-rc-1"))>=0;
   private static final String SONATYPE_GROUP = "Sonatype";
 
   @Override
   public void apply(Project project) {
     project.getExtensions().create("nexusIQScan", NexusIqPluginScanExtension.class, project);
-    project.getTasks().register("nexusIQScan", NexusIqScanTask.class, task -> {
+    createTask(project, "nexusIQScan", NexusIqScanTask.class, task -> {
       task.setGroup(SONATYPE_GROUP);
       task.setDescription("Scan and evaluate the dependencies of the project using Nexus IQ Server.");
     });
 
     project.getExtensions().create("nexusIQIndex", NexusIqPluginIndexExtension.class, project);
-    project.getTasks().register("nexusIQIndex", NexusIqIndexTask.class, task -> {
-    task.setGroup(SONATYPE_GROUP);
-    task.setDescription("Saves information about the dependencies of a project into module information "
+    createTask(project, "nexusIQIndex", NexusIqIndexTask.class, task -> {
+      task.setGroup(SONATYPE_GROUP);
+      task.setDescription("Saves information about the dependencies of a project into module information "
             + "(module.xml) files that Sonatype CI tools can use to include these dependencies in a scan.");
     });
 
     project.getExtensions().create("ossIndexAudit", OssIndexPluginExtension.class, project);
-    project.getTasks().register("ossIndexAudit", OssIndexAuditTask.class, task -> {
+    createTask(project, "ossIndexAudit", OssIndexAuditTask.class, task -> {
       task.setGroup(SONATYPE_GROUP);
       task.setDescription("Audit the dependencies of the project using OSS Index.");
     });
+  }
+
+  private static <T extends Task> void createTask(Project project, String name, Class<T> type, Action<? super T> configuration) {
+    if (IS_GRADLE_MIN_49) {
+      project.getTasks().register(name, type, configuration);
+    } else {
+      project.getTasks().create(name, type, configuration);
+    }
   }
 }
