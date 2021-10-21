@@ -32,19 +32,22 @@ public class ScanPlugin implements Plugin<Project>
   @Override
   public void apply(Project project) {
     project.getExtensions().create("nexusIQScan", NexusIqPluginScanExtension.class, project);
-    NexusIqScanTask nexusIqScanTask = project.getTasks().create("nexusIQScan", NexusIqScanTask.class);
-    nexusIqScanTask.setGroup(SONATYPE_GROUP);
-    nexusIqScanTask.setDescription("Scan and evaluate the dependencies of the project using Nexus IQ Server.");
+    project.getTasks().register("nexusIQScan", NexusIqScanTask.class, task -> {
+      task.setGroup(SONATYPE_GROUP);
+      task.setDescription("Scan and evaluate the dependencies of the project using Nexus IQ Server.");
+    });
 
     project.getExtensions().create("nexusIQIndex", NexusIqPluginIndexExtension.class, project);
-    NexusIqIndexTask nexusIqIndexTask = project.getTasks().create("nexusIQIndex", NexusIqIndexTask.class);
-    nexusIqIndexTask.setGroup(SONATYPE_GROUP);
-    nexusIqIndexTask.setDescription("Saves information about the dependencies of a project into module information "
-        + "(module.xml) files that Sonatype CI tools can use to include these dependencies in a scan.");
+    project.getTasks().register("nexusIQIndex", NexusIqIndexTask.class, task -> {
+    task.setGroup(SONATYPE_GROUP);
+    task.setDescription("Saves information about the dependencies of a project into module information "
+            + "(module.xml) files that Sonatype CI tools can use to include these dependencies in a scan.");
+    });
 
     project.getExtensions().create("ossIndexAudit", OssIndexPluginExtension.class, project);
-    OssIndexAuditTask ossIndexAuditTask = project.getTasks().create("ossIndexAudit", OssIndexAuditTask.class);
-    ossIndexAuditTask.setGroup(SONATYPE_GROUP);
-    ossIndexAuditTask.setDescription("Audit the dependencies of the project using OSS Index.");
+    project.getTasks().register("ossIndexAudit", OssIndexAuditTask.class, task -> {
+      task.setGroup(SONATYPE_GROUP);
+      task.setDescription("Audit the dependencies of the project using OSS Index.");
+    });
   }
 }
