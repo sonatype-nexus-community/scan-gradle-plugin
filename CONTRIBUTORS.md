@@ -12,6 +12,7 @@ Sonatype internal people:
 
 External contributors:
 
+- [@JoarSvartholm](https://github.com/JoarSvartholm) (Joar Svartholm)
 - 
 
 Possibly You!
