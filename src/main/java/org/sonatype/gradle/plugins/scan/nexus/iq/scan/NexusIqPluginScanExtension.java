@@ -42,6 +42,8 @@ public class NexusIqPluginScanExtension
 
   private String applicationId;
 
+  private String organizationId;
+
   private boolean allConfigurations;
 
   private boolean simulationEnabled;
@@ -95,6 +97,14 @@ public class NexusIqPluginScanExtension
 
   public void setApplicationId(String applicationId) {
     this.applicationId = applicationId;
+  }
+
+  public String getOrganizationId() {
+    return organizationId;
+  }
+
+  public void setOrganizationId(String organizationId) {
+    this.organizationId = organizationId;
   }
 
   public String getScanFolderPath() {
