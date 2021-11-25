@@ -58,6 +58,7 @@ public class NexusIqPluginScanExtension
 
   public NexusIqPluginScanExtension(Project project) {
     stage = Stage.ID_BUILD;
+    organizationId = "";
     simulationEnabled = false;
     simulatedPolicyActionId = PolicyAction.NONE.toString();
     scanFolderPath = project.getBuildDir() + File.separator + SONATYPE_CLM_FOLDER + File.separator;

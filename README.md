@@ -105,6 +105,7 @@ nexusIQScan {
     password = 'pass'
     serverUrl = 'http://localhost:8070'
     applicationId = 'app'
+    organizationId = 'orgId' // Optional. If provided, a validation will be done to check if the given application ID exists under the organization ID (please note this is different than the organization name). If the application doesn't exists, then it will be created under the organization.
     stage = 'build' // build is used if omitted
     allConfigurations = false // if true includes the dependencies in all resolvable configurations. By default is false, meaning only 'compileClasspath', 'runtimeClasspath', 'releaseCompileClasspath' and 'releaseRuntimeClasspath' are considered
     resultFilePath = 'results.json' // Optional. JSON file containing results of the evaluation
