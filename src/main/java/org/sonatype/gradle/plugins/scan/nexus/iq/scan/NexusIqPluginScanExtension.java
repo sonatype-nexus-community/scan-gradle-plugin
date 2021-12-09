@@ -42,6 +42,8 @@ public class NexusIqPluginScanExtension
 
   private String applicationId;
 
+  private String organizationId;
+
   private boolean allConfigurations;
 
   private boolean simulationEnabled;
@@ -56,6 +58,7 @@ public class NexusIqPluginScanExtension
 
   public NexusIqPluginScanExtension(Project project) {
     stage = Stage.ID_BUILD;
+    organizationId = "";
     simulationEnabled = false;
     simulatedPolicyActionId = PolicyAction.NONE.toString();
     scanFolderPath = project.getBuildDir() + File.separator + SONATYPE_CLM_FOLDER + File.separator;
@@ -95,6 +98,14 @@ public class NexusIqPluginScanExtension
 
   public void setApplicationId(String applicationId) {
     this.applicationId = applicationId;
+  }
+
+  public String getOrganizationId() {
+    return organizationId;
+  }
+
+  public void setOrganizationId(String organizationId) {
+    this.organizationId = organizationId;
   }
 
   public String getScanFolderPath() {
