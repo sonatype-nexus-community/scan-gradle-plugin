@@ -16,6 +16,7 @@
 package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -28,6 +29,9 @@ import com.sonatype.nexus.api.iq.internal.InternalIqClientBuilder;
 import com.sonatype.nexus.api.iq.scan.ScanResult;
 
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
+import org.sonatype.gradle.plugins.scan.nexus.iq.api.Application;
+import org.sonatype.gradle.plugins.scan.nexus.iq.api.ApplicationList;
+import org.sonatype.gradle.plugins.scan.nexus.iq.api.NexusIqApi;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -60,11 +64,17 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({InternalIqClientBuilder.class})
+@PrepareForTest({InternalIqClientBuilder.class, NexusIqApi.class})
 public class NexusIqScanTaskTest
 {
+  private static final String USER_AGENT_REGEX =
+      "Sonatype_Nexus_Gradle/[^\\s]+ \\(Java [^;]+; [^;]+ [^;]+; Gradle [^;]+\\)";
+
   @Mock
   private InternalIqClient iqClientMock;
+
+  @Mock
+  private NexusIqApi nexusIqApiMock;
 
   @Mock
   private DependenciesFinder dependenciesFinderMock;
@@ -75,6 +85,8 @@ public class NexusIqScanTaskTest
   @Before
   public void setup() throws IqClientException {
     PowerMockito.mockStatic(InternalIqClientBuilder.class);
+    PowerMockito.mockStatic(NexusIqApi.class);
+
     InternalIqClientBuilder builderMock = mock(InternalIqClientBuilder.class);
     when(builderMock.withServerConfig(any(ServerConfig.class))).thenReturn(builderMock);
     when(builderMock.withLogger(any(Logger.class))).thenReturn(builderMock);
@@ -85,6 +97,9 @@ public class NexusIqScanTaskTest
         nullable(File.class))).thenReturn(
         new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
     when(builderMock.build()).thenReturn(iqClientMock);
+
+    when(NexusIqApi.build(eq("http://test"), eq("user"), eq("password"), userAgentCaptor.capture()))
+        .thenReturn(nexusIqApiMock);
 
     when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet()))
         .thenReturn(Collections.emptyList());
@@ -109,8 +124,7 @@ public class NexusIqScanTaskTest
     task.scan();
 
     verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet());
-    assertThat(userAgentCaptor.getValue())
-        .matches("Sonatype_Nexus_Gradle/[^\\s]+ \\(Java [^;]+; [^;]+ [^;]+; Gradle [^;]+\\)");
+    assertThat(userAgentCaptor.getValue()).matches(USER_AGENT_REGEX);
     verify(iqClientMock).validateServerVersion(anyString());
     verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()));
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
@@ -143,8 +157,53 @@ public class NexusIqScanTaskTest
   }
 
   @Test
+  public void testScan_realCreateAppWithOrganizationWithoutApplications() throws Exception {
+    String organizationId = "organizationId";
+    doTestScan_realCreateAppWithOrganization(organizationId, false);
+  }
+
+  @Test
+  public void testScan_realCreateAppWithOrganizationWithApplications() throws Exception {
+    String organizationId = "organizationId";
+    doTestScan_realCreateAppWithOrganization(organizationId, false, new Application("app1", "app1", organizationId),
+        new Application("app2", "app2", organizationId));
+  }
+
+  @Test
+  public void testScan_realCreateAppWithOrganizationAlreadyExisting() throws Exception {
+    String organizationId = "organizationId";
+    doTestScan_realCreateAppWithOrganization(organizationId, true, new Application("test", "test", organizationId));
+  }
+
+  private void doTestScan_realCreateAppWithOrganization(
+      String organizationId,
+      boolean isExistingApplication,
+      Application... applications) throws Exception
+  {
+    NexusIqScanTask task = buildScanTask(false, null, null, null, organizationId);
+    task.setDependenciesFinder(dependenciesFinderMock);
+
+    ApplicationList applicationList = new ApplicationList();
+    applicationList.setApplications(Arrays.asList(applications));
+    when(nexusIqApiMock.getApplicationsByOrganizationId(organizationId)).thenReturn(applicationList);
+
+    task.scan();
+
+    verify(iqClientMock, never()).verifyOrCreateApplication(anyString());
+    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet());
+    assertThat(userAgentCaptor.getValue()).matches(USER_AGENT_REGEX);
+    verify(nexusIqApiMock).getApplicationsByOrganizationId(organizationId);
+    if (isExistingApplication) {
+      verify(nexusIqApiMock, never()).createApplication(any(Application.class));
+    }
+    else {
+      verify(nexusIqApiMock).createApplication(any(Application.class));
+    }
+  }
+
+  @Test
   public void testScan_realWithDirIncludes() throws Exception {
-    NexusIqScanTask task = buildScanTask(false, null, "dir-include", null);
+    NexusIqScanTask task = buildScanTask(false, null, "dir-include", null, null);
     task.setDependenciesFinder(dependenciesFinderMock);
     when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
@@ -160,7 +219,7 @@ public class NexusIqScanTaskTest
 
   @Test
   public void testScan_realWithDirExcludes() throws Exception {
-    NexusIqScanTask task = buildScanTask(false, null, null, "dir-exclude");
+    NexusIqScanTask task = buildScanTask(false, null, null, "dir-exclude", null);
     task.setDependenciesFinder(dependenciesFinderMock);
     when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
@@ -179,19 +238,21 @@ public class NexusIqScanTaskTest
   }
 
   private NexusIqScanTask buildScanTask(boolean isSimulated, String resultFilePath) {
-    return buildScanTask(isSimulated, resultFilePath, "", "");
+    return buildScanTask(isSimulated, resultFilePath, "", "", "");
   }
 
   private NexusIqScanTask buildScanTask(
       boolean isSimulated,
       String resultFilePath,
       String dirIncludes,
-      String dirExcludes)
+      String dirExcludes,
+      String organizationId)
   {
     Project project = ProjectBuilder.builder().build();
 
     NexusIqPluginScanExtension extension = new NexusIqPluginScanExtension(project);
     extension.setApplicationId("test");
+    extension.setOrganizationId(organizationId);
     extension.setServerUrl("http://test");
     extension.setUsername("user");
     extension.setPassword("password");

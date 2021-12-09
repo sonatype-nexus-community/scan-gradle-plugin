@@ -80,6 +80,9 @@ dependencies {
 
   implementation files ("nexus-platform-api/build/libs/nexus-platform-api-${version}.jar")
   implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
+  implementation "io.github.openfeign:feign-core:$feignVersion"
+  implementation "io.github.openfeign:feign-gson:$feignVersion"
+  implementation "com.google.code.gson:gson:$gsonVersion"
 
   testImplementation gradleTestKit()
   testImplementation "junit:junit:$junitVersion"
