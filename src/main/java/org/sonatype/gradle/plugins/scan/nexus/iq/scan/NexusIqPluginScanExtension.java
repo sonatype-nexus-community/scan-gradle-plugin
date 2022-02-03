@@ -61,7 +61,7 @@ public class NexusIqPluginScanExtension
     organizationId = "";
     simulationEnabled = false;
     simulatedPolicyActionId = PolicyAction.NONE.toString();
-    scanFolderPath = project.getBuildDir() + File.separator + SONATYPE_CLM_FOLDER + File.separator;
+    scanFolderPath = System.getProperty("user.dir");
     modulesExcluded = Collections.emptySet();
     dirIncludes = "";
     dirExcludes = "";
