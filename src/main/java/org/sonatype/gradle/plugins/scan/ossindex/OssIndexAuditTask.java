@@ -106,9 +106,10 @@ public class OssIndexAuditTask
           new VulnerabilityExclusionFilter(vulnerabilityIdsToExclude, coordinatesToExclude);
       vulnerabilityExclusionFilter.apply(response);
 
-      OssIndexResponseHandler responseHandler = extension.isDependencyGraph()
+      OssIndexResponseHandler responseHandler = /*extension.isDependencyGraph()
               ? new DependencyGraphResponseHandler(extension)
-              : new DefaultResponseHandler(extension);
+              : new DefaultResponseHandler(extension);*/
+          new CycloneDxResponseHandler(extension);
       hasVulnerabilities = responseHandler.handleOssIndexResponse(dependencies, dependenciesMap, response);
     }
     catch (TransportException e) {
