@@ -15,7 +15,6 @@
  */
 package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
