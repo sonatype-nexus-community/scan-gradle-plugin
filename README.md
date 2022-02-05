@@ -157,8 +157,7 @@ nexusIQScan {
     resultFilePath = 'results.json' // Optional. JSON file containing results of the evaluation
     modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to exclude from scanning and evaluation.
     dirExcludes = 'some-ant-pattern' // Optional. Comma separated ant-like glob patterns to select directories/archives that should be excluded. For Android projects we suggest using '**/classes.jar,**/annotations.zip,**/lint.jar,**/internal_impl-*.jar'
-    dirIncludes = 'some-ant-pattern' // Optional. Comma separated ant-like glob patterns to select directories/archives that should be examined
-    scanFolderPath = '/path/to/project/root' // Optional. Path to the project root, under which the '.git' folder usually resides. Defaults to the working directory (where gradle is executed).  
+    dirIncludes = 'some-ant-pattern' // Optional. Comma separated ant-like glob patterns to select directories/archives that should be examined  
 }
 ```
 
@@ -176,7 +175,6 @@ nexusIQScan {
     modulesExcluded = listOf("module-1", "module-2") // Optional. For multi-module projects, the names of the sub-modules to exclude from scanning and evaluation.
     dirExcludes = "some-ant-pattern" // Optional. Comma separated ant-like glob patterns to select directories/archives that should be excluded. For Android projects we suggest using "**/classes.jar,**/annotations.zip,**/lint.jar,**/internal_impl-*.jar"
     dirIncludes = "some-ant-pattern" // Optional. Comma separated ant-like glob patterns to select directories/archives that should be examined
-    scanFolderPath = "/path/to/project/root" // Optional. Path to the project root, under which the '.git' folder usually resides. Defaults to the working directory (where gradle is executed).
 }
 ```
 
