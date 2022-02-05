@@ -15,7 +15,6 @@
  */
 package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
@@ -61,7 +60,7 @@ public class NexusIqPluginScanExtension
     organizationId = "";
     simulationEnabled = false;
     simulatedPolicyActionId = PolicyAction.NONE.toString();
-    scanFolderPath = project.getBuildDir() + File.separator + SONATYPE_CLM_FOLDER + File.separator;
+    scanFolderPath = project.getRootDir().getAbsolutePath();
     modulesExcluded = Collections.emptySet();
     dirIncludes = "";
     dirExcludes = "";
