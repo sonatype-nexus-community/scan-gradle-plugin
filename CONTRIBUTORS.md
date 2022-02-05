@@ -9,6 +9,7 @@ Sonatype internal people:
 - [@hboutemy](https://github.com/hboutemy) (Hervé Boutemy)
 - [@maurycupitt](https://github.com/maurycupitt) (Maury Cupitt)
 - [@scherzhaft](https://github.com/scherzhaft) (Shane Stecker)
+- [@eduard-tita](https://github.com/eduard-tita) (Eduard Tita)
 
 External contributors:
 
