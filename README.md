@@ -182,7 +182,12 @@ nexusIQScan {
 - You should see the scan report URL report on Terminal.
 
 ### Nexus IQ Index
-Allows you to save information about the dependencies of a project into module information (module.xml) files that Sonatype CI tools can use to include these dependencies in a scan. Groovy:
+Allows you to save information about the dependencies of a project into module information (`module.xml`) files that Sonatype CI tools can use to include these dependencies in a scan.
+
+- Open Terminal on the project's root and run `./gradlew nexusIQIndex`
+
+For multi-module projects, you can configure a list of sub-modules to exclude from indexing.
+Groovy:
 ```
 nexusIQIndex {
      modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to exclude from indexing.
