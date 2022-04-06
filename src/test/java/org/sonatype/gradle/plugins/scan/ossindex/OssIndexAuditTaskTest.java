@@ -18,6 +18,7 @@ package org.sonatype.gradle.plugins.scan.ossindex;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import org.sonatype.goodies.packageurl.PackageUrl;
 import org.sonatype.goodies.packageurl.PackageUrlBuilder;
@@ -71,7 +72,7 @@ public class OssIndexAuditTaskTest
   @Test
   public void testAudit_noVulnerabilities() throws Exception {
     setupComponentReport(false);
-    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false);
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false, null);
 
     taskSpy.audit();
 
@@ -81,7 +82,7 @@ public class OssIndexAuditTaskTest
   @Test
   public void testAudit_vulnerabilities() throws Exception {
     setupComponentReport(true);
-    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false);
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false, null);
 
     assertThatThrownBy(taskSpy::audit)
         .isInstanceOf(GradleException.class)
@@ -93,16 +94,14 @@ public class OssIndexAuditTaskTest
   @Test
   public void testAudit_novulnerabilitiesBecauseModuleExcluded() throws Exception {
     setupComponentReport(true);
-    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false);
-
-    taskSpy.getExtensions().findByType(OssIndexPluginExtension.class).setModulesExcluded(Collections.singleton(taskSpy.getProject().getName()));
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false, (project, extension) -> extension.setModulesExcluded(Collections.singleton(project.getName())));
     
     taskSpy.audit();
   }
 
   @Test
   public void testAudit_simulated() throws Exception {
-    OssIndexAuditTask taskSpy = buildAuditTaskSpy(true);
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(true, null);
     taskSpy.audit();
     verify(ossIndexClientMock, never()).requestComponentReports(anyList());
   }
@@ -140,7 +139,7 @@ public class OssIndexAuditTaskTest
     parentDependency.addChild(singleChildDependency);
     parentDependency.addChild(multiChildDependency);
 
-    OssIndexAuditTask taskSpy = buildAuditTaskSpy(true);
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(true, null);
     BiMap<ResolvedDependency, PackageUrl> dependenciesMap = HashBiMap.create();
     taskSpy.buildDependenciesMap(parentDependency, dependenciesMap);
 
@@ -148,7 +147,7 @@ public class OssIndexAuditTaskTest
         subChildDependency);
   }
 
-  private OssIndexAuditTask buildAuditTaskSpy(boolean isSimulated) {
+  private OssIndexAuditTask buildAuditTaskSpy(boolean isSimulated, BiConsumer<Project, OssIndexPluginExtension> extensionContributor) {
     Project project = ProjectBuilder.builder().build();
     project.getPluginManager().apply("java");
     project.getRepositories().mavenCentral();
@@ -158,6 +157,9 @@ public class OssIndexAuditTaskTest
 
     OssIndexPluginExtension extension = new OssIndexPluginExtension(project);
     extension.setSimulationEnabled(isSimulated);
+    if (extensionContributor != null) {
+      extensionContributor.accept(project, extension);
+    }
     project.getExtensions().add("ossIndexAudit", extension);
 
     OssIndexAuditTask task = spy(project.getTasks().create("ossIndexAudit", OssIndexAuditTask.class));
