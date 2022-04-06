@@ -91,6 +91,16 @@ public class OssIndexAuditTaskTest
   }
 
   @Test
+  public void testAudit_novulnerabilitiesBecauseModuleExcluded() throws Exception {
+    setupComponentReport(true);
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false);
+
+    taskSpy.getExtensions().findByType(OssIndexPluginExtension.class).setModulesExcluded(Collections.singleton(taskSpy.getProject().getName()));
+    
+    taskSpy.audit();
+  }
+
+  @Test
   public void testAudit_simulated() throws Exception {
     OssIndexAuditTask taskSpy = buildAuditTaskSpy(true);
     taskSpy.audit();

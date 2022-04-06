@@ -44,6 +44,8 @@ public class OssIndexPluginExtension
 
   private boolean allConfigurations;
 
+  private Set<String> modulesExcluded;
+
   private boolean simulationEnabled;
 
   private boolean simulatedVulnerabilityFound;
@@ -124,6 +126,14 @@ public class OssIndexPluginExtension
 
   public void setAllConfigurations(boolean allConfigurations) {
     this.allConfigurations = allConfigurations;
+  }
+
+  public Set<String> getModulesExcluded() {
+    return modulesExcluded;
+  }
+
+  public void setModulesExcluded(Set<String> modulesExcluded) {
+    this.modulesExcluded = modulesExcluded;
   }
 
   public boolean isSimulationEnabled() {
