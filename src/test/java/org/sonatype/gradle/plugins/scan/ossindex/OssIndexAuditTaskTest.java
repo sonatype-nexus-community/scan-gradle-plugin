@@ -92,6 +92,43 @@ public class OssIndexAuditTaskTest
   }
 
   @Test
+  public void testAudit_verifyModulesIncludedExist() throws Exception {
+    setupComponentReport(true);
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false, (project, extension) -> extension.setModulesIncluded(Collections.singleton("does-not-exist")));
+    
+    assertThatThrownBy(taskSpy::audit)
+        .isInstanceOf(GradleException.class)
+        .hasMessageContaining("Could not audit the project: One or more coordinates required");
+
+  }
+
+  @Test
+  public void testAudit_verifyModulesExcludedAppliedAfterModulesIncluded() throws Exception {
+    setupComponentReport(true);
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false, (project, extension) -> {
+      extension.setModulesIncluded(Collections.singleton(project.getName()));
+      extension.setModulesExcluded(Collections.singleton(project.getName()));
+    });
+    
+    assertThatThrownBy(taskSpy::audit)
+        .isInstanceOf(GradleException.class)
+        .hasMessageContaining("Could not audit the project: One or more coordinates required");
+
+  }
+
+  @Test
+  public void testAudit_vulnerabilitiesBecauseModuleIncluded() throws Exception {
+    setupComponentReport(true);
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false, (project, extension) -> extension.setModulesIncluded(Collections.singleton(project.getName())));
+
+    assertThatThrownBy(taskSpy::audit)
+        .isInstanceOf(GradleException.class)
+        .hasMessageContaining("Vulnerabilities detected, check log output to review them");
+
+    verify(ossIndexClientMock).requestComponentReports(eq(Collections.singletonList(COMMONS_COLLECTIONS_PURL)));
+  }
+
+  @Test
   public void testAudit_novulnerabilitiesBecauseModuleExcluded() throws Exception {
     setupComponentReport(true);
     OssIndexAuditTask taskSpy = buildAuditTaskSpy(false, (project, extension) -> extension.setModulesExcluded(Collections.singleton(project.getName())));

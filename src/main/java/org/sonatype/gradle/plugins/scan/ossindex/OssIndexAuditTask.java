@@ -73,6 +73,7 @@ public class OssIndexAuditTask
 
     try (OssindexClient ossIndexClient = buildOssIndexClient()) {
       Set<ResolvedDependency> dependencies = getProject().getAllprojects().stream()
+          .filter(project -> extension.getModulesIncluded() == null || extension.getModulesIncluded().isEmpty() || extension.getModulesIncluded().contains(project.getName()))
           .filter(project -> extension.getModulesExcluded() == null || !extension.getModulesExcluded().contains(project.getName()))
           .flatMap(
               project -> dependenciesFinder.findResolvedDependencies(project, extension.isAllConfigurations()).stream())

@@ -44,6 +44,8 @@ public class OssIndexPluginExtension
 
   private boolean allConfigurations;
 
+  private Set<String> modulesIncluded;
+
   private Set<String> modulesExcluded;
 
   private boolean simulationEnabled;
@@ -126,6 +128,14 @@ public class OssIndexPluginExtension
 
   public void setAllConfigurations(boolean allConfigurations) {
     this.allConfigurations = allConfigurations;
+  }
+
+  public Set<String> getModulesIncluded() {
+    return modulesIncluded;
+  }
+
+  public void setModulesIncluded(Set<String> modulesIncluded) {
+    this.modulesIncluded = modulesIncluded;
   }
 
   public Set<String> getModulesExcluded() {
