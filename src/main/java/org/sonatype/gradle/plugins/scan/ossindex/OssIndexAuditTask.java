@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.gradle.api.tasks.Optional;
 import org.sonatype.goodies.packageurl.PackageUrl;
 import org.sonatype.goodies.packageurl.PackageUrlBuilder;
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
@@ -251,11 +252,13 @@ public class OssIndexAuditTask
   }
 
   @Input
+  @Optional
   public Set<String> getModulesIncluded() {
     return extension.getModulesIncluded();
   }
 
   @Input
+  @Optional
   public Set<String> getModulesExcluded() {
     return extension.getModulesExcluded();
   }
