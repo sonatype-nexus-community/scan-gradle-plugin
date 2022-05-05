@@ -249,4 +249,14 @@ public class OssIndexAuditTask
   public boolean isPrintBanner() {
     return extension.isPrintBanner();
   }
+
+  @Input
+  public Set<String> getModulesIncluded() {
+    return extension.getModulesIncluded();
+  }
+
+  @Input
+  public Set<String> getModulesExcluded() {
+    return extension.getModulesExcluded();
+  }
 }
