@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.gradle.api.tasks.Optional;
 import org.sonatype.goodies.packageurl.PackageUrl;
 import org.sonatype.goodies.packageurl.PackageUrlBuilder;
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
@@ -73,6 +74,8 @@ public class OssIndexAuditTask
 
     try (OssindexClient ossIndexClient = buildOssIndexClient()) {
       Set<ResolvedDependency> dependencies = getProject().getAllprojects().stream()
+          .filter(project -> extension.getModulesIncluded() == null || extension.getModulesIncluded().isEmpty() || extension.getModulesIncluded().contains(project.getName()))
+          .filter(project -> extension.getModulesExcluded() == null || !extension.getModulesExcluded().contains(project.getName()))
           .flatMap(
               project -> dependenciesFinder.findResolvedDependencies(project, extension.isAllConfigurations()).stream())
           .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -246,5 +249,17 @@ public class OssIndexAuditTask
   @Input
   public boolean isPrintBanner() {
     return extension.isPrintBanner();
+  }
+
+  @Input
+  @Optional
+  public Set<String> getModulesIncluded() {
+    return extension.getModulesIncluded();
+  }
+
+  @Input
+  @Optional
+  public Set<String> getModulesExcluded() {
+    return extension.getModulesExcluded();
   }
 }

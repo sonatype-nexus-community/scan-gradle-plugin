@@ -97,6 +97,8 @@ ossIndexAudit {
     }
     showAll = false // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
     printBanner = true // if true will print ASCII text banner. By default is true.
+    modulesIncluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to include for auditing. If not specified all modules are included.
+    modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to exclude from auditing. If not specified no modules are excluded. This value is processed after 'modulesIncluded' if both are specified.
 
     // ossIndexAudit can be configured to exclude vulnerabilities from matching
     excludeVulnerabilityIds = ['39d74cc8-457a-4e57-89ef-a258420138c5'] // list containing ids of vulnerabilities to be ignored
@@ -128,6 +130,8 @@ ossIndexAudit {
     isShowAll =
         false // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
     isPrintBanner = true // if true will print ASCII text banner. By default is true.
+    modulesIncluded = listOf("module-1", "module-2") // Optional. For multi-module projects, the names of the sub-modules to include for auditing. If not specified all modules are included.
+    modulesExcluded = listOf("module-1", "module-2") // Optional. For multi-module projects, the names of the sub-modules to exclude from auditing. If not specified no modules are excluded. This value is processed after 'modulesIncluded' if both are specified.
 
     // ossIndexAudit can be configured to exclude vulnerabilities from matching
     excludeVulnerabilityIds =
