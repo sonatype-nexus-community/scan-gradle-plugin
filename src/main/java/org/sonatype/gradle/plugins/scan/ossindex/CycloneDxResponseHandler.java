@@ -15,16 +15,18 @@
  */
 package org.sonatype.gradle.plugins.scan.ossindex;
 
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.sonatype.goodies.packageurl.PackageUrl;
+import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReport;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReportVulnerability;
 
@@ -33,14 +35,17 @@ import nexus.shadow.org.cyclonedx.CycloneDxSchema;
 import nexus.shadow.org.cyclonedx.generators.json.BomJsonGenerator;
 import nexus.shadow.org.cyclonedx.model.Bom;
 import nexus.shadow.org.cyclonedx.model.Component;
-import nexus.shadow.org.cyclonedx.model.ExtensibleType;
-import nexus.shadow.org.cyclonedx.model.Extension;
-import nexus.shadow.org.cyclonedx.model.Extension.ExtensionType;
-import nexus.shadow.org.cyclonedx.model.Source;
-import nexus.shadow.org.cyclonedx.model.vulnerability.Rating;
-import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability10;
-import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability10.Score;
-import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability10.Severity;
+import nexus.shadow.org.cyclonedx.model.Tool;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Affect;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Rating;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Reference;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Source;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Version;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Version.Status;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.gradle.api.artifacts.ResolvedDependency;
 
 public class CycloneDxResponseHandler
@@ -58,7 +63,6 @@ public class CycloneDxResponseHandler
       Map<ResolvedDependency, PackageUrl> dependenciesMap,
       Map<PackageUrl, ComponentReport> response)
   {
-    boolean hasVulnerabilities = false;
     int dependenciesCount = dependenciesMap.size();
 
     if (!extension.isShowAll()) {
@@ -75,14 +79,16 @@ public class CycloneDxResponseHandler
     }
 
     Bom bom = new Bom();
+    List<Vulnerability> vulnerabilities = new ArrayList<>();
 
     for (Entry<ResolvedDependency, PackageUrl> entry : dependenciesMap.entrySet()) {
       PackageUrl packageUrl = entry.getValue();
       ComponentReport componentReport = response.get(packageUrl);
 
       if (componentReport != null) {
-        List<ComponentReportVulnerability> vulnerabilities = componentReport.getVulnerabilities();
-        if (!vulnerabilities.isEmpty() || extension.isShowAll()) {
+        List<ComponentReportVulnerability> componentVulnerabilities = componentReport.getVulnerabilities();
+
+        if (!componentVulnerabilities.isEmpty() || extension.isShowAll()) {
           Component component = new Component();
           component.setType(Component.Type.LIBRARY);
           component.setGroup(packageUrl.getNamespaceAsString());
@@ -91,51 +97,71 @@ public class CycloneDxResponseHandler
           component.setPurl(packageUrl.toString());
           component.setBomRef(packageUrl.toString());
 
-          List<ExtensibleType> extensions = new ArrayList<>();
-
-          for (ComponentReportVulnerability vulnerability : vulnerabilities) {
-            Vulnerability10 vulnerability10 = new Vulnerability10(component.getGroup(), component.getName());
-            vulnerability10.setId(vulnerability.getId());
-            vulnerability10.setRef(packageUrl.toString());
-            vulnerability10.setDescription(vulnerability.getDescription());
-
-            Score score = new Score();
-            Double base = Double.valueOf(vulnerability.getCvssScore());
-            score.setBase(base);
-
-            Rating rating = new Rating();
-            rating.setScore(score);
-            rating.setSeverity(Severity.fromString(VulnerabilityUtils.getAssessment(vulnerability.getCvssScore())));
-            rating.setVector(Objects.toString(vulnerability.getCvssVector(), "Unspecified"));
-            vulnerability10.setRatings(Collections.singletonList(rating));
+          for (ComponentReportVulnerability componentVulnerability : componentVulnerabilities) {
+            Vulnerability vulnerability = new Vulnerability();
+            vulnerability.setBomRef(component.getBomRef());
+            vulnerability.setId(componentVulnerability.getId());
 
             Source source = new Source();
             source.setName("OSS Index");
-            try {
-              source.setUrl(vulnerability.getReference().toURL());
-            }
-            catch (MalformedURLException e) {
-              log.error("Error processing the vulnerability URL: {}", vulnerability.getReference());
-            }
-            vulnerability10.setSource(source);
+            source.setUrl(componentVulnerability.getReference().toString());
+            vulnerability.setSource(source);
 
-            extensions.add(vulnerability10);
+            if (StringUtils.isNotBlank(componentVulnerability.getCve())) {
+              Reference reference = new Reference();
+              reference.setId(componentVulnerability.getCve());
+              vulnerability.setReferences(Collections.singletonList(reference));
+            }
+
+            Rating rating = new Rating();
+            rating.setScore(Double.valueOf(componentVulnerability.getCvssScore()));
+            rating.setSeverity(Severity.fromString(
+                VulnerabilityUtils.getAssessment(componentVulnerability.getCvssScore()).toLowerCase(Locale.ROOT)));
+            rating.setVector(Objects.toString(componentVulnerability.getCvssVector(), "Unspecified"));
+            vulnerability.addRating(rating);
+
+            if (NumberUtils.isDigits(componentVulnerability.getCwe())) {
+              vulnerability.addCwe(Integer.parseInt(componentVulnerability.getCwe()));
+            }
+
+            vulnerability.setDescription(componentVulnerability.getDescription());
+
+            Tool tool = new Tool();
+            tool.setVendor("Sonatype");
+            tool.setName("Scan Gradle Plugin (aka Sherlock Trunks)");
+            tool.setVersion(PluginVersionUtils.getPluginVersion());
+            vulnerability.setTools(Collections.singletonList(tool));
+
+            if (componentVulnerability.getVersionRanges() != null
+                && !componentVulnerability.getVersionRanges().isEmpty()) {
+              List<Version> versions = componentVulnerability.getVersionRanges().stream().map(range -> {
+                Version version = new Version();
+                version.setRange(range);
+                version.setStatus(Status.AFFECTED);
+                return version;
+              }).collect(Collectors.toList());
+
+              Affect affect = new Affect();
+              affect.setRef(component.getBomRef());
+              affect.setVersions(versions);
+              vulnerability.setAffects(Collections.singletonList(affect));
+            }
+
+            vulnerabilities.add(vulnerability);
           }
 
-          Extension extension = new Extension(ExtensionType.VULNERABILITIES, extensions);
           bom.addComponent(component);
-          bom.add(ExtensionType.VULNERABILITIES.getTypeName(), extension);
-        }
-
-        if (!vulnerabilities.isEmpty()) {
-          hasVulnerabilities = true;
         }
       }
     }
 
-    BomJsonGenerator generator = BomGeneratorFactory.createJson(CycloneDxSchema.Version.VERSION_13, bom);
+    if (!vulnerabilities.isEmpty()) {
+      bom.setVulnerabilities(vulnerabilities);
+    }
+
+    BomJsonGenerator generator = BomGeneratorFactory.createJson(CycloneDxSchema.Version.VERSION_14, bom);
     log.info(generator.toJsonString());
 
-    return hasVulnerabilities;
+    return !vulnerabilities.isEmpty();
   }
 }
