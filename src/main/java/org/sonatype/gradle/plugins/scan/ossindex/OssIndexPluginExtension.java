@@ -54,8 +54,6 @@ public class OssIndexPluginExtension
 
   private boolean colorEnabled;
 
-  private boolean dependencyGraph;
-
   private ProxyConfiguration proxyConfiguration;
 
   private boolean showAll;
@@ -66,6 +64,8 @@ public class OssIndexPluginExtension
 
   private Set<String> excludeCoordinates;
 
+  private OutputFormat outputFormat;
+
   public OssIndexPluginExtension(Project project) {
     username = "";
     password = "";
@@ -75,11 +75,11 @@ public class OssIndexPluginExtension
     simulationEnabled = false;
     simulatedVulnerabilityFound = false;
     colorEnabled = true;
-    dependencyGraph = false;
     showAll = false;
     printBanner = true;
     excludeVulnerabilityIds = new HashSet<>();
     excludeCoordinates = new HashSet<>();
+    outputFormat = OutputFormat.DEFAULT;
   }
 
   public String getUsername() {
@@ -169,15 +169,6 @@ public class OssIndexPluginExtension
   public void setColorEnabled(boolean colorEnabled) {
     this.colorEnabled = colorEnabled;
   }
-
-  public boolean isDependencyGraph() {
-    return dependencyGraph;
-  }
-
-  public void setDependencyGraph(boolean dependencyGraph) {
-    this.dependencyGraph = dependencyGraph;
-  }
-
   public ProxyConfiguration getProxyConfiguration() {
     return proxyConfiguration;
   }
@@ -226,5 +217,13 @@ public class OssIndexPluginExtension
 
   public void setExcludeCoordinates(Set<String> excludeCoordinates) {
     this.excludeCoordinates = excludeCoordinates;
+  }
+
+  public OutputFormat getOutputFormat() {
+    return outputFormat;
+  }
+
+  public void setOutputFormat(OutputFormat outputFormat) {
+    this.outputFormat = outputFormat;
   }
 }

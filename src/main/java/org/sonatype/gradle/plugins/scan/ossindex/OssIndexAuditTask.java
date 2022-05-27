@@ -106,10 +106,7 @@ public class OssIndexAuditTask
           new VulnerabilityExclusionFilter(vulnerabilityIdsToExclude, coordinatesToExclude);
       vulnerabilityExclusionFilter.apply(response);
 
-      OssIndexResponseHandler responseHandler = /*extension.isDependencyGraph()
-              ? new DependencyGraphResponseHandler(extension)
-              : new DefaultResponseHandler(extension);*/
-          new CycloneDxResponseHandler(extension);
+      OssIndexResponseHandler responseHandler = buildResponseHandler();
       hasVulnerabilities = responseHandler.handleOssIndexResponse(dependencies, dependenciesMap, response);
     }
     catch (TransportException e) {
@@ -202,6 +199,18 @@ public class OssIndexAuditTask
         .build();
   }
 
+  @VisibleForTesting
+  OssIndexResponseHandler buildResponseHandler() {
+    switch (extension.getOutputFormat()) {
+      case DEPENDENCY_GRAPH:
+        return new DependencyGraphResponseHandler(extension);
+      case JSON_CYCLONE_DX_14:
+        return new CycloneDxResponseHandler(extension);
+      default:
+        return new DefaultResponseHandler(extension);
+    }
+  }
+
   @Input
   public String getUsername() {
     return extension.getUsername();
@@ -238,11 +247,6 @@ public class OssIndexAuditTask
   }
 
   @Input
-  public boolean isDependencyGraph() {
-    return extension.isDependencyGraph();
-  }
-
-  @Input
   public boolean isShowAll() {
     return extension.isShowAll();
   }
@@ -262,5 +266,11 @@ public class OssIndexAuditTask
   @Optional
   public Set<String> getModulesExcluded() {
     return extension.getModulesExcluded();
+  }
+
+  @Input
+  @Optional
+  public OutputFormat getOutputFormat() {
+    return extension.getOutputFormat();
   }
 }

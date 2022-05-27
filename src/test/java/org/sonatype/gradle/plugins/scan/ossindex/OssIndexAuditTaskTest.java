@@ -186,6 +186,27 @@ public class OssIndexAuditTaskTest
         subChildDependency);
   }
 
+  @Test
+  public void testBuildResponseHandler_defaultResponseHandler() {
+    OssIndexAuditTask taskSpy =
+        buildAuditTaskSpy(true, (project, extension) -> extension.setOutputFormat(OutputFormat.DEFAULT));
+    assertThat(taskSpy.buildResponseHandler()).isInstanceOf(DefaultResponseHandler.class);
+  }
+
+  @Test
+  public void testBuildResponseHandler_dependencyGraphResponseHandler() {
+    OssIndexAuditTask taskSpy =
+        buildAuditTaskSpy(true, (project, extension) -> extension.setOutputFormat(OutputFormat.DEPENDENCY_GRAPH));
+    assertThat(taskSpy.buildResponseHandler()).isInstanceOf(DependencyGraphResponseHandler.class);
+  }
+
+  @Test
+  public void testBuildResponseHandler_cycloneDxResponseHandler() {
+    OssIndexAuditTask taskSpy =
+        buildAuditTaskSpy(true, (project, extension) -> extension.setOutputFormat(OutputFormat.JSON_CYCLONE_DX_14));
+    assertThat(taskSpy.buildResponseHandler()).isInstanceOf(CycloneDxResponseHandler.class);
+  }
+
   private OssIndexAuditTask buildAuditTaskSpy(boolean isSimulated, BiConsumer<Project, OssIndexPluginExtension> extensionContributor) {
     Project project = ProjectBuilder.builder().build();
     project.getPluginManager().apply("java");
