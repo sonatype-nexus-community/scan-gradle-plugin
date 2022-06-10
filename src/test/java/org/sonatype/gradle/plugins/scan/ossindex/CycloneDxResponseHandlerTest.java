@@ -18,17 +18,29 @@ package org.sonatype.gradle.plugins.scan.ossindex;
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.sonatype.goodies.packageurl.PackageUrl;
 import org.sonatype.goodies.packageurl.PackageUrlBuilder;
+import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReport;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReportVulnerability;
 
+import com.google.common.collect.ImmutableMap;
 import nexus.shadow.org.cyclonedx.exception.ParseException;
 import nexus.shadow.org.cyclonedx.model.Bom;
 import nexus.shadow.org.cyclonedx.model.Component;
+import nexus.shadow.org.cyclonedx.model.Metadata;
+import nexus.shadow.org.cyclonedx.model.Tool;
 import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Advisory;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Affect;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Rating;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import nexus.shadow.org.cyclonedx.parsers.JsonParser;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.junit.After;
@@ -98,10 +110,22 @@ public class CycloneDxResponseHandlerTest
 
     JsonParser jsonParser = new JsonParser();
     Bom bom = jsonParser.parse(file);
+
     assertThat(bom).isNotNull();
     assertThat(bom.getVulnerabilities()).isNullOrEmpty();
+    assertThat(bom.getSerialNumber()).isNotBlank();
 
-    assertComponent(packageUrl, bom);
+    Metadata metadata = bom.getMetadata();
+    assertThat(metadata).isNotNull();
+    assertThat(metadata.getTimestamp()).isNotNull();
+
+    assertThat(metadata.getTools()).hasSize(1);
+    Tool tool = metadata.getTools().get(0);
+    assertThat(tool.getVendor()).isEqualTo("Sonatype");
+    assertThat(tool.getName()).isEqualTo("Scan Gradle Plugin (aka Sherlock Trunks)");
+    assertThat(tool.getVersion()).isEqualTo(PluginVersionUtils.getPluginVersion());
+
+    assertComponents(bom, packageUrl);
   }
 
   @Test
@@ -112,10 +136,7 @@ public class CycloneDxResponseHandlerTest
     ComponentReport componentReport = new ComponentReport();
     componentReport.setCoordinates(packageUrl);
 
-    ComponentReportVulnerability vulnerability = new ComponentReportVulnerability();
-    vulnerability.setId("TEST-123");
-    vulnerability.setReference(URI.create("https://test.com/TEST-123"));
-    vulnerability.setCvssScore(10.0F);
+    ComponentReportVulnerability vulnerability = buildComponentReportVulnerability();
     componentReport.setVulnerabilities(Collections.singletonList(vulnerability));
 
     Map<ResolvedDependency, PackageUrl> dependenciesMap = Collections.singletonMap(resolvedDependency, packageUrl);
@@ -130,28 +151,107 @@ public class CycloneDxResponseHandlerTest
     Bom bom = jsonParser.parse(file);
     assertThat(bom).isNotNull();
 
-    assertComponent(packageUrl, bom);
-
-    assertThat(bom.getVulnerabilities()).hasSize(1);
-    Vulnerability resultVulnerability = bom.getVulnerabilities().get(0);
-    assertThat(resultVulnerability.getBomRef()).isEqualTo(packageUrl.toString());
-    assertThat(resultVulnerability.getId()).isEqualTo("TEST-123");
-    assertThat(resultVulnerability.getSource()).isNotNull();
-    assertThat(resultVulnerability.getSource().getName()).isEqualTo("OSS Index");
-    assertThat(resultVulnerability.getSource().getUrl()).isEqualTo("https://test.com/TEST-123");
-    assertThat(resultVulnerability.getRatings()).hasSize(1);
-    assertThat(resultVulnerability.getRatings().get(0).getScore()).isEqualTo(10.0);
+    assertComponents(bom, packageUrl);
+    assertVulnerability(bom, vulnerability, packageUrl);
   }
 
-  private void assertComponent(PackageUrl packageUrl, Bom bom) {
-    Component component = new Component();
-    component.setType(Component.Type.LIBRARY);
-    component.setGroup(packageUrl.getNamespaceAsString());
-    component.setName(packageUrl.getName());
-    component.setVersion(packageUrl.getVersion());
-    component.setPurl(packageUrl.toString());
-    component.setBomRef(packageUrl.toString());
+  @Test
+  public void testHandleOssIndexResponse_vulnerabilityOnMultipleComponents() throws ParseException {
+    ResolvedDependency resolvedDependency1 = mock(ResolvedDependency.class);
+    ResolvedDependency resolvedDependency2 = mock(ResolvedDependency.class);
 
-    assertThat(bom.getComponents()).containsExactly(component);
+    PackageUrl packageUrl1 = new PackageUrlBuilder().type("maven").namespace("g1").name("a1").version("v1").build();
+    PackageUrl packageUrl2 = new PackageUrlBuilder().type("maven").namespace("g2").name("a2").version("v2").build();
+
+    ComponentReport componentReport1 = new ComponentReport();
+    componentReport1.setCoordinates(packageUrl1);
+
+    ComponentReport componentReport2 = new ComponentReport();
+    componentReport2.setCoordinates(packageUrl1);
+
+    ComponentReportVulnerability vulnerability = buildComponentReportVulnerability();
+
+    componentReport1.setVulnerabilities(Collections.singletonList(vulnerability));
+    componentReport2.setVulnerabilities(Collections.singletonList(vulnerability));
+
+    Map<ResolvedDependency, PackageUrl> dependenciesMap =
+        ImmutableMap.of(resolvedDependency1, packageUrl1, resolvedDependency2, packageUrl2);
+    Map<PackageUrl, ComponentReport> response =
+        ImmutableMap.of(packageUrl1, componentReport1, packageUrl2, componentReport2);
+
+    handler.handleOssIndexResponse(Collections.emptySet(), dependenciesMap, response);
+
+    File file = new File(FILE_NAME_OUTPUT);
+    assertThat(file.exists()).isTrue();
+
+    JsonParser jsonParser = new JsonParser();
+    Bom bom = jsonParser.parse(file);
+    assertThat(bom).isNotNull();
+
+    assertComponents(bom, packageUrl1, packageUrl2);
+    assertVulnerability(bom, vulnerability, packageUrl1, packageUrl2);
+  }
+
+  private void assertComponents(Bom bom, PackageUrl... packageUrls) {
+    List<Component> components = Stream.of(packageUrls).map(packageUrl -> {
+      Component component = new Component();
+      component.setType(Component.Type.LIBRARY);
+      component.setGroup(packageUrl.getNamespaceAsString());
+      component.setName(packageUrl.getName());
+      component.setVersion(packageUrl.getVersion());
+      component.setPurl(packageUrl.toString());
+      component.setBomRef(packageUrl.toString());
+      return component;
+    }).collect(Collectors.toList());
+
+    assertThat(bom.getComponents()).containsExactlyInAnyOrderElementsOf(components);
+  }
+
+  private ComponentReportVulnerability buildComponentReportVulnerability() {
+    ComponentReportVulnerability vulnerability = new ComponentReportVulnerability();
+    vulnerability.setId("TEST-123");
+    vulnerability.setReference(URI.create("https://test.com/TEST-123"));
+    vulnerability.setExternalReferences(Collections.singletonList(URI.create("https://external-test.com/TEST-123")));
+    vulnerability.setCvssScore(10.0F);
+    vulnerability.setCvssVector("some/test/vector");
+    vulnerability.setDescription("This is a test vulnerability");
+    vulnerability.setCwe("CWE-456");
+    return vulnerability;
+  }
+
+  private void assertVulnerability(Bom bom, ComponentReportVulnerability vulnerability, PackageUrl... packageUrls) {
+    assertThat(bom.getVulnerabilities()).hasSize(1);
+    Vulnerability resultVulnerability = bom.getVulnerabilities().get(0);
+
+    assertThat(resultVulnerability.getId()).isEqualTo(vulnerability.getId());
+    assertThat(resultVulnerability.getSource()).isNotNull();
+    assertThat(resultVulnerability.getSource().getName()).isEqualTo("OSS Index");
+    assertThat(resultVulnerability.getSource().getUrl()).isEqualTo(vulnerability.getReference().toString());
+
+    assertThat(resultVulnerability.getRatings()).hasSize(1);
+    Rating rating = resultVulnerability.getRatings().get(0);
+    assertThat(rating.getScore()).isEqualTo(vulnerability.getCvssScore().doubleValue());
+    assertThat(rating.getSeverity()).isEqualTo(
+        Severity.fromString(VulnerabilityUtils.getAssessment(vulnerability.getCvssScore()).toLowerCase(Locale.ROOT)));
+    assertThat(rating.getVector()).isEqualTo(vulnerability.getCvssVector());
+
+    assertThat(resultVulnerability.getCwes())
+        .containsExactly(Integer.valueOf(vulnerability.getCwe().replaceAll("\\D+", "")));
+    assertThat(resultVulnerability.getDescription()).isEqualTo(vulnerability.getDescription());
+
+    assertThat(resultVulnerability.getAdvisories())
+        .extracting(Advisory::getUrl)
+        .map(URI::create)
+        .containsExactlyInAnyOrderElementsOf(vulnerability.getExternalReferences());
+
+    assertThat(resultVulnerability.getTools()).hasSize(1);
+    Tool tool = resultVulnerability.getTools().get(0);
+    assertThat(tool.getVendor()).isEqualTo("Sonatype");
+    assertThat(tool.getName()).isEqualTo("OSS Index");
+
+    assertThat(resultVulnerability.getAffects())
+        .extracting(Affect::getRef)
+        .map(PackageUrl::parse)
+        .containsExactlyInAnyOrder(packageUrls);
   }
 }

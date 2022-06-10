@@ -21,33 +21,35 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 import org.sonatype.goodies.packageurl.PackageUrl;
 import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReport;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReportVulnerability;
 
+import com.google.common.base.CharMatcher;
 import nexus.shadow.org.cyclonedx.BomGeneratorFactory;
 import nexus.shadow.org.cyclonedx.CycloneDxSchema;
 import nexus.shadow.org.cyclonedx.generators.json.BomJsonGenerator;
 import nexus.shadow.org.cyclonedx.model.Bom;
 import nexus.shadow.org.cyclonedx.model.Component;
+import nexus.shadow.org.cyclonedx.model.Metadata;
 import nexus.shadow.org.cyclonedx.model.Tool;
 import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability;
+import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Advisory;
 import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
-import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Reference;
 import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Source;
-import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Version;
-import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Version.Status;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.gradle.api.UncheckedIOException;
@@ -86,8 +88,9 @@ public class CycloneDxResponseHandler
       }
     }
 
-    Bom bom = new Bom();
-    List<Vulnerability> vulnerabilities = new ArrayList<>();
+    Bom bom = buildBom();
+
+    Map<String, Vulnerability> vulnerabilitiesById = new HashMap<>();
 
     for (Entry<ResolvedDependency, PackageUrl> entry : dependenciesMap.entrySet()) {
       PackageUrl packageUrl = entry.getValue();
@@ -100,27 +103,26 @@ public class CycloneDxResponseHandler
           Component component = buildComponent(packageUrl);
 
           for (ComponentReportVulnerability componentVulnerability : componentVulnerabilities) {
-            Vulnerability vulnerability = new Vulnerability();
-            vulnerability.setBomRef(component.getBomRef());
-            vulnerability.setId(componentVulnerability.getId());
+            Vulnerability vulnerability = vulnerabilitiesById.get(componentVulnerability.getId());
+            if (vulnerability == null) {
+              vulnerability = new Vulnerability();
+              vulnerability.setId(componentVulnerability.getId());
 
-            addSource(componentVulnerability, vulnerability);
+              addSource(componentVulnerability, vulnerability);
 
-            addReferences(componentVulnerability, vulnerability);
+              addAdvisories(componentVulnerability, vulnerability);
 
-            addRating(componentVulnerability, vulnerability);
+              addRating(componentVulnerability, vulnerability);
 
-            if (NumberUtils.isDigits(componentVulnerability.getCwe())) {
-              vulnerability.addCwe(Integer.parseInt(componentVulnerability.getCwe()));
+              addCwe(componentVulnerability, vulnerability);
+
+              vulnerability.setDescription(componentVulnerability.getDescription());
+
+              addToolDetails(vulnerability);
+              vulnerabilitiesById.put(componentVulnerability.getId(), vulnerability);
             }
 
-            vulnerability.setDescription(componentVulnerability.getDescription());
-
-            addToolDetails(vulnerability);
-
             addAffectedVersionRanges(component, componentVulnerability, vulnerability);
-
-            vulnerabilities.add(vulnerability);
           }
 
           bom.addComponent(component);
@@ -128,13 +130,30 @@ public class CycloneDxResponseHandler
       }
     }
 
-    if (!vulnerabilities.isEmpty()) {
-      bom.setVulnerabilities(vulnerabilities);
+    if (!vulnerabilitiesById.isEmpty()) {
+      bom.setVulnerabilities(new ArrayList<>(vulnerabilitiesById.values()));
     }
 
     generateFile(bom);
 
-    return !vulnerabilities.isEmpty();
+    return !vulnerabilitiesById.isEmpty();
+  }
+
+  private Bom buildBom() {
+    Bom bom = new Bom();
+    bom.setSerialNumber("urn:uuid:" + UUID.randomUUID().toString());
+
+    Tool tool = new Tool();
+    tool.setVendor("Sonatype");
+    tool.setName("Scan Gradle Plugin (aka Sherlock Trunks)");
+    tool.setVersion(PluginVersionUtils.getPluginVersion());
+
+    Metadata metadata = new Metadata();
+    metadata.addTool(tool);
+    metadata.setTimestamp(new Date());
+
+    bom.setMetadata(metadata);
+    return bom;
   }
 
   private Component buildComponent(PackageUrl packageUrl) {
@@ -155,24 +174,16 @@ public class CycloneDxResponseHandler
     vulnerability.setSource(source);
   }
 
-  private void addReferences(ComponentReportVulnerability componentVulnerability, Vulnerability vulnerability) {
-    List<Reference> references = new ArrayList<>();
-
-    if (StringUtils.isNotBlank(componentVulnerability.getCve())) {
-      Reference reference = new Reference();
-      reference.setId(componentVulnerability.getCve());
-      references.add(reference);
-    }
+  private void addAdvisories(ComponentReportVulnerability componentVulnerability, Vulnerability vulnerability) {
+    List<Advisory> advisories = new ArrayList<>();
 
     componentVulnerability.getExternalReferences().forEach(externalReference -> {
-      Reference reference = new Reference();
-      Source externalSource = new Source();
-      externalSource.setUrl(externalReference.toString());
-      reference.setSource(externalSource);
-      references.add(reference);
+      Advisory advisory = new Advisory();
+      advisory.setUrl(externalReference.toString());
+      advisories.add(advisory);
     });
 
-    vulnerability.setReferences(references);
+    vulnerability.setAdvisories(advisories);
   }
 
   private void addRating(ComponentReportVulnerability componentVulnerability, Vulnerability vulnerability) {
@@ -184,11 +195,18 @@ public class CycloneDxResponseHandler
     vulnerability.addRating(rating);
   }
 
+  private void addCwe(ComponentReportVulnerability componentVulnerability, Vulnerability vulnerability) {
+    String cwe = CharMatcher.inRange('0', '9').precomputed()
+        .retainFrom(StringUtils.defaultIfBlank(componentVulnerability.getCwe(), ""));
+    if (NumberUtils.isDigits(cwe)) {
+      vulnerability.addCwe(Integer.parseInt(cwe));
+    }
+  }
+
   private void addToolDetails(Vulnerability vulnerability) {
     Tool tool = new Tool();
     tool.setVendor("Sonatype");
-    tool.setName("Scan Gradle Plugin (aka Sherlock Trunks)");
-    tool.setVersion(PluginVersionUtils.getPluginVersion());
+    tool.setName("OSS Index");
     vulnerability.setTools(Collections.singletonList(tool));
   }
 
@@ -197,20 +215,12 @@ public class CycloneDxResponseHandler
       ComponentReportVulnerability componentVulnerability,
       Vulnerability vulnerability)
   {
-    if (componentVulnerability.getVersionRanges() != null
-        && !componentVulnerability.getVersionRanges().isEmpty()) {
-      List<Version> versions = componentVulnerability.getVersionRanges().stream().map(range -> {
-        Version version = new Version();
-        version.setRange(range);
-        version.setStatus(Status.AFFECTED);
-        return version;
-      }).collect(Collectors.toList());
+    Affect affect = new Affect();
+    affect.setRef(component.getBomRef());
 
-      Affect affect = new Affect();
-      affect.setRef(component.getBomRef());
-      affect.setVersions(versions);
-      vulnerability.setAffects(Collections.singletonList(affect));
-    }
+    List<Affect> affects = vulnerability.getAffects() != null ? vulnerability.getAffects() : new ArrayList<>();
+    affects.add(affect);
+    vulnerability.setAffects(affects);
   }
 
   private void generateFile(Bom bom) {
