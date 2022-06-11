@@ -101,7 +101,7 @@ ossIndexAudit {
     excludeCoordinates = ['commons-fileupload:commons-fileupload:1.3'] // list containing coordinate of components which if vulnerable should be ignored
 
     // Output options
-    outputFormat = "DEFAULT" // Optional, other values are: "DEPENDENCY_GRAPH" prints dependency graph showing direct/transitive dependencies, "JSON_CYCLONE_DX_14" prints a CycloneDX 1.4 SBOM in JSON format.
+    outputFormat = 'DEFAULT' // Optional, other values are: 'DEPENDENCY_GRAPH' prints dependency graph showing direct/transitive dependencies, 'JSON_CYCLONE_DX_14' prints a CycloneDX 1.4 SBOM in JSON format.
     isColorEnabled = false // if true (and outputFormat = "DEFAULT") prints vulnerability description in color. By default is true.
     showAll = false // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
     printBanner = true // if true will print ASCII text banner. By default is true.
