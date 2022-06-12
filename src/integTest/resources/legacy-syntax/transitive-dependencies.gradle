@@ -11,6 +11,6 @@ dependencies {
 }
 ossIndexAudit {
   colorEnabled = false
-  outputFormat = "DEPENDENCY_GRAPH"
+  outputFormat = 'DEPENDENCY_GRAPH'
   showAll = true
 }

@@ -22,5 +22,5 @@ nexusIQScan {
 ossIndexAudit {
   simulationEnabled = true
   simulatedVulnerabilityFound = true
-  outputFormat = "DEPENDENCY_GRAPH"
+  outputFormat = 'DEPENDENCY_GRAPH'
 }

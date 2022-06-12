@@ -58,7 +58,7 @@ import org.gradle.api.artifacts.ResolvedDependency;
 public class CycloneDxResponseHandler
     implements OssIndexResponseHandler
 {
-  public static final String FILE_NAME_OUTPUT = "oss-index-cyclonedx.json";
+  public static final String FILE_NAME_OUTPUT = "oss-index-cyclonedx-bom.json";
 
   private final OssIndexPluginExtension extension;
 
