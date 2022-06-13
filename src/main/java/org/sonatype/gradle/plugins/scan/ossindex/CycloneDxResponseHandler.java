@@ -52,6 +52,7 @@ import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Rating.Sever
 import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Source;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ResolvedDependency;
 
@@ -62,8 +63,11 @@ public class CycloneDxResponseHandler
 
   private final OssIndexPluginExtension extension;
 
-  public CycloneDxResponseHandler(OssIndexPluginExtension extension) {
+  private final Project project;
+
+  public CycloneDxResponseHandler(OssIndexPluginExtension extension, Project project) {
     this.extension = extension;
+    this.project = project;
   }
 
   @Override
@@ -151,6 +155,13 @@ public class CycloneDxResponseHandler
     Metadata metadata = new Metadata();
     metadata.addTool(tool);
     metadata.setTimestamp(new Date());
+
+    Component component = new Component();
+    component.setGroup(Objects.toString(project.getGroup()));
+    component.setName(project.getName());
+    component.setVersion(Objects.toString(project.getVersion()));
+    component.setType(extension.getCycloneDxComponentType());
+    metadata.setComponent(component);
 
     bom.setMetadata(metadata);
     return bom;

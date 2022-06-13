@@ -20,6 +20,6 @@ nexusIQScan {
 
 ossIndexAudit {
   simulationEnabled = true
-  outputFormat = 'JSON_CYCLONE_DX_14'
+  outputFormat = 'JSON_CYCLONE_DX_1_4'
   showAll = true
 }

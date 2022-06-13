@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.gradle.api.tasks.Optional;
 import org.sonatype.goodies.packageurl.PackageUrl;
 import org.sonatype.goodies.packageurl.PackageUrlBuilder;
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
@@ -44,11 +43,13 @@ import org.sonatype.ossindex.service.client.transport.Transport.TransportExcepti
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
+import nexus.shadow.org.cyclonedx.model.Component;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -204,8 +205,8 @@ public class OssIndexAuditTask
     switch (extension.getOutputFormat()) {
       case DEPENDENCY_GRAPH:
         return new DependencyGraphResponseHandler(extension);
-      case JSON_CYCLONE_DX_14:
-        return new CycloneDxResponseHandler(extension);
+      case JSON_CYCLONE_DX_1_4:
+        return new CycloneDxResponseHandler(extension, getProject());
       default:
         return new DefaultResponseHandler(extension);
     }
@@ -272,5 +273,11 @@ public class OssIndexAuditTask
   @Optional
   public OutputFormat getOutputFormat() {
     return extension.getOutputFormat();
+  }
+
+  @Input
+  @Optional
+  public Component.Type getCycloneDxComponentType() {
+    return extension.getCycloneDxComponentType();
   }
 }

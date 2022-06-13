@@ -19,5 +19,5 @@ public enum OutputFormat
 {
   DEFAULT,
   DEPENDENCY_GRAPH,
-  JSON_CYCLONE_DX_14
+  JSON_CYCLONE_DX_1_4
 }

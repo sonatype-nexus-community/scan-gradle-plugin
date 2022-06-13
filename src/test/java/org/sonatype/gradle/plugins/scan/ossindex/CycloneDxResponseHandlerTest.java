@@ -42,26 +42,40 @@ import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import nexus.shadow.org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import nexus.shadow.org.cyclonedx.parsers.JsonParser;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.sonatype.gradle.plugins.scan.ossindex.CycloneDxResponseHandler.FILE_NAME_OUTPUT;
 
+@RunWith(MockitoJUnitRunner.class)
 public class CycloneDxResponseHandlerTest
 {
   private OssIndexPluginExtension extension;
 
   private CycloneDxResponseHandler handler;
 
+  @Mock
+  private Project project;
+
   @Before
   public void setup() {
     extension = new OssIndexPluginExtension(null);
-    extension.setOutputFormat(OutputFormat.JSON_CYCLONE_DX_14);
-    handler = new CycloneDxResponseHandler(extension);
+    extension.setOutputFormat(OutputFormat.JSON_CYCLONE_DX_1_4);
+
+    when(project.getGroup()).thenReturn("test-group");
+    when(project.getName()).thenReturn("some-name");
+    when(project.getVersion()).thenReturn("0.0.1");
+
+    handler = new CycloneDxResponseHandler(extension, project);
   }
 
   @After
@@ -118,6 +132,12 @@ public class CycloneDxResponseHandlerTest
     Metadata metadata = bom.getMetadata();
     assertThat(metadata).isNotNull();
     assertThat(metadata.getTimestamp()).isNotNull();
+
+    Component component = bom.getMetadata().getComponent();
+    assertThat(component).isNotNull();
+    assertThat(component.getGroup()).isEqualTo(project.getGroup());
+    assertThat(component.getName()).isEqualTo(project.getName());
+    assertThat(component.getVersion()).isEqualTo(project.getVersion());
 
     assertThat(metadata.getTools()).hasSize(1);
     Tool tool = metadata.getTools().get(0);

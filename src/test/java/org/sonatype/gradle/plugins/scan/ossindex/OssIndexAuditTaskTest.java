@@ -203,7 +203,7 @@ public class OssIndexAuditTaskTest
   @Test
   public void testBuildResponseHandler_cycloneDxResponseHandler() {
     OssIndexAuditTask taskSpy =
-        buildAuditTaskSpy(true, (project, extension) -> extension.setOutputFormat(OutputFormat.JSON_CYCLONE_DX_14));
+        buildAuditTaskSpy(true, (project, extension) -> extension.setOutputFormat(OutputFormat.JSON_CYCLONE_DX_1_4));
     assertThat(taskSpy.buildResponseHandler()).isInstanceOf(CycloneDxResponseHandler.class);
   }
 

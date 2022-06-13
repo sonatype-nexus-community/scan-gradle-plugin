@@ -22,6 +22,7 @@ import org.sonatype.ossindex.service.client.transport.AuthConfiguration;
 import org.sonatype.ossindex.service.client.transport.ProxyConfiguration;
 
 import groovy.lang.Closure;
+import nexus.shadow.org.cyclonedx.model.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 
@@ -66,6 +67,8 @@ public class OssIndexPluginExtension
 
   private OutputFormat outputFormat;
 
+  private Component.Type cycloneDxComponentType;
+
   public OssIndexPluginExtension(Project project) {
     username = "";
     password = "";
@@ -80,6 +83,7 @@ public class OssIndexPluginExtension
     excludeVulnerabilityIds = new HashSet<>();
     excludeCoordinates = new HashSet<>();
     outputFormat = OutputFormat.DEFAULT;
+    cycloneDxComponentType = Component.Type.LIBRARY;
   }
 
   public String getUsername() {
@@ -225,5 +229,13 @@ public class OssIndexPluginExtension
 
   public void setOutputFormat(OutputFormat outputFormat) {
     this.outputFormat = outputFormat;
+  }
+
+  public Component.Type getCycloneDxComponentType() {
+    return cycloneDxComponentType;
+  }
+
+  public void setCycloneDxComponentType(Component.Type cycloneDxComponentType) {
+    this.cycloneDxComponentType = cycloneDxComponentType;
   }
 }
