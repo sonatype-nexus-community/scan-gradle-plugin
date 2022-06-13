@@ -57,14 +57,14 @@ Gradle can be used to build projects developed in various programming languages.
 
 ```
 plugins {
-  id 'org.sonatype.gradle.plugins.scan' version '2.3.0' // Update the version as needed
+  id 'org.sonatype.gradle.plugins.scan' version '2.4.0' // Update the version as needed
 }
 ```
 
 - Or `build.gradle.kts`:
 ```
 plugins {
-    id ("org.sonatype.gradle.plugins.scan") version "2.3.0" // Update the version as needed
+    id ("org.sonatype.gradle.plugins.scan") version "2.4.0" // Update the version as needed
 }
 ```
 
@@ -86,8 +86,6 @@ ossIndexAudit {
     useCache = true // true by default
     cacheDirectory = 'some/path' // by default it uses the user data directory (according to OS)
     cacheExpiration = 'PT12H' // 12 hours if omitted. It must follow the Joda Time specification at https://www.javadoc.io/doc/joda-time/joda-time/2.10.4/org/joda/time/Duration.html#parse-java.lang.String-
-    colorEnabled = false // if true prints vulnerability description in color. By default is true.
-    dependencyGraph = false // if true prints dependency graph showing direct/transitive dependencies. By default is false.
     proxyConfiguration { // extra configuration when running behind a proxy without direct internet access
         protocol = 'http' // can be 'http' (default) or 'https'
         host = 'proxy-host' // hostname for the proxy
@@ -95,14 +93,19 @@ ossIndexAudit {
         authConfiguration.username = 'username' // username for the proxy (if credentials are required)
         authConfiguration.password = 'password' // password for the proxy (if credentials are required)
     }
-    showAll = false // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
-    printBanner = true // if true will print ASCII text banner. By default is true.
     modulesIncluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to include for auditing. If not specified all modules are included.
     modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to exclude from auditing. If not specified no modules are excluded. This value is processed after 'modulesIncluded' if both are specified.
 
     // ossIndexAudit can be configured to exclude vulnerabilities from matching
     excludeVulnerabilityIds = ['39d74cc8-457a-4e57-89ef-a258420138c5'] // list containing ids of vulnerabilities to be ignored
     excludeCoordinates = ['commons-fileupload:commons-fileupload:1.3'] // list containing coordinate of components which if vulnerable should be ignored
+
+    // Output options
+    outputFormat = 'DEFAULT' // Optional, other values are: 'DEPENDENCY_GRAPH' prints dependency graph showing direct/transitive dependencies, 'JSON_CYCLONE_DX_1_4' prints a CycloneDX 1.4 SBOM in JSON format.
+    cycloneDxComponentType = 'LIBRARY' // Optional, only used when outputFormat = 'JSON_CYCLONE_DX_1_4' to define the type of component this project is for the BOM metadata with possible values: 'LIBRARY' (default), 'APPLICATION', 'FRAMEWORK', 'CONTAINER', 'OPERATING_SYSTEM', 'DEVICE', 'FIRMWARE' and 'FILE'.
+    isColorEnabled = false // if true (and outputFormat = "DEFAULT") prints vulnerability description in color. By default is true.
+    showAll = false // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
+    printBanner = true // if true will print ASCII text banner. By default is true.
 }
 ```
 
@@ -117,9 +120,6 @@ ossIndexAudit {
     cacheDirectory = "some/path" // by default it uses the user data directory (according to OS)
     cacheExpiration =
         "PT12H" // 12 hours if omitted. It must follow the Joda Time specification at https://www.javadoc.io/doc/joda-time/joda-time/2.10.4/org/joda/time/Duration.html#parse-java.lang.String-
-    isColorEnabled = false // if true prints vulnerability description in color. By default is true.
-    isDependencyGraph =
-        false // if true prints dependency graph showing direct/transitive dependencies. By default is false.
     proxyConfiguration { // extra configuration when running behind a proxy without direct internet access
         protocol = "http" // can be "http" (default) or "https"
         host = "proxy-host" // hostname for the proxy
@@ -127,9 +127,6 @@ ossIndexAudit {
         authConfiguration.username = "username" // username for the proxy (if credentials are required)
         authConfiguration.password = "password" // password for the proxy (if credentials are required)
     }
-    isShowAll =
-        false // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
-    isPrintBanner = true // if true will print ASCII text banner. By default is true.
     modulesIncluded = listOf("module-1", "module-2") // Optional. For multi-module projects, the names of the sub-modules to include for auditing. If not specified all modules are included.
     modulesExcluded = listOf("module-1", "module-2") // Optional. For multi-module projects, the names of the sub-modules to exclude from auditing. If not specified no modules are excluded. This value is processed after 'modulesIncluded' if both are specified.
 
@@ -138,6 +135,13 @@ ossIndexAudit {
         listOf("39d74cc8-457a-4e57-89ef-a258420138c5") // list containing ids of vulnerabilities to be ignored
     excludeCoordinates =
         listOf("commons-fileupload:commons-fileupload:1.3") // list containing coordinate of components which if vulnerable should be ignored
+
+    // Output options
+    outputFormat = "DEFAULT" // Optional, other values are: "DEPENDENCY_GRAPH" prints dependency graph showing direct/transitive dependencies, "JSON_CYCLONE_DX_1_4" prints a CycloneDX 1.4 SBOM in JSON format.
+    cycloneDxComponentType = "LIBRARY" // Optional, only used when outputFormat = "JSON_CYCLONE_DX_1_4" to define the type of component this project is for the BOM metadata with possible values: "LIBRARY" (default), "APPLICATION", "FRAMEWORK", "CONTAINER", "OPERATING_SYSTEM", "DEVICE", "FIRMWARE" and "FILE".
+    isColorEnabled = false // if true (and outputFormat = "DEFAULT") prints vulnerability description in color. By default is true.
+    isShowAll = false // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
+    isPrintBanner = true // if true will print ASCII text banner. By default is true.
 }
 ```
 

@@ -24,7 +24,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.sonatype.insight.brain.client.PolicyAction;
-import com.sonatype.insight.scan.module.model.Module;
 import com.sonatype.nexus.api.common.Authentication;
 import com.sonatype.nexus.api.common.ServerConfig;
 import com.sonatype.nexus.api.exception.IqClientException;
@@ -43,6 +42,7 @@ import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 import org.sonatype.gradle.plugins.scan.nexus.iq.api.Application;
 import org.sonatype.gradle.plugins.scan.nexus.iq.api.NexusIqApi;
 
+import hidden.com.sonatype.insight.scan.module.model.Module;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;

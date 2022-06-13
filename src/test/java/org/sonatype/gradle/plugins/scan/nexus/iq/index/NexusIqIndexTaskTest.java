@@ -22,8 +22,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import com.sonatype.insight.scan.module.model.Module;
-import com.sonatype.insight.scan.module.model.io.ModuleIoManager;
+import hidden.com.sonatype.insight.scan.module.model.Module;
+import hidden.com.sonatype.insight.scan.module.model.io.ModuleIoManager;
 
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
 
