@@ -20,5 +20,6 @@ nexusIQScan {
 
 ossIndexAudit {
   simulationEnabled = true
-  outputFormat = 'DEPENDENCY_GRAPH'
+  outputFormat = 'JSON_CYCLONE_DX_1_4'
+  showAll = true
 }

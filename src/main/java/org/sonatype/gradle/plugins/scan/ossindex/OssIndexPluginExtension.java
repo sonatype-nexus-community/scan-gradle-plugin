@@ -22,6 +22,7 @@ import org.sonatype.ossindex.service.client.transport.AuthConfiguration;
 import org.sonatype.ossindex.service.client.transport.ProxyConfiguration;
 
 import groovy.lang.Closure;
+import nexus.shadow.org.cyclonedx.model.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 
@@ -54,8 +55,6 @@ public class OssIndexPluginExtension
 
   private boolean colorEnabled;
 
-  private boolean dependencyGraph;
-
   private ProxyConfiguration proxyConfiguration;
 
   private boolean showAll;
@@ -66,6 +65,10 @@ public class OssIndexPluginExtension
 
   private Set<String> excludeCoordinates;
 
+  private OutputFormat outputFormat;
+
+  private Component.Type cycloneDxComponentType;
+
   public OssIndexPluginExtension(Project project) {
     username = "";
     password = "";
@@ -75,11 +78,12 @@ public class OssIndexPluginExtension
     simulationEnabled = false;
     simulatedVulnerabilityFound = false;
     colorEnabled = true;
-    dependencyGraph = false;
     showAll = false;
     printBanner = true;
     excludeVulnerabilityIds = new HashSet<>();
     excludeCoordinates = new HashSet<>();
+    outputFormat = OutputFormat.DEFAULT;
+    cycloneDxComponentType = Component.Type.LIBRARY;
   }
 
   public String getUsername() {
@@ -169,15 +173,6 @@ public class OssIndexPluginExtension
   public void setColorEnabled(boolean colorEnabled) {
     this.colorEnabled = colorEnabled;
   }
-
-  public boolean isDependencyGraph() {
-    return dependencyGraph;
-  }
-
-  public void setDependencyGraph(boolean dependencyGraph) {
-    this.dependencyGraph = dependencyGraph;
-  }
-
   public ProxyConfiguration getProxyConfiguration() {
     return proxyConfiguration;
   }
@@ -226,5 +221,21 @@ public class OssIndexPluginExtension
 
   public void setExcludeCoordinates(Set<String> excludeCoordinates) {
     this.excludeCoordinates = excludeCoordinates;
+  }
+
+  public OutputFormat getOutputFormat() {
+    return outputFormat;
+  }
+
+  public void setOutputFormat(OutputFormat outputFormat) {
+    this.outputFormat = outputFormat;
+  }
+
+  public Component.Type getCycloneDxComponentType() {
+    return cycloneDxComponentType;
+  }
+
+  public void setCycloneDxComponentType(Component.Type cycloneDxComponentType) {
+    this.cycloneDxComponentType = cycloneDxComponentType;
   }
 }
