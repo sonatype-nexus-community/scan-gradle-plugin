@@ -22,9 +22,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.sonatype.insight.scan.module.model.Artifact;
-import com.sonatype.insight.scan.module.model.Dependency;
-import com.sonatype.insight.scan.module.model.Module;
+import hidden.com.sonatype.insight.scan.module.model.Artifact;
+import hidden.com.sonatype.insight.scan.module.model.Dependency;
+import hidden.com.sonatype.insight.scan.module.model.Module;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;

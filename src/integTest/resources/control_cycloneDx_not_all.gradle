@@ -7,7 +7,7 @@ repositories {
   mavenCentral()
 }
 dependencies {
-  compile 'commons-collections:commons-collections:3.1'
+  implementation 'commons-collections:commons-collections:3.1'
 }
 
 nexusIQScan {
@@ -20,5 +20,5 @@ nexusIQScan {
 
 ossIndexAudit {
   simulationEnabled = true
-  outputFormat = 'DEPENDENCY_GRAPH'
+  outputFormat = 'JSON_CYCLONE_DX_1_4'
 }

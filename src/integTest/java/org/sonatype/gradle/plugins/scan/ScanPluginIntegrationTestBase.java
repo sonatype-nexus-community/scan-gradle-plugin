@@ -42,6 +42,7 @@ import static org.gradle.testkit.runner.TaskOutcome.FAILED;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 import static org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqIndexTask.MODULE_XML_FILE;
 import static org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanExtension.SONATYPE_CLM_FOLDER;
+import static org.sonatype.gradle.plugins.scan.ossindex.CycloneDxResponseHandler.FILE_NAME_OUTPUT;
 
 @RunWith(Parameterized.class)
 public abstract class ScanPluginIntegrationTestBase
@@ -72,6 +73,7 @@ public abstract class ScanPluginIntegrationTestBase
   @After
   public void tearDown() {
     buildFile = null;
+    new File(FILE_NAME_OUTPUT).delete();
   }
 
   @Test
@@ -238,6 +240,25 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
+  public void testAuditTask_NoVulnerabilities_OssIndex_CycloneDx_Empty() throws IOException {
+    writeFile(buildFile, "control_dependency_graph_not_all.gradle");
+
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    String resultOutput = result.getOutput();
+    assertThat(resultOutput).contains("No vulnerabilities found!");
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+
+    File file = new File(FILE_NAME_OUTPUT);
+    assertThat(file.exists()).isFalse();
+  }
+
+  @Test
   public void testAuditTask_NoVulnerabilities_OssIndex_DependencyGraph_ShowAll() throws IOException {
     writeFile(buildFile, "control_dependency_graph.gradle");
 
@@ -250,6 +271,24 @@ public abstract class ScanPluginIntegrationTestBase
 
     assertBuildOutputText_OssIndex_DependencyGraph(result, 0);
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_NoVulnerabilities_OssIndex_CycloneDx_ShowAll() throws IOException {
+    writeFile(buildFile, "control_cycloneDx.gradle");
+
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+    assertThat(result.getOutput()).contains("CycloneDX SBOM file: " + FILE_NAME_OUTPUT);
+
+    File file = new File(FILE_NAME_OUTPUT);
+    assertThat(file.exists()).isTrue();
   }
 
   @Test
