@@ -20,11 +20,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import org.sonatype.gradle.plugins.scan.ossindex.BannerUtils;
 
-import com.github.ardenliu.common.file.ResourcesUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -57,6 +58,8 @@ public abstract class ScanPluginIntegrationTestBase
 
   protected boolean useLegacySyntax;
 
+  protected boolean useNewMissingPropertyMessage = true;
+
   public ScanPluginIntegrationTestBase(String gradleVersion) {
     this.gradleVersion = gradleVersion;
   }
@@ -80,15 +83,19 @@ public abstract class ScanPluginIntegrationTestBase
   public void testScanTask_MissingTaskConfiguration_NexusIQ() throws IOException {
     writeFile(buildFile, "missing-scan.gradle");
 
+    String errorMessage = useNewMissingPropertyMessage ? "property '%s' doesn't have a configured value."
+        : "No value has been specified for property '%s";
+
     assertThatThrownBy(() -> GradleRunner.create()
         .withGradleVersion(gradleVersion)
         .withProjectDir(testProjectDir.getRoot())
         .withPluginClasspath()
-        .withArguments("nexusIQScan").build())
-        .hasMessageContaining("No value has been specified for property 'applicationId")
-        .hasMessageContaining("No value has been specified for property 'username'")
-        .hasMessageContaining("No value has been specified for property 'password'")
-        .hasMessageContaining("No value has been specified for property 'serverUrl'");
+        .withArguments("nexusIQScan")
+        .build())
+            .hasMessageContaining(String.format(errorMessage, "applicationId"))
+            .hasMessageContaining(String.format(errorMessage, "username"))
+            .hasMessageContaining(String.format(errorMessage, "password"))
+            .hasMessageContaining(String.format(errorMessage, "serverUrl"));
   }
 
   @Test
@@ -139,13 +146,13 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testScanTask_Android_NexusIQ() {
+  public void testScanTask_Android_NexusIQ() throws IOException {
     String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
-    ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
+    File target = copyResource(resource);
 
     final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
-        .withProjectDir(new File(testProjectDir.getRoot(), resource))
+        .withProjectDir(target)
         .withPluginClasspath()
         .withArguments("nexusIQScan", "--info")
         .build();
@@ -155,14 +162,14 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testScanTask_AndroidMultipleFlavors_NexusIQ() {
+  public void testScanTask_AndroidMultipleFlavors_NexusIQ() throws IOException {
     String resource =
         useLegacySyntax ? "legacy-syntax" + File.separator + "android-multiple-flavors" : "android-multiple-flavors";
-    ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
+    File target = copyResource(resource);
 
     final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
-        .withProjectDir(new File(testProjectDir.getRoot(), resource))
+        .withProjectDir(target)
         .withPluginClasspath()
         .withArguments("nexusIQScan", "--info")
         .build();
@@ -429,13 +436,13 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testAuditTask_Android_OssIndex() {
+  public void testAuditTask_Android_OssIndex() throws IOException {
     String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
-    ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
+    File target = copyResource(resource);
 
     BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
-        .withProjectDir(new File(testProjectDir.getRoot(), resource))
+        .withProjectDir(target)
         .withPluginClasspath()
         .withArguments("ossIndexAudit", "--info")
         .build();
@@ -452,14 +459,14 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
-  public void testAuditTask_AndroidMultipleFlavors_OssIndex() {
+  public void testAuditTask_AndroidMultipleFlavors_OssIndex() throws IOException {
     String resource =
         useLegacySyntax ? "legacy-syntax" + File.separator + "android-multiple-flavors" : "android-multiple-flavors";
-    ResourcesUtils.copyFromClassPath(resource, testProjectDir.getRoot().toPath());
+    File target = copyResource(resource);
 
     BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
-        .withProjectDir(new File(testProjectDir.getRoot(), resource))
+        .withProjectDir(target)
         .withPluginClasspath()
         .withArguments("ossIndexAudit", "--info")
         .build();
@@ -506,6 +513,13 @@ public abstract class ScanPluginIntegrationTestBase
       assert contentStream != null;
       IOUtils.copy(contentStream, output, StandardCharsets.UTF_8);
     }
+  }
+
+  private File copyResource(String resource) throws IOException {
+    URL url = getClass().getResource(File.separator + resource);
+    File target = new File(testProjectDir.getRoot(), resource);
+    FileUtils.copyDirectory(new File(url.getFile()), target);
+    return target;
   }
 
   private void assertBuildOutputText_NexusIQ(BuildResult result, String policyAction) {

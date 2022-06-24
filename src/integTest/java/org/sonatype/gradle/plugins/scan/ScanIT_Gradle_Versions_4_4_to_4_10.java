@@ -15,5 +15,6 @@ public class ScanIT_Gradle_Versions_4_4_to_4_10
 
   public ScanIT_Gradle_Versions_4_4_to_4_10(final String gradleVersion) {
     super(gradleVersion);
+    this.useNewMissingPropertyMessage = false;
   }
 }

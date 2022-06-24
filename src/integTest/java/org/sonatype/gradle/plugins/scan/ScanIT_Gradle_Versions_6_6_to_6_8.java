@@ -1,9 +1,9 @@
 package org.sonatype.gradle.plugins.scan;
 
-import org.junit.runners.Parameterized;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.junit.runners.Parameterized;
 
 public class ScanIT_Gradle_Versions_6_6_to_6_8
     extends ScanPluginIntegrationTestBase
@@ -15,5 +15,6 @@ public class ScanIT_Gradle_Versions_6_6_to_6_8
 
   public ScanIT_Gradle_Versions_6_6_to_6_8(final String gradleVersion) {
     super(gradleVersion);
+    this.useNewMissingPropertyMessage = false;
   }
 }
