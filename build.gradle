@@ -4,10 +4,10 @@ plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
   id 'signing'
-  id 'net.researchgate.release' version '2.8.1'
+  id 'net.researchgate.release' version '3.0.0'
   id 'io.codearte.nexus-staging' version '0.30.0'
-  id 'com.gradle.plugin-publish' version '0.14.0'
-  id 'com.github.johnrengelman.shadow' version '6.1.0'
+  id 'com.gradle.plugin-publish' version '0.21.0'
+  id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 apply from: 'gradle/integration-test.gradle'
@@ -91,12 +91,16 @@ dependencies {
   testImplementation "commons-io:commons-io:$commonsIoVersion"
   testImplementation "org.powermock:powermock-module-junit4:$powermockVersion"
   testImplementation "org.powermock:powermock-api-mockito2:$powermockVersion"
-  testImplementation "com.github.ardenliu:arden-file:$ardenFileVersion"
+}
+
+// Remove the gradleApi so it isn't merged into the jar file when applying 'shadow'
+configurations.named(JavaPlugin.API_CONFIGURATION_NAME) {
+  dependencies.remove(project.dependencies.gradleApi())
 }
 
 processResources {
   filesMatching('nexus/shadow/com/sonatype/insight/client.properties') {
-      expand(project.properties)
+    expand(project.properties)
   }
 }
 
@@ -129,9 +133,6 @@ publishing {
       // avoid infinite CircleCI builds triggered by release commits
       preCommitText = '[skip ci] '
       buildTasks = ['assemble']
-      git {
-        requireBranch = 'main'
-      }
     }
 
     def sonatypeUsername = System.getenv('SONATYPE_USERNAME')
@@ -160,10 +161,6 @@ publishing {
     }
 
     publications {
-      shadow(MavenPublication) { publication ->
-        project.shadow.component(publication)
-      }
-
       withType(MavenPublication) {
         pom {
           name = project.name
