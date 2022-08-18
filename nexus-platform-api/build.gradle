@@ -36,4 +36,5 @@ artifacts {
 
 dependencies {
   implementation "com.sonatype.nexus:nexus-platform-api:$nexusPlatformApiVersion"
+  implementation "commons-io:commons-io:$commonsIoVersion"
 }
