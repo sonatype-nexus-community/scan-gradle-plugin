@@ -205,6 +205,7 @@ publishing {
       signing {
         def final encodedKey = System.getenv('SECRING_GPG_ASC_BASE64')
         def final signingKey = new String(encodedKey.decodeBase64())
+
         allprojects {
           println 'setup gpg signing with in-memory key'
           useInMemoryPgpKeys(
