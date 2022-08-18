@@ -214,7 +214,6 @@ publishing {
         }
 
         sign publishing.publications.pluginMaven
-        sign publishing.publications.shadow
         sign publishing.publications.scanPluginMarkerMaven
       }
     }
