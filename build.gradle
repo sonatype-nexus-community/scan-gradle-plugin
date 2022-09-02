@@ -55,7 +55,6 @@ shadowJar {
 }
 
 task relocateShadowJar(type: ConfigureShadowRelocation) {
-  dependsOn(':nexus-platform-api:shadowJar')
   target = tasks.shadowJar
 }
 
@@ -71,14 +70,11 @@ allprojects {
   }
 }
 
-// Compiles and shades the nexus-platform-api before compiling the plugin project
-tasks.compileJava.dependsOn(':nexus-platform-api:shadowJar')
-
 dependencies {
   shadow localGroovy()
   shadow gradleApi()
 
-  implementation files ("nexus-platform-api/build/libs/nexus-platform-api-${version}.jar")
+  implementation "com.sonatype.nexus:nexus-platform-api:$nexusPlatformApiVersion"
   implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
   implementation "io.github.openfeign:feign-core:$feignVersion"
   implementation "io.github.openfeign:feign-gson:$feignVersion"
@@ -98,11 +94,11 @@ configurations.named(JavaPlugin.API_CONFIGURATION_NAME) {
   dependencies.remove(project.dependencies.gradleApi())
 }
 
-processResources {
+/*processResources {
   filesMatching('nexus/shadow/com/sonatype/insight/client.properties') {
     expand(project.properties)
   }
-}
+}*/
 
 test {
   maxHeapSize = '512m'

@@ -43,7 +43,7 @@ import org.sonatype.ossindex.service.client.transport.Transport.TransportExcepti
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
-import nexus.shadow.org.cyclonedx.model.Component;
+import org.cyclonedx.model.Component;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
