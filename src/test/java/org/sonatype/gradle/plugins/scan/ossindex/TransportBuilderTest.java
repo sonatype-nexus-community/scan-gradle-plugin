@@ -55,7 +55,7 @@ public class TransportBuilderTest
     String gradleVersion = GradleVersion.current().getVersion();
     String pluginVersion;
 
-    try (InputStream stream = getClass().getResourceAsStream("/nexus/shadow/com/sonatype/insight/client.properties")) {
+    try (InputStream stream = getClass().getResourceAsStream("/com/sonatype/insight/client.properties")) {
       Properties properties = new Properties();
       properties.load(stream);
       pluginVersion = properties.getProperty("version");

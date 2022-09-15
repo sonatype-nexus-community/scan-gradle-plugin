@@ -94,11 +94,11 @@ configurations.named(JavaPlugin.API_CONFIGURATION_NAME) {
   dependencies.remove(project.dependencies.gradleApi())
 }
 
-/*processResources {
-  filesMatching('nexus/shadow/com/sonatype/insight/client.properties') {
+processResources {
+  filesMatching('com/sonatype/insight/client.properties') {
     expand(project.properties)
   }
-}*/
+}
 
 test {
   maxHeapSize = '512m'
