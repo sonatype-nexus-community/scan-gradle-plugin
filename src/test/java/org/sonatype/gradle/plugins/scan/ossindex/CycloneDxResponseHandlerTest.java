@@ -30,7 +30,7 @@ import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReport;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReportVulnerability;
 
-import com.google.common.collect.ImmutableMap; 
+import com.google.common.collect.ImmutableMap;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
