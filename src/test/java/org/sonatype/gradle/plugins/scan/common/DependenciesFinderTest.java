@@ -22,13 +22,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Sets;
 import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
-
-import com.google.common.collect.Sets;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -396,6 +400,30 @@ public class DependenciesFinderTest
 
     Configuration originalConfiguration = mock(Configuration.class);
     when(originalConfiguration.getResolvedConfiguration()).thenThrow(ResolveException.class);
+    when(originalConfiguration.getAllDependencies())
+        .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
+
+    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration,
+        resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
+
+    assertThat(dependencies).isNotNull();
+
+    List<ResolvedArtifact> list = dependencies.collect(Collectors.toList());
+
+    assertThat(list).hasSize(1);
+    assertThat(list.get(0).getId().getComponentIdentifier().toString()).isEqualTo(COMMONS_COLLECTIONS_DEPENDENCY);
+  }
+
+  @Test
+  public void testGetDependencies_ResolvedArtifacts_Skip_Unresolvable_Dependencies() {
+    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    DependencyHandler dependencyHandler = project.getDependencies();
+    org.gradle.api.artifacts.Dependency testDependency =
+        dependencyHandler.add(COMPILE_CLASSPATH_CONFIGURATION_NAME, "test_group-test_artifact:0.0.1");
+
+    Configuration originalConfiguration = mock(Configuration.class);
+    when(originalConfiguration.getResolvedConfiguration()).thenThrow(ResolveException.class);
+    when(originalConfiguration.files(testDependency)).thenThrow(ResolveException.class);
     when(originalConfiguration.getAllDependencies())
         .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
 

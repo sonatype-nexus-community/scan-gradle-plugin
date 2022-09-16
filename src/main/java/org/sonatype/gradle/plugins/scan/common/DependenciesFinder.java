@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
-
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -44,12 +43,16 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
 public class DependenciesFinder
 {
+  private final Logger log = LoggerFactory.getLogger(DependenciesFinder.class);
+
   private static final String RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME = "_releaseCompile";
 
   private static final String RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME = "_releaseApk";
@@ -172,20 +175,48 @@ public class DependenciesFinder
       return function.apply(originalConfiguration.getResolvedConfiguration());
     }
     catch (ResolveException e) {
-      Configuration copyConfiguration = createCopyConfiguration(project);
+      Configuration copyConfiguration = copyDependencies(project, originalConfiguration, false);
 
-      originalConfiguration.getAllDependencies().all(dependency -> {
-        if (dependency instanceof ProjectDependency) {
-          Project dependencyProject = ((ProjectDependency) dependency).getDependencyProject();
-          project.evaluationDependsOn(dependencyProject.getPath());
-        }
-        else {
-          copyConfiguration.getDependencies().add(dependency);
-        }
-      });
-
-      return function.apply(copyConfiguration.getResolvedConfiguration());
+      try {
+        return function.apply(copyConfiguration.getResolvedConfiguration());
+      }
+      catch (ResolveException lastResortException) {
+        copyConfiguration = copyDependencies(project, originalConfiguration, true);
+        return function.apply(copyConfiguration.getResolvedConfiguration());
+      }
     }
+  }
+
+  private Configuration copyDependencies(
+      Project project,
+      Configuration originalConfiguration,
+      boolean skipUnresolvableDependencies)
+  {
+    Configuration copyConfiguration = createCopyConfiguration(project);
+
+    originalConfiguration.getAllDependencies().all(dependency -> {
+      if (dependency instanceof ProjectDependency) {
+        Project dependencyProject = ((ProjectDependency) dependency).getDependencyProject();
+        project.evaluationDependsOn(dependencyProject.getPath());
+      }
+      else {
+        copyConfiguration.getDependencies().add(dependency);
+
+        if (skipUnresolvableDependencies) {
+          try {
+            originalConfiguration.files(dependency);
+          }
+          catch (Exception e) {
+            log.warn("Unable to process the dependency {}:{}:{} in project {} and configuration {}",
+                dependency.getGroup(), dependency.getName(), dependency.getVersion(), project.getName(),
+                originalConfiguration.getName());
+            copyConfiguration.getDependencies().remove(dependency);
+          }
+        }
+      }
+    });
+
+    return copyConfiguration;
   }
 
   @VisibleForTesting
