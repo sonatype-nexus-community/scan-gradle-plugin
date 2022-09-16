@@ -180,7 +180,7 @@ public class DependenciesFinder
       try {
         return function.apply(copyConfiguration.getResolvedConfiguration());
       }
-      catch (Exception lastResortException) {
+      catch (ResolveException lastResortException) {
         copyConfiguration = copyDependencies(project, originalConfiguration, true);
         return function.apply(copyConfiguration.getResolvedConfiguration());
       }
@@ -207,9 +207,9 @@ public class DependenciesFinder
             originalConfiguration.files(dependency);
           }
           catch (Exception e) {
-            log.warn("Unable to process the dependency " + dependency.getGroup() + ":" + dependency.getName() + ":"
-                + dependency.getVersion() + " in project " + project.getName() + " and configuration "
-                + originalConfiguration.getName());
+            log.warn("Unable to process the dependency {}:{}:{} in project {} and configuration {}",
+                dependency.getGroup(), dependency.getName(), dependency.getVersion(), project.getName(),
+                originalConfiguration.getName());
             copyConfiguration.getDependencies().remove(dependency);
           }
         }

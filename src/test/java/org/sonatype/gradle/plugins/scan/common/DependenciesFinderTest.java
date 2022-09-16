@@ -22,13 +22,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Sets;
 import hidden.com.sonatype.insight.scan.module.model.Artifact;
 import hidden.com.sonatype.insight.scan.module.model.Dependency;
 import hidden.com.sonatype.insight.scan.module.model.Module;
-
-import com.google.common.collect.Sets;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -411,7 +415,7 @@ public class DependenciesFinderTest
   }
 
   @Test
-  public void testGetDependencies_ResolvedArtifacts_WithDoubleError() {
+  public void testGetDependencies_ResolvedArtifacts_Skip_Unresolvable_Dependencies() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
     DependencyHandler dependencyHandler = project.getDependencies();
     org.gradle.api.artifacts.Dependency testDependency =
