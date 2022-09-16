@@ -411,6 +411,30 @@ public class DependenciesFinderTest
   }
 
   @Test
+  public void testGetDependencies_ResolvedArtifacts_WithDoubleError() {
+    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    DependencyHandler dependencyHandler = project.getDependencies();
+    org.gradle.api.artifacts.Dependency testDependency =
+        dependencyHandler.add(COMPILE_CLASSPATH_CONFIGURATION_NAME, "test_group-test_artifact:0.0.1");
+
+    Configuration originalConfiguration = mock(Configuration.class);
+    when(originalConfiguration.getResolvedConfiguration()).thenThrow(ResolveException.class);
+    when(originalConfiguration.files(testDependency)).thenThrow(ResolveException.class);
+    when(originalConfiguration.getAllDependencies())
+        .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
+
+    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration,
+        resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
+
+    assertThat(dependencies).isNotNull();
+
+    List<ResolvedArtifact> list = dependencies.collect(Collectors.toList());
+
+    assertThat(list).hasSize(1);
+    assertThat(list.get(0).getId().getComponentIdentifier().toString()).isEqualTo(COMMONS_COLLECTIONS_DEPENDENCY);
+  }
+
+  @Test
   public void testProcessDependency() {
     testProcessDependency(false);
   }
