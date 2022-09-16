@@ -22,7 +22,7 @@ import org.sonatype.ossindex.service.client.transport.AuthConfiguration;
 import org.sonatype.ossindex.service.client.transport.ProxyConfiguration;
 
 import groovy.lang.Closure;
-import nexus.shadow.org.cyclonedx.model.Component;
+import org.cyclonedx.model.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 
