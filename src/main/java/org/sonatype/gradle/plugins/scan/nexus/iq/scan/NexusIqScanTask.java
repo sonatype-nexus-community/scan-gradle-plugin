@@ -42,7 +42,7 @@ import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 import org.sonatype.gradle.plugins.scan.nexus.iq.api.Application;
 import org.sonatype.gradle.plugins.scan.nexus.iq.api.NexusIqApi;
 
-import hidden.com.sonatype.insight.scan.module.model.Module;
+import com.sonatype.insight.scan.module.model.Module;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
