@@ -28,9 +28,9 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import hidden.com.sonatype.insight.scan.module.model.Artifact;
-import hidden.com.sonatype.insight.scan.module.model.Dependency;
-import hidden.com.sonatype.insight.scan.module.model.Module;
+import com.sonatype.insight.scan.module.model.Artifact;
+import com.sonatype.insight.scan.module.model.Dependency;
+import com.sonatype.insight.scan.module.model.Module;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
