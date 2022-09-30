@@ -57,6 +57,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -130,6 +131,32 @@ public class NexusIqScanTaskTest
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
     verify(iqClientMock).evaluateApplication(eq(task.getApplicationId()), eq(task.getStage()),
         nullable(ScanResult.class), any(File.class), isNull());
+  }
+
+  @Test
+  public void testScan_ErrorConnectingToIq() throws Exception {
+    NexusIqScanTask task = buildScanTask(false);
+    task.setDependenciesFinder(dependenciesFinderMock);
+
+    IqClientException exception = new IqClientException("test error");
+    doThrow(exception).when(iqClientMock).validateServerVersion(anyString());
+
+    assertThatThrownBy(() -> task.scan())
+        .isInstanceOf(GradleException.class)
+        .hasMessageContaining("Could not scan the project: test error");
+  }
+
+  @Test
+  public void testScan_ErrorConnectingToIqWithCause() throws Exception {
+    NexusIqScanTask task = buildScanTask(false);
+    task.setDependenciesFinder(dependenciesFinderMock);
+
+    IqClientException exception = new IqClientException("test error", new Exception("some cause"));
+    doThrow(exception).when(iqClientMock).validateServerVersion(anyString());
+
+    assertThatThrownBy(() -> task.scan())
+        .isInstanceOf(GradleException.class)
+        .hasMessageContaining("Could not scan the project: test error. Please check this cause: some cause");
   }
 
   @Test
