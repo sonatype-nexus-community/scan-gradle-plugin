@@ -124,6 +124,14 @@ public class NexusIqScanTask
 
       logReport(policyAction, applicationPolicyEvaluation);
     }
+    catch (IqClientException e) {
+      String reason = "Could not scan the project: " + e.getMessage();
+      if (e.getCause() != null && StringUtils.isNotBlank(e.getCause().getMessage())) {
+        reason = StringUtils.appendIfMissing(reason, ".");
+        reason += " Please check this cause: " + e.getCause().getMessage();
+      }
+      throw new GradleException(reason, e);
+    }
     catch (Exception e) {
       throw new GradleException("Could not scan the project: " + e.getMessage(), e);
     }
