@@ -16,7 +16,6 @@
 package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -29,9 +28,6 @@ import com.sonatype.nexus.api.iq.internal.InternalIqClientBuilder;
 import com.sonatype.nexus.api.iq.scan.ScanResult;
 
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
-import org.sonatype.gradle.plugins.scan.nexus.iq.api.Application;
-import org.sonatype.gradle.plugins.scan.nexus.iq.api.ApplicationList;
-import org.sonatype.gradle.plugins.scan.nexus.iq.api.NexusIqApi;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -65,7 +61,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({InternalIqClientBuilder.class, NexusIqApi.class})
+@PrepareForTest(InternalIqClientBuilder.class)
 public class NexusIqScanTaskTest
 {
   private static final String USER_AGENT_REGEX =
@@ -73,9 +69,6 @@ public class NexusIqScanTaskTest
 
   @Mock
   private InternalIqClient iqClientMock;
-
-  @Mock
-  private NexusIqApi nexusIqApiMock;
 
   @Mock
   private DependenciesFinder dependenciesFinderMock;
@@ -86,7 +79,6 @@ public class NexusIqScanTaskTest
   @Before
   public void setup() throws IqClientException {
     PowerMockito.mockStatic(InternalIqClientBuilder.class);
-    PowerMockito.mockStatic(NexusIqApi.class);
 
     InternalIqClientBuilder builderMock = mock(InternalIqClientBuilder.class);
     when(builderMock.withServerConfig(any(ServerConfig.class))).thenReturn(builderMock);
@@ -94,13 +86,12 @@ public class NexusIqScanTaskTest
     when(builderMock.withUserAgent(userAgentCaptor.capture())).thenReturn(builderMock);
     when(InternalIqClientBuilder.create()).thenReturn(builderMock);
 
+    when(iqClientMock.verifyOrCreateApplication(anyString(), nullable(String.class))).thenReturn(true);
+
     when(iqClientMock.evaluateApplication(anyString(), anyString(), nullable(ScanResult.class), any(File.class),
         nullable(File.class))).thenReturn(
         new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
     when(builderMock.build()).thenReturn(iqClientMock);
-
-    when(NexusIqApi.build(eq("http://test"), eq("user"), eq("password"), userAgentCaptor.capture()))
-        .thenReturn(nexusIqApiMock);
 
     when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet()))
         .thenReturn(Collections.emptyList());
@@ -120,14 +111,13 @@ public class NexusIqScanTaskTest
   public void testScan_real() throws Exception {
     NexusIqScanTask task = buildScanTask(false);
     task.setDependenciesFinder(dependenciesFinderMock);
-    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
     task.scan();
 
     verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet());
     assertThat(userAgentCaptor.getValue()).matches(USER_AGENT_REGEX);
     verify(iqClientMock).validateServerVersion(anyString());
-    verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()));
+    verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()), eq(""));
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
     verify(iqClientMock).evaluateApplication(eq(task.getApplicationId()), eq(task.getStage()),
         nullable(ScanResult.class), any(File.class), isNull());
@@ -175,7 +165,7 @@ public class NexusIqScanTaskTest
   public void testScan_realUnableToCreateApp() throws Exception {
     NexusIqScanTask task = buildScanTask(false);
     task.setDependenciesFinder(dependenciesFinderMock);
-    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(false);
+    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()), eq(""))).thenReturn(false);
 
     assertThatThrownBy(task::scan)
         .isInstanceOf(GradleException.class)
@@ -184,48 +174,15 @@ public class NexusIqScanTaskTest
   }
 
   @Test
-  public void testScan_realCreateAppWithOrganizationWithoutApplications() throws Exception {
-    String organizationId = "organizationId";
-    doTestScan_realCreateAppWithOrganization(organizationId, false);
-  }
-
-  @Test
-  public void testScan_realCreateAppWithOrganizationWithApplications() throws Exception {
-    String organizationId = "organizationId";
-    doTestScan_realCreateAppWithOrganization(organizationId, false, new Application("app1", "app1", organizationId),
-        new Application("app2", "app2", organizationId));
-  }
-
-  @Test
-  public void testScan_realCreateAppWithOrganizationAlreadyExisting() throws Exception {
-    String organizationId = "organizationId";
-    doTestScan_realCreateAppWithOrganization(organizationId, true, new Application("test", "test", organizationId));
-  }
-
-  private void doTestScan_realCreateAppWithOrganization(
-      String organizationId,
-      boolean isExistingApplication,
-      Application... applications) throws Exception
-  {
-    NexusIqScanTask task = buildScanTask(false, null, null, null, organizationId);
+  public void testScan_realUnableToCreateAppWithOrganization() throws Exception {
+    NexusIqScanTask task = buildScanTask(false, null, null, null, "orgIdTest");
     task.setDependenciesFinder(dependenciesFinderMock);
+    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()), eq("orgIdTest"))).thenReturn(false);
 
-    ApplicationList applicationList = new ApplicationList();
-    applicationList.setApplications(Arrays.asList(applications));
-    when(nexusIqApiMock.getApplicationsByOrganizationId(organizationId)).thenReturn(applicationList);
-
-    task.scan();
-
-    verify(iqClientMock, never()).verifyOrCreateApplication(anyString());
-    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet());
-    assertThat(userAgentCaptor.getValue()).matches(USER_AGENT_REGEX);
-    verify(nexusIqApiMock).getApplicationsByOrganizationId(organizationId);
-    if (isExistingApplication) {
-      verify(nexusIqApiMock, never()).createApplication(any(Application.class));
-    }
-    else {
-      verify(nexusIqApiMock).createApplication(any(Application.class));
-    }
+    assertThatThrownBy(task::scan)
+        .isInstanceOf(GradleException.class)
+        .hasMessageContaining("Application ID test or Organization ID orgIdTest don't exist and couldn't be created or "
+            + "the user user doesn't have the 'Application Evaluator' role for that application.");
   }
 
   @Test

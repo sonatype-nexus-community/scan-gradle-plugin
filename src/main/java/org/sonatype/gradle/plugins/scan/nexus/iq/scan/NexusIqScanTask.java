@@ -24,6 +24,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.sonatype.insight.brain.client.PolicyAction;
+import com.sonatype.insight.scan.module.model.Module;
 import com.sonatype.nexus.api.common.Authentication;
 import com.sonatype.nexus.api.common.ServerConfig;
 import com.sonatype.nexus.api.exception.IqClientException;
@@ -39,10 +40,7 @@ import com.sonatype.nexus.api.iq.scan.ScanResult;
 
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
 import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
-import org.sonatype.gradle.plugins.scan.nexus.iq.api.Application;
-import org.sonatype.gradle.plugins.scan.nexus.iq.api.NexusIqApi;
 
-import com.sonatype.insight.scan.module.model.Module;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -138,27 +136,21 @@ public class NexusIqScanTask
   }
 
   private void verifyOrCreateApplication(InternalIqClient iqClient) throws IqClientException {
-    if (StringUtils.isNoneBlank(extension.getOrganizationId(), extension.getApplicationId())) {
-      NexusIqApi nexusIqApi = NexusIqApi.build(extension.getServerUrl(), extension.getUsername(),
-          extension.getPassword(), buildUserAgent());
-
-      boolean applicationExists = nexusIqApi
-          .getApplicationsByOrganizationId(extension.getOrganizationId())
-          .getApplications()
-          .stream()
-          .anyMatch(application -> application.getName().equals(extension.getApplicationId()));
-
-      if (!applicationExists) {
-        Application application =
-            new Application(extension.getApplicationId(), extension.getApplicationId(), extension.getOrganizationId());
-        nexusIqApi.createApplication(application);
+    if (!iqClient.verifyOrCreateApplication(extension.getApplicationId(), extension.getOrganizationId())) {
+      String message;
+      if (StringUtils.isBlank(extension.getOrganizationId())) {
+        message = String.format(
+            "Application ID %s doesn't exist and couldn't be created or the user %s doesn't have the "
+                + "'Application Evaluator' role for that application.",
+            extension.getApplicationId(), extension.getUsername());
       }
-    }
-    else if (!iqClient.verifyOrCreateApplication(extension.getApplicationId())) {
-      throw new IllegalArgumentException(String.format(
-          "Application ID %s doesn't exist and couldn't be created or the user %s doesn't have the "
-              + "'Application Evaluator' role for that application.",
-          extension.getApplicationId(), extension.getUsername()));
+      else {
+        message = String.format(
+            "Application ID %s or Organization ID %s don't exist and couldn't be created or the user %s doesn't have "
+                + "the 'Application Evaluator' role for that application.",
+            extension.getApplicationId(), extension.getOrganizationId(), extension.getUsername());
+      }
+      throw new IllegalArgumentException(message);
     }
   }
 
