@@ -290,11 +290,13 @@ public class DependenciesFinderTest
     Module parentModule = modules.get(0);
     assertThat(parentModule.getId()).isEqualTo(parentProject.getName());
     assertThat(parentModule.getConsumedArtifacts()).isEmpty();
+    assertThat(parentModule.getParentId()).isNull();
 
     Module childModule = modules.get(1);
     assertThat(childModule.getId()).isEqualTo(parentProject.getName() + ":" + childProject.getName());
     assertThat(childModule.getConsumedArtifacts()).hasSize(1);
     assertThat(childModule.getDependencies()).hasSize(1);
+    assertThat(childModule.getParentId()).isEqualTo(parentProject.getName());
 
     Dependency dependency = childModule.getDependencies().get(0);
     assertThat(dependency.getId()).isEqualTo(COMMONS_COLLECTIONS_DEPENDENCY);
