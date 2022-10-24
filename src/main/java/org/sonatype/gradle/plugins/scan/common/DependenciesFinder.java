@@ -130,6 +130,15 @@ public class DependenciesFinder
         .setBuilderInfo(Module.BI_CLM_TOOL, "gradle")
         .setBuilderInfo(Module.BI_CLM_VERSION, PluginVersionUtils.getPluginVersion());
 
+    module.setId(getId(project));
+    if (project.getParent() != null) {
+      module.setParentId(getId(project.getParent()));
+    }
+
+    return module;
+  }
+
+  String getId(Project project) {
     StringBuilder idBuilder = new StringBuilder();
     if (StringUtils.isNotBlank(project.getGroup().toString())) {
       idBuilder.append(project.getGroup().toString()).append(":");
@@ -139,9 +148,7 @@ public class DependenciesFinder
         && !"unspecified".equals(project.getVersion().toString())) {
       idBuilder.append(":").append(project.getVersion().toString());
     }
-    module.setId(idBuilder.toString());
-
-    return module;
+    return idBuilder.toString();
   }
 
   @VisibleForTesting
