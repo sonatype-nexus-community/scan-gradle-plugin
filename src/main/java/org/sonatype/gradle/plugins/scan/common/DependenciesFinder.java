@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
+
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -40,8 +41,11 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,10 +162,24 @@ public class DependenciesFinder
       configurationName += i;
     }
     Configuration copyConfiguration = project.getConfigurations().create(configurationName);
+
     if (isGradleVersionSupportedForAttributes(project.getGradle().getGradleVersion())) {
+      boolean isAndroidProject = isAndroidProject(project);
+
+      if (isAndroidProject) {
+        AttributeMatchingStrategy<String> artifactTypeMatchingStrategy =
+            project.getDependencies().getAttributesSchema().attribute(Attribute.of("artifactType", String.class));
+        artifactTypeMatchingStrategy.getDisambiguationRules().add(AndroidAttributeDisambiguationRule.class);
+      }
+
       copyConfiguration.attributes(attributeContainer -> {
         ObjectFactory factory = project.getObjects();
         attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, factory.named(Usage.class, Usage.JAVA_RUNTIME));
+
+        if (isAndroidProject) {
+          attributeContainer.attribute(Attribute.of("com.android.build.api.attributes.BuildTypeAttr", String.class),
+              "release");
+        }
       });
     }
     return copyConfiguration;
@@ -170,6 +188,12 @@ public class DependenciesFinder
   @VisibleForTesting
   boolean isGradleVersionSupportedForAttributes(String gradleVersion) {
     return gradleVersion.compareTo(ATTRIBUTES_SUPPORTED_GRADLE_VERSION) >= 0;
+  }
+
+  @VisibleForTesting
+  boolean isAndroidProject(Project project) {
+    PluginContainer pluginContainer = project.getPlugins();
+    return pluginContainer.hasPlugin("com.android.application") || pluginContainer.hasPlugin("com.android.library");
   }
 
   @VisibleForTesting
@@ -202,23 +226,17 @@ public class DependenciesFinder
     Configuration copyConfiguration = createCopyConfiguration(project);
 
     originalConfiguration.getAllDependencies().all(dependency -> {
-      if (dependency instanceof ProjectDependency) {
-        Project dependencyProject = ((ProjectDependency) dependency).getDependencyProject();
-        project.evaluationDependsOn(dependencyProject.getPath());
-      }
-      else {
-        copyConfiguration.getDependencies().add(dependency);
+      copyConfiguration.getDependencies().add(dependency);
 
-        if (skipUnresolvableDependencies) {
-          try {
-            originalConfiguration.files(dependency);
-          }
-          catch (Exception e) {
-            log.warn("Unable to process the dependency {}:{}:{} in project {} and configuration {}",
-                dependency.getGroup(), dependency.getName(), dependency.getVersion(), project.getName(),
-                originalConfiguration.getName());
-            copyConfiguration.getDependencies().remove(dependency);
-          }
+      if (skipUnresolvableDependencies && !(dependency instanceof ProjectDependency)) {
+        try {
+          originalConfiguration.files(dependency);
+        }
+        catch (Exception e) {
+          log.warn("Unable to process the dependency {}:{}:{} in project {} and configuration {}",
+              dependency.getGroup(), dependency.getName(), dependency.getVersion(), project.getName(),
+              originalConfiguration.getName());
+          copyConfiguration.getDependencies().remove(dependency);
         }
       }
     });
