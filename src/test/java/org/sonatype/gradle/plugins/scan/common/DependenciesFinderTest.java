@@ -22,10 +22,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.Sets;
 import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
+
+import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -34,10 +35,12 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Before;
 import org.junit.Test;
@@ -326,6 +329,28 @@ public class DependenciesFinderTest
 
     Usage expectedUsage = project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME);
     assertThat(configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE)).isEqualTo(expectedUsage);
+    assertThat(configuration.getAttributes()
+        .getAttribute(Attribute.of(DependenciesFinder.BUILD_TYPE_ATTR_NAME, String.class))).isNull();
+  }
+
+  @Test
+  public void testCreateCopyConfiguration_AndroidProject() {
+    PluginContainer pluginContainer = mock(PluginContainer.class);
+    when(pluginContainer.hasPlugin("com.android.application")).thenReturn(true);
+
+    Project project = spy(buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false));
+    when(project.getPlugins()).thenReturn(pluginContainer);
+
+    Configuration configuration = finder.createCopyConfiguration(project);
+
+    assertThat(configuration).isNotNull();
+    assertThat(configuration.getName()).isEqualTo("sonatypeCopyConfiguration");
+
+    Usage expectedUsage = project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME);
+    assertThat(configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE)).isEqualTo(expectedUsage);
+    assertThat(
+        configuration.getAttributes().getAttribute(Attribute.of(DependenciesFinder.BUILD_TYPE_ATTR_NAME, String.class)))
+            .isEqualTo("release");
   }
 
   @Test
