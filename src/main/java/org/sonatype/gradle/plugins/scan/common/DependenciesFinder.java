@@ -16,7 +16,6 @@
 package org.sonatype.gradle.plugins.scan.common;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -32,6 +31,7 @@ import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -42,11 +42,13 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
+import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +58,8 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_
 public class DependenciesFinder
 {
   private final Logger log = LoggerFactory.getLogger(DependenciesFinder.class);
+
+  static final String BUILD_TYPE_ATTR_NAME = "com.android.build.api.attributes.BuildTypeAttr";
 
   private static final String RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME = "_releaseCompile";
 
@@ -67,15 +71,13 @@ public class DependenciesFinder
 
   private static final String RELEASE_RUNTIME_CONFIGURATION_NAME = "releaseRuntimeClasspath";
 
-  private static final Set<String> CONFIGURATION_NAMES =
-      new HashSet<>(Arrays.asList(
-          COMPILE_CLASSPATH_CONFIGURATION_NAME,
-          RUNTIME_CLASSPATH_CONFIGURATION_NAME,
-          RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME,
-          RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME,
-          RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME,
-          RELEASE_COMPILE_CONFIGURATION_NAME,
-          RELEASE_RUNTIME_CONFIGURATION_NAME));
+  private static final Set<String> CONFIGURATION_NAMES = ImmutableSet.of(
+      COMPILE_CLASSPATH_CONFIGURATION_NAME,
+      RUNTIME_CLASSPATH_CONFIGURATION_NAME,
+      RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME,
+      RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME,
+      RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME,
+      RELEASE_COMPILE_CONFIGURATION_NAME, RELEASE_RUNTIME_CONFIGURATION_NAME);
 
   private static final String COPY_CONFIGURATION_NAME = "sonatypeCopyConfiguration";
 
@@ -177,12 +179,43 @@ public class DependenciesFinder
         attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, factory.named(Usage.class, Usage.JAVA_RUNTIME));
 
         if (isAndroidProject) {
-          attributeContainer.attribute(Attribute.of("com.android.build.api.attributes.BuildTypeAttr", String.class),
-              "release");
+          addReleaseBuildTypeAttribute(project, attributeContainer);
         }
       });
     }
     return copyConfiguration;
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  private void addReleaseBuildTypeAttribute(Project project, AttributeContainer attributeContainer) {
+    if (GradleVersion.current().compareTo(GradleVersion.version("6.0.1")) >= 0) {
+      attributeContainer.attribute(Attribute.of(BUILD_TYPE_ATTR_NAME, String.class), "release");
+    }
+    else {
+      Set<String> configurationNames = new HashSet<String>(CONFIGURATION_NAMES);
+      configurationNames.add("fullReleaseRuntimeElements");
+
+      for (String configurationName : configurationNames) {
+        Configuration configuration = project.getConfigurations().findByName(configurationName);
+        Attribute attributeFound = null;
+        Object attributeValue = null;
+
+        if (configuration != null) {
+          for (Attribute attribute : configuration.getAttributes().keySet()) {
+            if (BUILD_TYPE_ATTR_NAME.equals(attribute.getName())) {
+              attributeFound = attribute;
+              attributeValue = configuration.getAttributes().getAttribute(attributeFound);
+              break;
+            }
+          }
+        }
+
+        if (attributeFound != null) {
+          attributeContainer.attribute(Attribute.of(BUILD_TYPE_ATTR_NAME, attributeFound.getType()), attributeValue);
+          break;
+        }
+      }
+    }
   }
 
   @VisibleForTesting
