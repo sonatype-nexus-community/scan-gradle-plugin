@@ -332,3 +332,5 @@ Have fun creating and using `scan-gradle-plugin`, we are glad to have you here!
 Looking to contribute to our code but need some help? There's a few ways to get information:
 
 * Chat with us on [Gitter](https://gitter.im/sonatype/nexus-developers)
+
+No se
