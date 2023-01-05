@@ -1,7 +1,7 @@
 name: First Interaction
 # https://github.com/marketplace/actions/first-interaction
 
-on: [pull_request, issues]
+on: [pull_request_target, issues]
 
 jobs:
   greeting:
