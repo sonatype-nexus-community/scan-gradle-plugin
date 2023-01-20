@@ -16,7 +16,6 @@
 package org.sonatype.gradle.plugins.scan.common;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -85,10 +84,14 @@ public class DependenciesFinder
 
   private static final String ATTRIBUTES_SUPPORTED_GRADLE_VERSION = "4.0";
 
-  public Set<ResolvedDependency> findResolvedDependencies(Project project, boolean allConfigurations) {
+  public Set<ResolvedDependency> findResolvedDependencies(
+      Project project,
+      boolean allConfigurations,
+      Map<String, String> variantAttributes)
+  {
     return new LinkedHashSet<>(new LinkedHashSet<>(project.getConfigurations()).stream()
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> getDependencies(project, configuration, Collections.emptyMap(),
+        .flatMap(configuration -> getDependencies(project, configuration, variantAttributes,
             resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream()))
         .collect(collectResolvedDependencies()).values());
   }
@@ -116,8 +119,8 @@ public class DependenciesFinder
           module.addConsumedArtifact(artifact);
         });
 
-        findResolvedDependencies(project, allConfigurations).forEach(resolvedDependency ->
-          module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
+        findResolvedDependencies(project, allConfigurations, variantAttributes).forEach(
+            resolvedDependency -> module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
         );
 
         modules.add(module);

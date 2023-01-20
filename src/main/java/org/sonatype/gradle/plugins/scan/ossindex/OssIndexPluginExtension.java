@@ -15,15 +15,17 @@
  */
 package org.sonatype.gradle.plugins.scan.ossindex;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.sonatype.ossindex.service.client.transport.AuthConfiguration;
 import org.sonatype.ossindex.service.client.transport.ProxyConfiguration;
 
 import groovy.lang.Closure;
-import org.cyclonedx.model.Component;
 import org.apache.commons.lang3.StringUtils;
+import org.cyclonedx.model.Component;
 import org.gradle.api.Project;
 
 public class OssIndexPluginExtension
@@ -69,6 +71,8 @@ public class OssIndexPluginExtension
 
   private Component.Type cycloneDxComponentType;
 
+  private Map<String, String> variantAttributes;
+
   public OssIndexPluginExtension(Project project) {
     username = "";
     password = "";
@@ -84,6 +88,7 @@ public class OssIndexPluginExtension
     excludeCoordinates = new HashSet<>();
     outputFormat = OutputFormat.DEFAULT;
     cycloneDxComponentType = Component.Type.LIBRARY;
+    variantAttributes = Collections.emptyMap();
   }
 
   public String getUsername() {
@@ -237,5 +242,13 @@ public class OssIndexPluginExtension
 
   public void setCycloneDxComponentType(Component.Type cycloneDxComponentType) {
     this.cycloneDxComponentType = cycloneDxComponentType;
+  }
+
+  public Map<String, String> getVariantAttributes() {
+    return variantAttributes;
+  }
+
+  public void setVariantAttributes(Map<String, String> variantAttributes) {
+    this.variantAttributes = variantAttributes;
   }
 }
