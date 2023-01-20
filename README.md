@@ -96,7 +96,7 @@ ossIndexAudit {
     modulesIncluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to include for auditing. If not specified all modules are included.
     modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to exclude from auditing. If not specified no modules are excluded. This value is processed after 'modulesIncluded' if both are specified.
 
-    // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at https://docs.gradle.org/current/userguide/variant_model.html#sec:variant-select-errors
+    // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at the section "How to Deal with Multiple Release Variants" below in this doc.
     variantAttributes = ['com.android.build.api.attributes.ProductFlavor:version': 'prod', 'other.attribute': 'other value'] // Optional, use it only when the plugin can't match a variant on its own
 
     // ossIndexAudit can be configured to exclude vulnerabilities from matching
@@ -133,7 +133,7 @@ ossIndexAudit {
     modulesIncluded = listOf("module-1", "module-2") // Optional. For multi-module projects, the names of the sub-modules to include for auditing. If not specified all modules are included.
     modulesExcluded = listOf("module-1", "module-2") // Optional. For multi-module projects, the names of the sub-modules to exclude from auditing. If not specified no modules are excluded. This value is processed after 'modulesIncluded' if both are specified.
 
-    // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at https://docs.gradle.org/current/userguide/variant_model.html#sec:variant-select-errors
+    // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at the section "How to Deal with Multiple Release Variants" below in this doc.
     variantAttributes = mapOf("com.android.build.api.attributes.ProductFlavor:version" to "prod", "other.attribute" to "other value") // Optional, use it only when the plugin can't match a variant on its own
 
     // ossIndexAudit can be configured to exclude vulnerabilities from matching
@@ -173,7 +173,7 @@ nexusIQScan {
     dirExcludes = 'some-ant-pattern' // Optional. Comma separated ant-like glob patterns to select directories/archives that should be excluded. For Android projects we suggest using '**/classes.jar,**/annotations.zip,**/lint.jar,**/internal_impl-*.jar'
     dirIncludes = 'some-ant-pattern' // Optional. Comma separated ant-like glob patterns to select directories/archives that should be examined
 
-    // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at https://docs.gradle.org/current/userguide/variant_model.html#sec:variant-select-errors
+    // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at the section "How to Deal with Multiple Release Variants" below in this doc.
     variantAttributes = ['com.android.build.api.attributes.ProductFlavor:version': 'prod', 'other.attribute': 'other value'] // Optional, use it only when the plugin can't match a variant on its own
 }
 ```
@@ -193,7 +193,7 @@ nexusIQScan {
     dirExcludes = "some-ant-pattern" // Optional. Comma separated ant-like glob patterns to select directories/archives that should be excluded. For Android projects we suggest using "**/classes.jar,**/annotations.zip,**/lint.jar,**/internal_impl-*.jar"
     dirIncludes = "some-ant-pattern" // Optional. Comma separated ant-like glob patterns to select directories/archives that should be examined
 
-    // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at https://docs.gradle.org/current/userguide/variant_model.html#sec:variant-select-errors
+    // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at the section "How to Deal with Multiple Release Variants" below in this doc.
     variantAttributes = mapOf("com.android.build.api.attributes.ProductFlavor:version" to "prod", "other.attribute" to "other value") // Optional, use it only when the plugin can't match a variant on its own
 }
 ```
