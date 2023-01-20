@@ -16,6 +16,7 @@
 package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -55,6 +56,8 @@ public class NexusIqPluginScanExtension
 
   private String dirExcludes;
 
+  private Map<String, String> variantAttributes;
+
   public NexusIqPluginScanExtension(Project project) {
     stage = Stage.ID_BUILD;
     organizationId = "";
@@ -64,6 +67,7 @@ public class NexusIqPluginScanExtension
     modulesExcluded = Collections.emptySet();
     dirIncludes = "";
     dirExcludes = "";
+    variantAttributes = Collections.emptyMap();
   }
 
   public String getUsername() {
@@ -177,5 +181,13 @@ public class NexusIqPluginScanExtension
 
   public void setDirExcludes(String dirExcludes) {
     this.dirExcludes = dirExcludes;
+  }
+
+  public Map<String, String> getVariantAttributes() {
+    return variantAttributes;
+  }
+
+  public void setVariantAttributes(Map<String, String> variantAttributes) {
+    this.variantAttributes = variantAttributes;
   }
 }
