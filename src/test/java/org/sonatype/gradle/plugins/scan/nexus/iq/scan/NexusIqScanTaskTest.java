@@ -93,7 +93,7 @@ public class NexusIqScanTaskTest
         new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
     when(builderMock.build()).thenReturn(iqClientMock);
 
-    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet()))
+    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet(), anyMap()))
         .thenReturn(Collections.emptyList());
   }
 
@@ -114,7 +114,7 @@ public class NexusIqScanTaskTest
 
     task.scan();
 
-    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet());
+    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet(), anyMap());
     assertThat(userAgentCaptor.getValue()).matches(USER_AGENT_REGEX);
     verify(iqClientMock).validateServerVersion(anyString());
     verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()), eq(""));

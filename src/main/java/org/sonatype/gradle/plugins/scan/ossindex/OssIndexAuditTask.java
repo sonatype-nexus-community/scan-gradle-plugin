@@ -77,8 +77,9 @@ public class OssIndexAuditTask
       Set<ResolvedDependency> dependencies = getProject().getAllprojects().stream()
           .filter(project -> extension.getModulesIncluded() == null || extension.getModulesIncluded().isEmpty() || extension.getModulesIncluded().contains(project.getName()))
           .filter(project -> extension.getModulesExcluded() == null || !extension.getModulesExcluded().contains(project.getName()))
-          .flatMap(
-              project -> dependenciesFinder.findResolvedDependencies(project, extension.isAllConfigurations()).stream())
+          .flatMap(project -> dependenciesFinder
+              .findResolvedDependencies(project, extension.isAllConfigurations(), extension.getVariantAttributes())
+              .stream())
           .collect(Collectors.toCollection(LinkedHashSet::new));
       BiMap<ResolvedDependency, PackageUrl> dependenciesMap = HashBiMap.create();
 

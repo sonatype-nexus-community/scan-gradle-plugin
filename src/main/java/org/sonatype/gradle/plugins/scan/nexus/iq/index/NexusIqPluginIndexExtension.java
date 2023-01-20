@@ -16,6 +16,7 @@
 package org.sonatype.gradle.plugins.scan.nexus.iq.index;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.gradle.api.Project;
@@ -26,8 +27,11 @@ public class NexusIqPluginIndexExtension
 
   private Set<String> modulesExcluded;
 
+  private Map<String, String> variantAttributes;
+
   public NexusIqPluginIndexExtension(Project project) {
     modulesExcluded = Collections.emptySet();
+    variantAttributes = Collections.emptyMap();
   }
 
   public boolean isAllConfigurations() {
@@ -44,5 +48,13 @@ public class NexusIqPluginIndexExtension
 
   public void setModulesExcluded(Set<String> modulesExcluded) {
     this.modulesExcluded = modulesExcluded;
+  }
+
+  public Map<String, String> getVariantAttributes() {
+    return variantAttributes;
+  }
+
+  public void setVariantAttributes(Map<String, String> variantAttributes) {
+    this.variantAttributes = variantAttributes;
   }
 }
