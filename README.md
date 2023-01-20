@@ -134,7 +134,7 @@ ossIndexAudit {
     modulesExcluded = listOf("module-1", "module-2") // Optional. For multi-module projects, the names of the sub-modules to exclude from auditing. If not specified no modules are excluded. This value is processed after 'modulesIncluded' if both are specified.
 
     // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at https://docs.gradle.org/current/userguide/variant_model.html#sec:variant-select-errors
-    variantAttributes = mapOf('com.android.build.api.attributes.ProductFlavor:version' to 'prod', 'other.attribute' to 'other value') // Optional, use it only when the plugin can't match a variant on its own
+    variantAttributes = mapOf("com.android.build.api.attributes.ProductFlavor:version" to "prod", "other.attribute" to "other value") // Optional, use it only when the plugin can't match a variant on its own
 
     // ossIndexAudit can be configured to exclude vulnerabilities from matching
     excludeVulnerabilityIds =
@@ -194,7 +194,7 @@ nexusIQScan {
     dirIncludes = "some-ant-pattern" // Optional. Comma separated ant-like glob patterns to select directories/archives that should be examined
 
     // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at https://docs.gradle.org/current/userguide/variant_model.html#sec:variant-select-errors
-    variantAttributes = mapOf('com.android.build.api.attributes.ProductFlavor:version' to 'prod', 'other.attribute' to 'other value') // Optional, use it only when the plugin can't match a variant on its own
+    variantAttributes = mapOf("com.android.build.api.attributes.ProductFlavor:version" to "prod", "other.attribute" to "other value") // Optional, use it only when the plugin can't match a variant on its own
 }
 ```
 
@@ -317,6 +317,66 @@ ossIndexAudit {
 ### Multi-module projects
 Just apply the plugin on the root project and all sub-modules will be processed and the output will be a single report
 with all components found in each module. This includes Android projects.
+
+## How to Deal with Multiple Release Variants
+This plugin makes its best effort to find the release (production) configuration and variant to get the dependencies to analyze.
+
+However, a Gradle project can have multiple custom release variants and the plugin might not be able to tell Gradle which one to pick, resulting in an error like this:
+
+```
+> Could not resolve all dependencies for configuration 'sonatypeCopyConfiguration0'.
+   > Could not resolve project :common-lib.
+     Required by:
+         project :app
+      > The consumer was configured to find a runtime of a component, as well as attribute 'com.android.build.api.attributes.BuildTypeAttr' with value 'release'. However we cannot choose between the following variants of project :baseapp:
+          - ciReleaseRuntimeElements
+          - prodReleaseRuntimeElements
+        All of them match the consumer attributes:
+          - Variant 'ciReleaseRuntimeElements' capability common-lib:1.0.0 declares a runtime of a component, as well as attribute 'com.android.build.api.attributes.BuildTypeAttr' with value 'release':
+              - Unmatched attributes:
+                  - Provides attribute 'com.android.build.api.attributes.AgpVersionAttr' with value '7.2.2' but the consumer didn't ask for it
+                  - Provides attribute 'com.android.build.api.attributes.ProductFlavor:version' with value 'ci' but the consumer didn't ask for it
+                  - Provides attribute 'com.android.build.gradle.internal.attributes.VariantAttr' with value 'ciRelease' but the consumer didn't ask for it
+                  - Provides a library but the consumer didn't ask for it
+                  - Provides attribute 'org.gradle.jvm.environment' with value 'android' but the consumer didn't ask for it
+          - Variant 'prodReleaseRuntimeElements' capability common-lib:1.0.0 declares a runtime of a component, as well as attribute 'com.android.build.api.attributes.BuildTypeAttr' with value 'release':
+              - Unmatched attributes:
+                  - Provides attribute 'com.android.build.api.attributes.AgpVersionAttr' with value '7.2.2' but the consumer didn't ask for it
+                  - Provides attribute 'com.android.build.api.attributes.ProductFlavor:version' with value 'prod' but the consumer didn't ask for it
+                  - Provides attribute 'com.android.build.gradle.internal.attributes.VariantAttr' with value 'prodRelease' but the consumer didn't ask for it
+                  - Provides a library but the consumer didn't ask for it
+                  - Provides attribute 'org.gradle.jvm.environment' with value 'android' but the consumer didn't ask for it
+```
+
+From that output we can see the value of the attribute `com.android.build.api.attributes.ProductFlavor:version` can be used to distinguish between the available variants.
+
+Since attribute names and values can be customized on each project, this plugin allows to set the attributes needed to match the right variant using the property `variantAttributes`.
+
+In the example above, the following configuration would allow the plugin to choose the `prodReleaseRuntimeElements` variant:
+
+*Groovy*
+```
+nexusIQScan {
+    variantAttributes = ['com.android.build.api.attributes.ProductFlavor:version': 'prod']
+}
+
+ossIndexAudit {
+    variantAttributes = ['com.android.build.api.attributes.ProductFlavor:version': 'prod']
+}
+```
+
+*Kotlin*
+```
+nexusIQScan {
+    variantAttributes = mapOf("com.android.build.api.attributes.ProductFlavor:version" to "prod")
+}
+
+ossIndexAudit {
+    variantAttributes = mapOf("com.android.build.api.attributes.ProductFlavor:version" to "prod")
+}
+```
+
+See more information about attributes matching for variant selection see https://docs.gradle.org/current/userguide/variant_model.html#sec:variant-select-errors
 
 ## Contributing
 
