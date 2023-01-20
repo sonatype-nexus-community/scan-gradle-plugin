@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -83,30 +84,31 @@ public class DependenciesFinder
 
   private static final String ATTRIBUTES_SUPPORTED_GRADLE_VERSION = "4.0";
 
-  public Set<ResolvedDependency> findResolvedDependencies(Project project, boolean allConfigurations) {
+  public Set<ResolvedDependency> findResolvedDependencies(
+      Project project,
+      boolean allConfigurations,
+      Map<String, String> variantAttributes)
+  {
     return new LinkedHashSet<>(new LinkedHashSet<>(project.getConfigurations()).stream()
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> getDependencies(project, configuration,
+        .flatMap(configuration -> getDependencies(project, configuration, variantAttributes,
             resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream()))
         .collect(collectResolvedDependencies()).values());
   }
 
-  public Set<ResolvedArtifact> findResolvedArtifacts(Project project, boolean allConfigurations) {
-    return new LinkedHashSet<>(project.getConfigurations()).stream()
-        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> getDependencies(project, configuration,
-            resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream()))
-        .collect(Collectors.toSet());
-  }
-
-  public List<Module> findModules(Project rootProject, boolean allConfigurations, Set<String> modulesExcluded) {
+  public List<Module> findModules(
+      Project rootProject,
+      boolean allConfigurations,
+      Set<String> modulesExcluded,
+      Map<String, String> variantAttributes)
+  {
     List<Module> modules = new ArrayList<>();
 
     rootProject.allprojects(project -> {
       if (!modulesExcluded.contains(project.getName())) {
         Module module = buildModule(project);
 
-        findResolvedArtifacts(project, allConfigurations).forEach(resolvedArtifact -> {
+        findResolvedArtifacts(project, allConfigurations, variantAttributes).forEach(resolvedArtifact -> {
           ModuleVersionIdentifier artifactId = resolvedArtifact.getModuleVersion().getId();
 
           Artifact artifact = new Artifact()
@@ -117,8 +119,8 @@ public class DependenciesFinder
           module.addConsumedArtifact(artifact);
         });
 
-        findResolvedDependencies(project, allConfigurations).forEach(resolvedDependency ->
-          module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
+        findResolvedDependencies(project, allConfigurations, variantAttributes).forEach(
+            resolvedDependency -> module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
         );
 
         modules.add(module);
@@ -126,6 +128,19 @@ public class DependenciesFinder
     });
 
     return modules;
+  }
+
+  @VisibleForTesting
+  Set<ResolvedArtifact> findResolvedArtifacts(
+      Project project,
+      boolean allConfigurations,
+      Map<String, String> variantAttributes)
+  {
+    return new LinkedHashSet<>(project.getConfigurations()).stream()
+        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
+        .flatMap(configuration -> getDependencies(project, configuration, variantAttributes,
+            resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream()))
+        .collect(Collectors.toSet());
   }
 
   @VisibleForTesting
@@ -158,7 +173,7 @@ public class DependenciesFinder
   }
 
   @VisibleForTesting
-  Configuration createCopyConfiguration(Project project) {
+  Configuration createCopyConfiguration(Project project, Map<String, String> variantAttributes) {
     String configurationName = COPY_CONFIGURATION_NAME;
     for (int i = 0; project.getConfigurations().findByName(configurationName) != null; i++) {
       configurationName += i;
@@ -171,12 +186,16 @@ public class DependenciesFinder
       if (isAndroidProject) {
         AttributeMatchingStrategy<String> artifactTypeMatchingStrategy =
             project.getDependencies().getAttributesSchema().attribute(Attribute.of("artifactType", String.class));
-        artifactTypeMatchingStrategy.getDisambiguationRules().add(AndroidAttributeDisambiguationRule.class);
+        artifactTypeMatchingStrategy.getDisambiguationRules().add(AndroidArtifactTypeAttributeDisambiguationRule.class);
       }
 
       copyConfiguration.attributes(attributeContainer -> {
         ObjectFactory factory = project.getObjects();
         attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, factory.named(Usage.class, Usage.JAVA_RUNTIME));
+
+        variantAttributes.forEach((attributeName, value) -> {
+          attributeContainer.attribute(Attribute.of(attributeName, String.class), value);
+        });
 
         if (isAndroidProject) {
           addReleaseBuildTypeAttribute(project, attributeContainer);
@@ -233,19 +252,20 @@ public class DependenciesFinder
   <T> Stream<T> getDependencies(
       Project project,
       Configuration originalConfiguration,
+      Map<String, String> variantAttributes,
       Function<ResolvedConfiguration, Stream<T>> function)
   {
     try {
       return function.apply(originalConfiguration.getResolvedConfiguration());
     }
     catch (ResolveException e) {
-      Configuration copyConfiguration = copyDependencies(project, originalConfiguration, false);
+      Configuration copyConfiguration = copyDependencies(project, originalConfiguration, false, variantAttributes);
 
       try {
         return function.apply(copyConfiguration.getResolvedConfiguration());
       }
       catch (ResolveException lastResortException) {
-        copyConfiguration = copyDependencies(project, originalConfiguration, true);
+        copyConfiguration = copyDependencies(project, originalConfiguration, true, variantAttributes);
         return function.apply(copyConfiguration.getResolvedConfiguration());
       }
     }
@@ -254,9 +274,10 @@ public class DependenciesFinder
   private Configuration copyDependencies(
       Project project,
       Configuration originalConfiguration,
-      boolean skipUnresolvableDependencies)
+      boolean skipUnresolvableDependencies,
+      Map<String, String> variantAttributes)
   {
-    Configuration copyConfiguration = createCopyConfiguration(project);
+    Configuration copyConfiguration = createCopyConfiguration(project, variantAttributes);
 
     originalConfiguration.getAllDependencies().all(dependency -> {
       copyConfiguration.getDependencies().add(dependency);
