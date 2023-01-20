@@ -6,6 +6,7 @@ target/
 .classpath
 .project
 .idea
+.DS_Store
 
 # ci config for local ci build
 .circleci/local-config.yml

@@ -18,6 +18,7 @@ package org.sonatype.gradle.plugins.scan.common;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,6 +27,7 @@ import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -36,6 +38,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
@@ -45,6 +48,8 @@ import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
@@ -189,42 +194,42 @@ public class DependenciesFinderTest
   @Test
   public void testFindResolvedArtifacts_includeCompileDependencies() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_includeRuntimeDependencies() {
     Project project = buildProject(RUNTIME_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_includeAndroidCompileDependencies() {
     Project project = buildProject("releaseCompileClasspath", true);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_includeAndroidRuntimeDependencies() {
     Project project = buildProject("releaseRuntimeClasspath", true);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_omitTestDependencies() {
     Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
     assertThat(result).isEmpty();
   }
 
   @Test
   public void testFindResolvedArtifacts_includeTestDependencies() {
     Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, true);
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, true, emptyMap());
     assertThat(result).hasSize(1);
   }
 
@@ -265,7 +270,7 @@ public class DependenciesFinderTest
   @Test
   public void testFindModules_singleModule() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    List<Module> modules = finder.findModules(project, false, Collections.emptySet());
+    List<Module> modules = finder.findModules(project, false, emptySet(), emptyMap());
 
     assertThat(modules).hasSize(1);
 
@@ -286,7 +291,7 @@ public class DependenciesFinderTest
   public void testFindModules_multiModule() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
     Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
-    List<Module> modules = finder.findModules(parentProject, false, Collections.emptySet());
+    List<Module> modules = finder.findModules(parentProject, false, emptySet(), emptyMap());
 
     assertThat(modules).hasSize(2);
 
@@ -313,7 +318,8 @@ public class DependenciesFinderTest
   public void testFindModules_multiModuleWithModuleExcluded() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
     Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
-    List<Module> modules = finder.findModules(parentProject, false, Collections.singleton(childProject.getName()));
+    List<Module> modules =
+        finder.findModules(parentProject, false, Collections.singleton(childProject.getName()), emptyMap());
 
     assertThat(modules).hasSize(1);
     assertThat(modules.get(0).getId()).isEqualTo(parentProject.getName());
@@ -322,7 +328,7 @@ public class DependenciesFinderTest
   @Test
   public void testCreateCopyConfiguration() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Configuration configuration = finder.createCopyConfiguration(project);
+    Configuration configuration = finder.createCopyConfiguration(project, emptyMap());
 
     assertThat(configuration).isNotNull();
     assertThat(configuration.getName()).isEqualTo("sonatypeCopyConfiguration");
@@ -334,6 +340,20 @@ public class DependenciesFinderTest
   }
 
   @Test
+  public void testCreateCopyConfiguration_WithVariantAttributes() {
+    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Map<String, String> variantAttributes = ImmutableMap.of("attribute1", "1", "attribute2", "2");
+
+    Configuration configuration = finder.createCopyConfiguration(project, variantAttributes);
+
+    assertThat(configuration).isNotNull();
+    AttributeContainer attributeContainer = configuration.getAttributes().getAttributes();
+
+    assertThat(attributeContainer.getAttribute(Attribute.of("attribute1", String.class))).isEqualTo("1");
+    assertThat(attributeContainer.getAttribute(Attribute.of("attribute2", String.class))).isEqualTo("2");
+  }
+
+  @Test
   public void testCreateCopyConfiguration_AndroidProject() {
     PluginContainer pluginContainer = mock(PluginContainer.class);
     when(pluginContainer.hasPlugin("com.android.application")).thenReturn(true);
@@ -341,7 +361,7 @@ public class DependenciesFinderTest
     Project project = spy(buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false));
     when(project.getPlugins()).thenReturn(pluginContainer);
 
-    Configuration configuration = finder.createCopyConfiguration(project);
+    Configuration configuration = finder.createCopyConfiguration(project, emptyMap());
 
     assertThat(configuration).isNotNull();
     assertThat(configuration.getName()).isEqualTo("sonatypeCopyConfiguration");
@@ -368,7 +388,7 @@ public class DependenciesFinderTest
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
     Configuration originalConfiguration = project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME);
 
-    Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration,
+    Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream());
 
     assertThat(dependencies).isNotNull();
@@ -391,7 +411,7 @@ public class DependenciesFinderTest
     when(originalConfiguration.getAllDependencies())
         .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
 
-    Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration,
+    Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream());
 
     assertThat(dependencies).isNotNull();
@@ -410,7 +430,7 @@ public class DependenciesFinderTest
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
     Configuration originalConfiguration = project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME);
 
-    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration,
+    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
 
     assertThat(dependencies).isNotNull();
@@ -430,7 +450,7 @@ public class DependenciesFinderTest
     when(originalConfiguration.getAllDependencies())
         .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
 
-    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration,
+    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
 
     assertThat(dependencies).isNotNull();
@@ -454,7 +474,7 @@ public class DependenciesFinderTest
     when(originalConfiguration.getAllDependencies())
         .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
 
-    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration,
+    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
 
     assertThat(dependencies).isNotNull();
