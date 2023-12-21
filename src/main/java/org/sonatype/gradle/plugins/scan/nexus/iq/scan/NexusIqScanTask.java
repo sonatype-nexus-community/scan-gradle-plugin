@@ -186,9 +186,8 @@ public class NexusIqScanTask
     message.append(String.format("Number of components affected: %s critical, %s severe, %s moderate\n",
         applicationPolicyEvaluation.getCriticalComponentCount(), applicationPolicyEvaluation.getSevereComponentCount(),
         applicationPolicyEvaluation.getModerateComponentCount()));
-    message.append(
-        String.format("Number of grandfathered policy violations: %s\n",
-            applicationPolicyEvaluation.getGrandfatheredPolicyViolationCount()));
+    message.append(String.format("Number of legacy violations: %s\n",
+        applicationPolicyEvaluation.getGrandfatheredPolicyViolationCount()));
     message.append(String.format("Number of components: %s\n", applicationPolicyEvaluation.getTotalComponentCount()));
     message.append("The detailed report can be viewed online at ").append(reportUrl).append("\n");
 
