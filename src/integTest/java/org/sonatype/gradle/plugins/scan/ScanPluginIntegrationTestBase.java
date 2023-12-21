@@ -526,7 +526,7 @@ public abstract class ScanPluginIntegrationTestBase
     final String resultOutput = result.getOutput();
     assertThat(resultOutput).contains("Policy Action: " + policyAction);
     assertThat(resultOutput).contains("Number of components affected: 0 critical, 0 severe, 0 moderate");
-    assertThat(resultOutput).contains("Number of grandfathered policy violations: 0");
+    assertThat(resultOutput).contains("Number of legacy violations: 0");
     assertThat(resultOutput).contains("The detailed report can be viewed online at simulated/report");
     assertThat(resultOutput).contains("Number of components: 1");
   }
