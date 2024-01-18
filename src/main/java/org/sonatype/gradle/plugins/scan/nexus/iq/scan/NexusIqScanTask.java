@@ -173,14 +173,15 @@ public class NexusIqScanTask
 
   private List<File> buildScanTargets() {
     if (extension.getScanTargets() != null && !extension.getScanTargets().isEmpty()) {
+      // Using the same approach as the Jenkins plugin for consistency
       DirectoryScanner directoryScanner = new DirectoryScanner();
       directoryScanner.setBasedir(extension.getScanFolderPath());
       directoryScanner.setIncludes(extension.getScanTargets().toArray(new String[extension.getScanTargets().size()]));
       directoryScanner.addDefaultExcludes();
       directoryScanner.scan();
       return Stream
-          .concat(stream(directoryScanner.getIncludedDirectories()), stream(directoryScanner.getIncludedFiles())) //
-          .map(file -> new File(extension.getScanFolderPath(), file)) //
+          .concat(stream(directoryScanner.getIncludedDirectories()), stream(directoryScanner.getIncludedFiles()))
+          .map(file -> new File(extension.getScanFolderPath(), file))
           .collect(Collectors.toList());
     }
     return Collections.emptyList();
