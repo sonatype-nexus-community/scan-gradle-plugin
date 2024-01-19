@@ -58,6 +58,8 @@ public class NexusIqPluginScanExtension
 
   private Map<String, String> variantAttributes;
 
+  private Set<String> scanTargets;
+
   public NexusIqPluginScanExtension(Project project) {
     stage = Stage.ID_BUILD;
     organizationId = "";
@@ -68,6 +70,7 @@ public class NexusIqPluginScanExtension
     dirIncludes = "";
     dirExcludes = "";
     variantAttributes = Collections.emptyMap();
+    scanTargets = Collections.emptySet();
   }
 
   public String getUsername() {
@@ -189,5 +192,13 @@ public class NexusIqPluginScanExtension
 
   public void setVariantAttributes(Map<String, String> variantAttributes) {
     this.variantAttributes = variantAttributes;
+  }
+
+  public Set<String> getScanTargets() {
+    return scanTargets;
+  }
+
+  public void setScanTargets(Set<String> scanTargets) {
+    this.scanTargets = scanTargets;
   }
 }

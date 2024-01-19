@@ -57,14 +57,14 @@ Gradle can be used to build projects developed in various programming languages.
 
 ```
 plugins {
-  id 'org.sonatype.gradle.plugins.scan' version '2.6.0' // Update the version as needed
+  id 'org.sonatype.gradle.plugins.scan' version '2.7.0' // Update the version as needed
 }
 ```
 
 - Or `build.gradle.kts`:
 ```
 plugins {
-    id ("org.sonatype.gradle.plugins.scan") version "2.6.0" // Update the version as needed
+    id ("org.sonatype.gradle.plugins.scan") version "2.7.0" // Update the version as needed
 }
 ```
 
@@ -175,6 +175,7 @@ nexusIQScan {
 
     // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at the section "How to Deal with Multiple Release Variants" below in this doc.
     variantAttributes = ['com.android.build.api.attributes.ProductFlavor:version': 'prod', 'other.attribute': 'other value'] // Optional, use it only when the plugin can't match a variant on its own
+    scanTargets = ['package-lock.json', '**/*.lock'] // Optional. Ant-like glob patterns for relative paths (to the project's folder) to select additional files to be scanned and evaluated.
 }
 ```
 
@@ -195,6 +196,7 @@ nexusIQScan {
 
     // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at the section "How to Deal with Multiple Release Variants" below in this doc.
     variantAttributes = mapOf("com.android.build.api.attributes.ProductFlavor:version" to "prod", "other.attribute" to "other value") // Optional, use it only when the plugin can't match a variant on its own
+    scanTargets = listOf("package-lock.json", "**/*.lock") // Optional. Ant-like glob patterns for relative paths (to the project's folder) to select additional files to be scanned and evaluated.
 }
 ```
 
