@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.client.PolicyAction;
 import com.sonatype.insight.scan.module.model.Module;
@@ -42,6 +44,7 @@ import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
 import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.Input;
@@ -49,6 +52,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.Arrays.stream;
 
 public class NexusIqScanTask
     extends DefaultTask
@@ -108,7 +113,7 @@ public class NexusIqScanTask
             extension.getModulesExcluded(), extension.getVariantAttributes());
 
         ScanResult scanResult = iqClient.scan(extension.getApplicationId(), proprietaryConfig, buildProperties(),
-            Collections.emptyList(), scanFolder, Collections.emptyMap(), Collections.emptySet(), modules);
+            buildScanTargets(), scanFolder, Collections.emptyMap(), Collections.emptySet(), modules);
 
         File jsonResultsFile = null;
         if (StringUtils.isNotBlank(extension.getResultFilePath())) {
@@ -164,6 +169,22 @@ public class NexusIqScanTask
       properties.setProperty("dirExcludes", extension.getDirExcludes());
     }
     return properties;
+  }
+
+  private List<File> buildScanTargets() {
+    if (extension.getScanTargets() != null && !extension.getScanTargets().isEmpty()) {
+      // Using the same approach as the Jenkins plugin for consistency
+      DirectoryScanner directoryScanner = new DirectoryScanner();
+      directoryScanner.setBasedir(extension.getScanFolderPath());
+      directoryScanner.setIncludes(extension.getScanTargets().toArray(new String[extension.getScanTargets().size()]));
+      directoryScanner.addDefaultExcludes();
+      directoryScanner.scan();
+      return Stream
+          .concat(stream(directoryScanner.getIncludedDirectories()), stream(directoryScanner.getIncludedFiles()))
+          .map(file -> new File(extension.getScanFolderPath(), file))
+          .collect(Collectors.toList());
+    }
+    return Collections.emptyList();
   }
 
   private void logReport(PolicyAction policyAction, ApplicationPolicyEvaluation applicationPolicyEvaluation) {

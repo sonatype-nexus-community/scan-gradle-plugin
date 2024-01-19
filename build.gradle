@@ -77,11 +77,11 @@ dependencies {
   implementation "com.sonatype.nexus:nexus-platform-api:$nexusPlatformApiVersion"
   implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
   implementation "ch.qos.logback:logback-classic:$logbackVersion"
+  implementation "commons-io:commons-io:$commonsIoVersion"
 
   testImplementation gradleTestKit()
   testImplementation "junit:junit:$junitVersion"
   testImplementation "org.assertj:assertj-core:$assertJVersion"
-  testImplementation "commons-io:commons-io:$commonsIoVersion"
   testImplementation "org.powermock:powermock-module-junit4:$powermockVersion"
   testImplementation "org.powermock:powermock-api-mockito2:$powermockVersion"
 }
