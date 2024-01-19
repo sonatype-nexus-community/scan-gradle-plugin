@@ -17,7 +17,9 @@ package org.sonatype.gradle.plugins.scan.nexus.iq.scan;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
+import java.util.function.Consumer;
 
 import com.sonatype.nexus.api.common.ServerConfig;
 import com.sonatype.nexus.api.exception.IqClientException;
@@ -29,11 +31,14 @@ import com.sonatype.nexus.api.iq.scan.ScanResult;
 
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -66,6 +71,9 @@ public class NexusIqScanTaskTest
 {
   private static final String USER_AGENT_REGEX =
       "Sonatype_Nexus_Gradle/[^\\s]+ \\(Java [^;]+; [^;]+ [^;]+; Gradle [^;]+\\)";
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Mock
   private InternalIqClient iqClientMock;
@@ -217,12 +225,44 @@ public class NexusIqScanTaskTest
 
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testScan_realWithScanTargets() throws Exception {
+    File file1 = temporaryFolder.newFile("1.txt");
+    File file2 = temporaryFolder.newFile("2.lock");
+    temporaryFolder.newFolder("test");
+    File file3 = temporaryFolder.newFile("test" + File.separator + "3.lock");
+    File file4 = temporaryFolder.newFile("test" + File.separator + "4.lock");
+    temporaryFolder.newFile("file-not-scanned.log");
+
+    NexusIqScanTask task = buildScanTask(extension -> {
+      extension.setScanFolderPath(temporaryFolder.getRoot().getAbsolutePath());
+      extension.setScanTargets(Sets.newHashSet("1.txt", "**/*.lock", "file-not-exists.log"));
+    });
+
+    task.setDependenciesFinder(dependenciesFinderMock);
+    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
+
+    task.scan();
+
+    ArgumentCaptor<List<File>> captor = ArgumentCaptor.forClass(List.class);
+
+    verify(iqClientMock).scan(eq(task.getApplicationId()), nullable(ProprietaryConfig.class), any(Properties.class),
+        captor.capture(), any(File.class), anyMap(), anySet(), anyList());
+
+    assertThat(captor.getValue()).containsExactlyInAnyOrder(file1, file2, file3, file4);
+  }
+
   private NexusIqScanTask buildScanTask(boolean isSimulated) {
     return buildScanTask(isSimulated, null);
   }
 
   private NexusIqScanTask buildScanTask(boolean isSimulated, String resultFilePath) {
-    return buildScanTask(isSimulated, resultFilePath, "", "", "");
+    return buildScanTask(isSimulated, resultFilePath, "", "", "", null);
+  }
+
+  private NexusIqScanTask buildScanTask(Consumer<NexusIqPluginScanExtension> extenstionConsumer) {
+    return buildScanTask(false, null, "", "", "", extenstionConsumer);
   }
 
   private NexusIqScanTask buildScanTask(
@@ -231,6 +271,17 @@ public class NexusIqScanTaskTest
       String dirIncludes,
       String dirExcludes,
       String organizationId)
+  {
+    return buildScanTask(isSimulated, resultFilePath, dirIncludes, dirExcludes, organizationId, null);
+  }
+
+  private NexusIqScanTask buildScanTask(
+      boolean isSimulated,
+      String resultFilePath,
+      String dirIncludes,
+      String dirExcludes,
+      String organizationId,
+      Consumer<NexusIqPluginScanExtension> extenstionConsumer)
   {
     Project project = ProjectBuilder.builder().build();
 
@@ -244,6 +295,10 @@ public class NexusIqScanTaskTest
     extension.setResultFilePath(resultFilePath);
     extension.setDirIncludes(dirIncludes);
     extension.setDirExcludes(dirExcludes);
+
+    if (extenstionConsumer != null) {
+      extenstionConsumer.accept(extension);
+    }
 
     project.getExtensions().add("nexusIQScan", extension);
     return project.getTasks().create("nexusIQScan", NexusIqScanTask.class);
