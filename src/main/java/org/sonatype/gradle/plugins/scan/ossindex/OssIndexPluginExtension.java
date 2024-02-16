@@ -47,6 +47,8 @@ public class OssIndexPluginExtension
 
   private boolean allConfigurations;
 
+  private boolean runtimeConfigurationsOnly;
+
   private Set<String> modulesIncluded;
 
   private Set<String> modulesExcluded;
@@ -137,6 +139,14 @@ public class OssIndexPluginExtension
 
   public void setAllConfigurations(boolean allConfigurations) {
     this.allConfigurations = allConfigurations;
+  }
+
+  public boolean isRuntimeConfigurationsOnly() {
+    return runtimeConfigurationsOnly;
+  }
+
+  public void setRuntimeConfigurationsOnly(boolean runtimeConfigurationsOnly) {
+    this.runtimeConfigurationsOnly = runtimeConfigurationsOnly;
   }
 
   public Set<String> getModulesIncluded() {

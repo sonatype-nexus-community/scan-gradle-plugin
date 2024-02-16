@@ -87,8 +87,8 @@ public class NexusIqScanTask
               Collections.singletonList(new Action(extension.getSimulatedPolicyActionId()))));
         }
 
-        dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(), extension.getModulesExcluded(),
-            extension.getVariantAttributes());
+        dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(),
+            extension.isRuntimeConfigurationsOnly(), extension.getModulesExcluded(), extension.getVariantAttributes());
 
         applicationPolicyEvaluation =
             new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 1, alerts, "simulated/report");
@@ -110,7 +110,7 @@ public class NexusIqScanTask
 
         File scanFolder = new File(extension.getScanFolderPath());
         List<Module> modules = dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(),
-            extension.getModulesExcluded(), extension.getVariantAttributes());
+            extension.isRuntimeConfigurationsOnly(), extension.getModulesExcluded(), extension.getVariantAttributes());
 
         ScanResult scanResult = iqClient.scan(extension.getApplicationId(), proprietaryConfig, buildProperties(),
             buildScanTargets(), scanFolder, Collections.emptyMap(), Collections.emptySet(), modules);

@@ -46,6 +46,8 @@ public class NexusIqPluginScanExtension
 
   private boolean allConfigurations;
 
+  private boolean runtimeConfigurationsOnly;
+
   private boolean simulationEnabled;
 
   private String simulatedPolicyActionId;
@@ -144,6 +146,14 @@ public class NexusIqPluginScanExtension
 
   public void setAllConfigurations(boolean allConfigurations) {
     this.allConfigurations = allConfigurations;
+  }
+
+  public boolean isRuntimeConfigurationsOnly() {
+    return runtimeConfigurationsOnly;
+  }
+
+  public void setRuntimeConfigurationsOnly(boolean runtimeConfigurationsOnly) {
+    this.runtimeConfigurationsOnly = runtimeConfigurationsOnly;
   }
 
   public boolean isSimulationEnabled() {

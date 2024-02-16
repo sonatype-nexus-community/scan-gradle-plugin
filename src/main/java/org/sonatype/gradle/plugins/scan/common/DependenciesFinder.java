@@ -72,13 +72,21 @@ public class DependenciesFinder
 
   private static final String RELEASE_RUNTIME_CONFIGURATION_NAME = "releaseRuntimeClasspath";
 
-  private static final Set<String> CONFIGURATION_NAMES = ImmutableSet.of(
+  private static final Set<String> COMPILE_CONFIGURATION_NAMES = ImmutableSet.of(
       COMPILE_CLASSPATH_CONFIGURATION_NAME,
-      RUNTIME_CLASSPATH_CONFIGURATION_NAME,
       RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME,
+      RELEASE_COMPILE_CONFIGURATION_NAME);
+
+  private static final Set<String> RUNTIME_CONFIGURATION_NAMES = ImmutableSet.of(
+      RUNTIME_CLASSPATH_CONFIGURATION_NAME,
       RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME,
       RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME,
-      RELEASE_COMPILE_CONFIGURATION_NAME, RELEASE_RUNTIME_CONFIGURATION_NAME);
+      RELEASE_RUNTIME_CONFIGURATION_NAME);
+
+  private static final Set<String> CONFIGURATION_NAMES = ImmutableSet.<String> builder()
+      .addAll(COMPILE_CONFIGURATION_NAMES)
+      .addAll(RUNTIME_CONFIGURATION_NAMES)
+      .build();
 
   private static final String COPY_CONFIGURATION_NAME = "sonatypeCopyConfiguration";
 
@@ -87,10 +95,11 @@ public class DependenciesFinder
   public Set<ResolvedDependency> findResolvedDependencies(
       Project project,
       boolean allConfigurations,
+      boolean runtimeConfigurationsOnly,
       Map<String, String> variantAttributes)
   {
     return new LinkedHashSet<>(new LinkedHashSet<>(project.getConfigurations()).stream()
-        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
+        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations, runtimeConfigurationsOnly))
         .flatMap(configuration -> getDependencies(project, configuration, variantAttributes,
             resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream()))
         .collect(collectResolvedDependencies()).values());
@@ -99,6 +108,7 @@ public class DependenciesFinder
   public List<Module> findModules(
       Project rootProject,
       boolean allConfigurations,
+      boolean runtimeConfigurationsOnly,
       Set<String> modulesExcluded,
       Map<String, String> variantAttributes)
   {
@@ -108,18 +118,19 @@ public class DependenciesFinder
       if (!modulesExcluded.contains(project.getName())) {
         Module module = buildModule(project);
 
-        findResolvedArtifacts(project, allConfigurations, variantAttributes).forEach(resolvedArtifact -> {
-          ModuleVersionIdentifier artifactId = resolvedArtifact.getModuleVersion().getId();
+        findResolvedArtifacts(project, allConfigurations, runtimeConfigurationsOnly, variantAttributes)
+            .forEach(resolvedArtifact -> {
+              ModuleVersionIdentifier artifactId = resolvedArtifact.getModuleVersion().getId();
 
-          Artifact artifact = new Artifact()
-              .setId(artifactId.getGroup() + ":" + artifactId.getName() + ":" + artifactId.getVersion())
-              .setPathname(resolvedArtifact.getFile())
-              .setMonitored(true);
+              Artifact artifact = new Artifact()
+                  .setId(artifactId.getGroup() + ":" + artifactId.getName() + ":" + artifactId.getVersion())
+                  .setPathname(resolvedArtifact.getFile())
+                  .setMonitored(true);
 
-          module.addConsumedArtifact(artifact);
+              module.addConsumedArtifact(artifact);
         });
 
-        findResolvedDependencies(project, allConfigurations, variantAttributes).forEach(
+        findResolvedDependencies(project, allConfigurations, runtimeConfigurationsOnly, variantAttributes).forEach(
             resolvedDependency -> module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
         );
 
@@ -134,10 +145,11 @@ public class DependenciesFinder
   Set<ResolvedArtifact> findResolvedArtifacts(
       Project project,
       boolean allConfigurations,
+      boolean runtimeConfigurationsOnly,
       Map<String, String> variantAttributes)
   {
     return new LinkedHashSet<>(project.getConfigurations()).stream()
-        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
+        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations, runtimeConfigurationsOnly))
         .flatMap(configuration -> getDependencies(project, configuration, variantAttributes,
             resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream()))
         .collect(Collectors.toSet());
@@ -344,11 +356,21 @@ public class DependenciesFinder
     return false;
   }
 
-  private boolean isAcceptableConfiguration(Configuration configuration, boolean allConfigurations) {
+  private boolean isAcceptableConfiguration(
+      Configuration configuration,
+      boolean allConfigurations,
+      boolean runtimeConfigurationsOnly)
+  {
     if (configuration.getName().endsWith(COPY_CONFIGURATION_NAME))
       return false;
     if (allConfigurations) {
       return configuration.isCanBeResolved();
+    }
+    if (runtimeConfigurationsOnly) {
+      return configuration.isCanBeResolved() && (RUNTIME_CONFIGURATION_NAMES.contains(configuration.getName())
+          || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME)
+          || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME)
+          || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_CONFIGURATION_NAME));
     }
     return configuration.isCanBeResolved() && (CONFIGURATION_NAMES.contains(configuration.getName())
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME)
