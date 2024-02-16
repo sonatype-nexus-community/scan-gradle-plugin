@@ -25,6 +25,8 @@ public class NexusIqPluginIndexExtension
 {
   private boolean allConfigurations;
 
+  private boolean runtimeConfigurationsOnly;
+
   private Set<String> modulesExcluded;
 
   private Map<String, String> variantAttributes;
@@ -40,6 +42,14 @@ public class NexusIqPluginIndexExtension
 
   public void setAllConfigurations(boolean allConfigurations) {
     this.allConfigurations = allConfigurations;
+  }
+
+  public boolean isRuntimeConfigurationsOnly() {
+    return runtimeConfigurationsOnly;
+  }
+
+  public void setRuntimeConfigurationsOnly(boolean runtimeConfigurationsOnly) {
+    this.runtimeConfigurationsOnly = runtimeConfigurationsOnly;
   }
 
   public Set<String> getModulesExcluded() {

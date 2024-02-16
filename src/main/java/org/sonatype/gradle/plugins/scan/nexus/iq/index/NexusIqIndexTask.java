@@ -60,7 +60,7 @@ public class NexusIqIndexTask
   public void saveModule() {
     try {
       List<Module> modules = dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(),
-          extension.getModulesExcluded(), extension.getVariantAttributes());
+          extension.isRuntimeConfigurationsOnly(), extension.getModulesExcluded(), extension.getVariantAttributes());
       List<File> files = new ArrayList<>(modules.size());
 
       for (Module module : modules) {
