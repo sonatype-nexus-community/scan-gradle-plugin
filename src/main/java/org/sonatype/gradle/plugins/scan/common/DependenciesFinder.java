@@ -16,6 +16,7 @@
 package org.sonatype.gradle.plugins.scan.common;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -36,6 +37,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ResolveException;
@@ -54,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
 public class DependenciesFinder
@@ -87,12 +90,29 @@ public class DependenciesFinder
   public Set<ResolvedDependency> findResolvedDependencies(
       Project project,
       boolean allConfigurations,
-      Map<String, String> variantAttributes)
+      Map<String, String> variantAttributes,
+      boolean excludeCompileOnlyDependencies)
   {
+    Set<String> compileOnlyDependenciesIds =
+        excludeCompileOnlyDependencies ? getCompileOnlyDependencyIds(project) : Collections.emptySet();
+
     return new LinkedHashSet<>(new LinkedHashSet<>(project.getConfigurations()).stream()
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> getDependencies(project, configuration, variantAttributes,
-            resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream()))
+        .flatMap(configuration -> {
+          Stream<ResolvedDependency> dependencies = getDependencies(project, configuration, variantAttributes,
+              resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream());
+
+          if (!compileOnlyDependenciesIds.isEmpty() && shouldRemoveCompileOnlyDependencies(project, configuration)) {
+            Set<ResolvedDependency> filteredDependencies =
+                dependencies.collect(Collectors.toCollection(LinkedHashSet::new));
+
+            filteredDependencies
+                .removeIf(dependency -> compileOnlyDependenciesIds.contains(getResolvedDependencyId(dependency)));
+            return filteredDependencies.stream();
+          }
+
+          return dependencies;
+        })
         .collect(collectResolvedDependencies()).values());
   }
 
@@ -100,7 +120,8 @@ public class DependenciesFinder
       Project rootProject,
       boolean allConfigurations,
       Set<String> modulesExcluded,
-      Map<String, String> variantAttributes)
+      Map<String, String> variantAttributes,
+      boolean excludeCompileOnlyDependencies)
   {
     List<Module> modules = new ArrayList<>();
 
@@ -108,18 +129,19 @@ public class DependenciesFinder
       if (!modulesExcluded.contains(project.getName())) {
         Module module = buildModule(project);
 
-        findResolvedArtifacts(project, allConfigurations, variantAttributes).forEach(resolvedArtifact -> {
-          ModuleVersionIdentifier artifactId = resolvedArtifact.getModuleVersion().getId();
+        Set<String> compileOnlyDependenciesIds =
+            excludeCompileOnlyDependencies ? getCompileOnlyDependencyIds(project) : Collections.emptySet();
 
-          Artifact artifact = new Artifact()
-              .setId(artifactId.getGroup() + ":" + artifactId.getName() + ":" + artifactId.getVersion())
-              .setPathname(resolvedArtifact.getFile())
-              .setMonitored(true);
-
-          module.addConsumedArtifact(artifact);
+        findResolvedArtifacts(project, allConfigurations, variantAttributes, compileOnlyDependenciesIds)
+            .forEach(resolvedArtifact -> {
+              Artifact artifact = new Artifact()
+                  .setId(getArtifactId(resolvedArtifact))
+                  .setPathname(resolvedArtifact.getFile())
+                  .setMonitored(true);
+              module.addConsumedArtifact(artifact);
         });
 
-        findResolvedDependencies(project, allConfigurations, variantAttributes).forEach(
+        findResolvedDependencies(project, allConfigurations, variantAttributes, excludeCompileOnlyDependencies).forEach(
             resolvedDependency -> module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
         );
 
@@ -134,12 +156,31 @@ public class DependenciesFinder
   Set<ResolvedArtifact> findResolvedArtifacts(
       Project project,
       boolean allConfigurations,
-      Map<String, String> variantAttributes)
+      Map<String, String> variantAttributes,
+      Set<String> compileOnlyDependenciesIds)
   {
     return new LinkedHashSet<>(project.getConfigurations()).stream()
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> getDependencies(project, configuration, variantAttributes,
-            resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream()))
+        .flatMap(configuration -> {
+
+          Stream<ResolvedArtifact> artifacts = getDependencies(project, configuration, variantAttributes,
+              resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
+
+          if (!compileOnlyDependenciesIds.isEmpty() && shouldRemoveCompileOnlyDependencies(project, configuration)) {
+            Set<ResolvedArtifact> filteredArtifacts = artifacts.collect(Collectors.toSet());
+            Set<String> dependenciesToRemove = new HashSet<>();
+
+            getDependencies(project, configuration, variantAttributes,
+                resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream())
+                    .filter(dependency -> compileOnlyDependenciesIds.contains(getResolvedDependencyId(dependency)))
+                    .forEach(dependency -> fillAllChildDependencies(dependency, dependenciesToRemove));
+
+            filteredArtifacts.removeIf(artifact -> dependenciesToRemove.contains(getArtifactId(artifact)));
+            return filteredArtifacts.stream();
+          }
+
+          return artifacts;
+        })
         .collect(Collectors.toSet());
   }
 
@@ -170,6 +211,20 @@ public class DependenciesFinder
       idBuilder.append(":").append(project.getVersion().toString());
     }
     return idBuilder.toString();
+  }
+
+  private String getArtifactId(ResolvedArtifact resolvedArtifact) {
+    ModuleVersionIdentifier artifactId = resolvedArtifact.getModuleVersion().getId();
+    return artifactId.getGroup() + ":" + artifactId.getName() + ":" + artifactId.getVersion();
+  }
+
+  private String getDependencyId(org.gradle.api.artifacts.Dependency dependency) {
+    return dependency.getGroup() + ":" + dependency.getName() + ":" + dependency.getVersion();
+  }
+
+  private String getResolvedDependencyId(ResolvedDependency resolvedDependency) {
+    return resolvedDependency.getModuleGroup() + ":" + resolvedDependency.getModuleName() + ":"
+        + resolvedDependency.getModuleVersion();
   }
 
   @VisibleForTesting
@@ -356,6 +411,37 @@ public class DependenciesFinder
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME)
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_COMPILE_CONFIGURATION_NAME)
         || StringUtils.endsWithIgnoreCase(configuration.getName(), RELEASE_RUNTIME_CONFIGURATION_NAME));
+  }
+
+  private Set<String> getCompileOnlyDependencyIds(Project project) {
+    Configuration configuration = project.getConfigurations().findByName(COMPILE_ONLY_CONFIGURATION_NAME);
+
+    if (configuration != null) {
+      DependencySet dependencies = configuration.getAllDependencies();
+
+      if (dependencies != null) {
+        return dependencies.stream()
+            .map(this::getDependencyId)
+            .collect(Collectors.toSet());
+      }
+    }
+
+    return Collections.emptySet();
+  }
+
+  private boolean shouldRemoveCompileOnlyDependencies(Project project, Configuration configuration) {
+    Configuration compileOnlyConfiguration = project.getConfigurations().findByName(COMPILE_ONLY_CONFIGURATION_NAME);
+    return compileOnlyConfiguration != null && configuration.getExtendsFrom().contains(compileOnlyConfiguration);
+  }
+
+  private void fillAllChildDependencies(ResolvedDependency resolvedDependency, Set<String> dependenciesIds) {
+    dependenciesIds.add(getResolvedDependencyId(resolvedDependency));
+
+    if (resolvedDependency.getChildren() != null) {
+      for (ResolvedDependency child : resolvedDependency.getChildren()) {
+        fillAllChildDependencies(child, dependenciesIds);
+      }
+    }
   }
 
   private Collector<ResolvedDependency, ?, LinkedHashMap<String, ResolvedDependency>> collectResolvedDependencies() {

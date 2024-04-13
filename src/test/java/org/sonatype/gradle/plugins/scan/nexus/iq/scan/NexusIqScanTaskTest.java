@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -101,7 +102,7 @@ public class NexusIqScanTaskTest
         new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 0, Collections.emptyList(), "simulated/report"));
     when(builderMock.build()).thenReturn(iqClientMock);
 
-    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet(), anyMap()))
+    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet(), anyMap(), eq(false)))
         .thenReturn(Collections.emptyList());
   }
 
@@ -122,7 +123,7 @@ public class NexusIqScanTaskTest
 
     task.scan();
 
-    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet(), anyMap());
+    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet(), anyMap(), eq(false));
     assertThat(userAgentCaptor.getValue()).matches(USER_AGENT_REGEX);
     verify(iqClientMock).validateServerVersion(anyString());
     verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()), eq(""));
@@ -251,6 +252,17 @@ public class NexusIqScanTaskTest
         captor.capture(), any(File.class), anyMap(), anySet(), anyList());
 
     assertThat(captor.getValue()).containsExactlyInAnyOrder(file1, file2, file3, file4);
+  }
+
+  @Test
+  public void testScan_realWithExcludeCompileOnly() throws Exception {
+    NexusIqScanTask task = buildScanTask(extension -> extension.setExcludeCompileOnly(true));
+    task.setDependenciesFinder(dependenciesFinderMock);
+    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
+
+    task.scan();
+
+    verify(dependenciesFinderMock).findModules(any(Project.class), anyBoolean(), anySet(), anyMap(), eq(true));
   }
 
   private NexusIqScanTask buildScanTask(boolean isSimulated) {
