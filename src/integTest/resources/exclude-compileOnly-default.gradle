@@ -1,0 +1,21 @@
+plugins {
+  id 'java'
+  id 'org.sonatype.gradle.plugins.scan'
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  // Using a depenpendency with transitive ones
+  compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
+  // Use a transitive dependency from above as direct in another configuration
+  implementation 'net.bytebuddy:byte-buddy:1.14.9'
+}
+
+ossIndexAudit {
+  simulationEnabled = true
+  showAll = true
+  excludeCompileOnly = true
+}

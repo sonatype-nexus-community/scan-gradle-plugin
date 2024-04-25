@@ -52,6 +52,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.mockito.Mockito.mock;
@@ -72,98 +73,98 @@ public class DependenciesFinderTest
   @Test
   public void testFindResolvedDependencies_includeCompileDependencies() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeRuntimeDependencies() {
     Project project = buildProject(RUNTIME_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeLegacyCompileAndroidDependencies() {
     Project project = buildProject("_releaseCompile", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeLegacyRuntimeApkAndroidDependencies() {
     Project project = buildProject("_releaseApk", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeLegacyRuntimeLibraryAndroidDependencies() {
     Project project = buildProject("_releasePublish", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeCompileAndroidDependencies() {
     Project project = buildProject("releaseCompileClasspath", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeRuntimeAndroidDependencies() {
     Project project = buildProject("releaseRuntimeClasspath", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeLegacyCompileApkAndroidDependenciesUsingVariant() {
     Project project = buildProject("variantProd_ReleaseCompile", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeLegacyRuntimeApkAndroidDependenciesUsingVariant() {
     Project project = buildProject("variantProd_ReleaseApk", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeLegacyRuntimeLibraryAndroidDependenciesUsingVariant() {
     Project project = buildProject("variantProd_ReleasePublish", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeAndroidCompileDependenciesUsingVariant() {
     Project project = buildProject("variantProdReleaseCompileClasspath", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeAndroidRuntimeDependenciesUsingVariant() {
     Project project = buildProject("variantProdReleaseRuntimeClasspath", true);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_omitTestDependencies() {
     Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).isEmpty();
   }
 
   @Test
   public void testFindResolvedDependencies_includeTestDependencies() {
     Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
@@ -172,8 +173,8 @@ public class DependenciesFinderTest
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
     Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
 
-    assertThat(finder.findResolvedDependencies(childProject, false, emptyMap())).hasSize(1);
-    assertThat(finder.findResolvedDependencies(parentProject, false, emptyMap())).isEmpty();
+    assertThat(finder.findResolvedDependencies(childProject, false, emptyMap(), false)).hasSize(1);
+    assertThat(finder.findResolvedDependencies(parentProject, false, emptyMap(), false)).isEmpty();
   }
 
   @Test
@@ -187,50 +188,65 @@ public class DependenciesFinderTest
     when(project.getConfigurations()).thenReturn(configurationContainer);
     when(project.getAllprojects()).thenReturn(Sets.newHashSet(project));
 
-    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true, emptyMap());
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true, emptyMap(), false);
     assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedDependencies_excludeCompileOnlyDependencies() {
+    Project project = buildProject(COMPILE_ONLY_CONFIGURATION_NAME, false);
+    Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), true);
+    assertThat(result).isEmpty();
   }
 
   @Test
   public void testFindResolvedArtifacts_includeCompileDependencies() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap(), emptySet());
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_includeRuntimeDependencies() {
     Project project = buildProject(RUNTIME_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap(), emptySet());
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_includeAndroidCompileDependencies() {
     Project project = buildProject("releaseCompileClasspath", true);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap(), emptySet());
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_includeAndroidRuntimeDependencies() {
     Project project = buildProject("releaseRuntimeClasspath", true);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap(), emptySet());
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_omitTestDependencies() {
     Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap());
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap(), emptySet());
     assertThat(result).isEmpty();
   }
 
   @Test
   public void testFindResolvedArtifacts_includeTestDependencies() {
     Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, true, emptyMap());
+    Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, true, emptyMap(), emptySet());
     assertThat(result).hasSize(1);
+  }
+
+  @Test
+  public void testFindResolvedArtifacts_omitCompileOnlyDependencies() {
+    Project project = buildProject(COMPILE_ONLY_CONFIGURATION_NAME, false);
+    Set<ResolvedArtifact> result =
+        finder.findResolvedArtifacts(project, false, emptyMap(), Sets.newHashSet(COMMONS_COLLECTIONS_DEPENDENCY));
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -270,7 +286,7 @@ public class DependenciesFinderTest
   @Test
   public void testFindModules_singleModule() {
     Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    List<Module> modules = finder.findModules(project, false, emptySet(), emptyMap());
+    List<Module> modules = finder.findModules(project, false, emptySet(), emptyMap(), false);
 
     assertThat(modules).hasSize(1);
 
@@ -291,7 +307,7 @@ public class DependenciesFinderTest
   public void testFindModules_multiModule() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
     Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
-    List<Module> modules = finder.findModules(parentProject, false, emptySet(), emptyMap());
+    List<Module> modules = finder.findModules(parentProject, false, emptySet(), emptyMap(), false);
 
     assertThat(modules).hasSize(2);
 
@@ -319,7 +335,18 @@ public class DependenciesFinderTest
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
     Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
     List<Module> modules =
-        finder.findModules(parentProject, false, Collections.singleton(childProject.getName()), emptyMap());
+        finder.findModules(parentProject, false, Collections.singleton(childProject.getName()), emptyMap(), false);
+
+    assertThat(modules).hasSize(1);
+    assertThat(modules.get(0).getId()).isEqualTo(parentProject.getName());
+  }
+
+  @Test
+  public void testFindModules_excludeCompileOnlyDependencies() {
+    Project parentProject = ProjectBuilder.builder().withName("parent").build();
+    Project childProject = buildProject(COMPILE_ONLY_CONFIGURATION_NAME, false, parentProject);
+    List<Module> modules =
+        finder.findModules(parentProject, false, Collections.singleton(childProject.getName()), emptyMap(), false);
 
     assertThat(modules).hasSize(1);
     assertThat(modules.get(0).getId()).isEqualTo(parentProject.getName());

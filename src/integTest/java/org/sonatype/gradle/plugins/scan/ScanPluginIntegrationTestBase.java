@@ -436,6 +436,52 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   @Test
+  public void testAuditTask_ExcludeCompileOnlyDependencies_OssIndex_DependencyGraph() throws IOException {
+    writeFile(buildFile, "exclude-compileOnly-dependency-graph.gradle");
+
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    String output = result.getOutput();
+
+    // Direct dependency on compileOnly and its transitive ones are not found
+    assertThat(output).doesNotContain("com.fasterxml.jackson.core:jackson-databind");
+    assertThat(output).doesNotContain("com.fasterxml.jackson.core:jackson-annotations");
+    assertThat(output).doesNotContain("com.fasterxml.jackson.core:jackson-core");
+
+    // Only the dependency explicitly declared in another configuration is found
+    assertThat(output).contains("net.bytebuddy:byte-buddy");
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
+  public void testAuditTask_ExcludeCompileOnlyDependencies_OssIndex_Default() throws IOException {
+    writeFile(buildFile, "exclude-compileOnly-default.gradle");
+
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
+
+    String output = result.getOutput();
+
+    // Direct dependency on compileOnly and its transitive ones are not found
+    assertThat(output).doesNotContain("pkg:maven/com.fasterxml.jackson.core/jackson-databind");
+    assertThat(output).doesNotContain("pkg:maven/com.fasterxml.jackson.core/jackson-annotations");
+    assertThat(output).doesNotContain("pkg:maven/com.fasterxml.jackson.core/jackson-core");
+
+    // Only the dependency explicitly declared in another configuration is found
+    assertThat(output).contains("pkg:maven/net.bytebuddy/byte-buddy");
+    assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
+  }
+
+  @Test
   public void testAuditTask_Android_OssIndex() throws IOException {
     String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
     File target = copyResource(resource);

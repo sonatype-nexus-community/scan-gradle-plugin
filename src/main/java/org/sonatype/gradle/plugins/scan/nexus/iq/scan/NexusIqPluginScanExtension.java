@@ -60,6 +60,8 @@ public class NexusIqPluginScanExtension
 
   private Set<String> scanTargets;
 
+  private boolean excludeCompileOnly;
+
   public NexusIqPluginScanExtension(Project project) {
     stage = Stage.ID_BUILD;
     organizationId = "";
@@ -200,5 +202,13 @@ public class NexusIqPluginScanExtension
 
   public void setScanTargets(Set<String> scanTargets) {
     this.scanTargets = scanTargets;
+  }
+
+  public boolean isExcludeCompileOnly() {
+    return excludeCompileOnly;
+  }
+
+  public void setExcludeCompileOnly(boolean excludeCompileOnly) {
+    this.excludeCompileOnly = excludeCompileOnly;
   }
 }
