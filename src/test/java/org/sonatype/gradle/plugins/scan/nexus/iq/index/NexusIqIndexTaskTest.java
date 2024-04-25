@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import com.sonatype.insight.scan.module.model.Module;
 import com.sonatype.insight.scan.module.model.io.ModuleIoManager;
@@ -36,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
@@ -61,16 +63,16 @@ public class NexusIqIndexTaskTest
         .setPathname("test-module");
     File file = Paths.get("test-module", "build", SONATYPE_CLM_FOLDER, MODULE_XML_FILE).toFile();
 
-    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet(), anyMap()))
+    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet(), anyMap(), eq(false)))
         .thenReturn(Collections.singletonList(module));
     doNothing().when(moduleIoManagerMock).writeModule(file, module);
 
-    NexusIqIndexTask task = buildIndexTask(Collections.emptySet());
+    NexusIqIndexTask task = buildIndexTask(null);
     task.setDependenciesFinder(dependenciesFinderMock);
     task.setModuleIoManager(moduleIoManagerMock);
     task.saveModule();
 
-    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet(), anyMap());
+    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet(), anyMap(), eq(false));
     verify(moduleIoManagerMock).writeModule(file, module);
   }
 
@@ -85,17 +87,17 @@ public class NexusIqIndexTaskTest
     File file1 = Paths.get("test-module-1", "build", SONATYPE_CLM_FOLDER, MODULE_XML_FILE).toFile();
     File file2 = Paths.get("test-module-2", "build", SONATYPE_CLM_FOLDER, MODULE_XML_FILE).toFile();
 
-    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet(), anyMap()))
+    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet(), anyMap(), eq(false)))
         .thenReturn(Arrays.asList(module1, module2));
     doNothing().when(moduleIoManagerMock).writeModule(file1, module1);
     doNothing().when(moduleIoManagerMock).writeModule(file2, module2);
 
-    NexusIqIndexTask task = buildIndexTask(Collections.emptySet());
+    NexusIqIndexTask task = buildIndexTask(null);
     task.setDependenciesFinder(dependenciesFinderMock);
     task.setModuleIoManager(moduleIoManagerMock);
     task.saveModule();
 
-    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet(), anyMap());
+    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), anySet(), anyMap(), eq(false));
     verify(moduleIoManagerMock).writeModule(file1, module1);
     verify(moduleIoManagerMock).writeModule(file2, module2);
   }
@@ -104,20 +106,34 @@ public class NexusIqIndexTaskTest
   public void testSaveModule_excludeModules() throws IOException {
     Set<String> modulesExcluded = Sets.newHashSet("test-module-1", "test-module-2");
 
-    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), eq(modulesExcluded), anyMap()))
+    when(dependenciesFinderMock.findModules(any(Project.class), eq(false), eq(modulesExcluded), anyMap(), eq(false)))
         .thenReturn(Collections.emptyList());
 
-    NexusIqIndexTask task = buildIndexTask(modulesExcluded);
+    NexusIqIndexTask task = buildIndexTask(extension -> extension.setModulesExcluded(modulesExcluded));
     task.setDependenciesFinder(dependenciesFinderMock);
     task.saveModule();
 
-    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), eq(modulesExcluded), anyMap());
+    verify(dependenciesFinderMock).findModules(any(Project.class), eq(false), eq(modulesExcluded), anyMap(), eq(false));
   }
 
-  private NexusIqIndexTask buildIndexTask(Set<String> modulesExcluded) {
+  @Test
+  public void testSaveModule_excludeCompileOnly() throws IOException {
+    when(dependenciesFinderMock.findModules(any(Project.class), anyBoolean(), anySet(), anyMap(), eq(true)))
+        .thenReturn(Collections.emptyList());
+
+    NexusIqIndexTask task = buildIndexTask(extension -> extension.setExcludeCompileOnly(true));
+    task.setDependenciesFinder(dependenciesFinderMock);
+    task.saveModule();
+
+    verify(dependenciesFinderMock).findModules(any(Project.class), anyBoolean(), anySet(), anyMap(), eq(true));
+  }
+
+  private NexusIqIndexTask buildIndexTask(Consumer<NexusIqPluginIndexExtension> extenstionConsumer) {
     Project project = ProjectBuilder.builder().build();
     NexusIqPluginIndexExtension extension = new NexusIqPluginIndexExtension(project);
-    extension.setModulesExcluded(modulesExcluded);
+    if (extenstionConsumer != null) {
+      extenstionConsumer.accept(extension);
+    }
     project.getExtensions().add("nexusIQIndex", extension);
     return project.getTasks().create("nexusIQIndex", NexusIqIndexTask.class);
   }

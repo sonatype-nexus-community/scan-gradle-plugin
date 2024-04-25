@@ -57,14 +57,14 @@ Gradle can be used to build projects developed in various programming languages.
 
 ```
 plugins {
-  id 'org.sonatype.gradle.plugins.scan' version '2.7.0' // Update the version as needed
+  id 'org.sonatype.gradle.plugins.scan' version '2.8.0' // Update the version as needed
 }
 ```
 
 - Or `build.gradle.kts`:
 ```
 plugins {
-    id ("org.sonatype.gradle.plugins.scan") version "2.7.0" // Update the version as needed
+    id ("org.sonatype.gradle.plugins.scan") version "2.8.0" // Update the version as needed
 }
 ```
 
@@ -102,6 +102,7 @@ ossIndexAudit {
     // ossIndexAudit can be configured to exclude vulnerabilities from matching
     excludeVulnerabilityIds = ['39d74cc8-457a-4e57-89ef-a258420138c5'] // list containing ids of vulnerabilities to be ignored
     excludeCoordinates = ['commons-fileupload:commons-fileupload:1.3'] // list containing coordinate of components which if vulnerable should be ignored
+    excludeCompileOnly = true // if true then dependencies under the 'compileOnly' configuration will be ignored. By default is false
 
     // Output options
     outputFormat = 'DEFAULT' // Optional, other values are: 'DEPENDENCY_GRAPH' prints dependency graph showing direct/transitive dependencies, 'JSON_CYCLONE_DX_1_4' prints a CycloneDX 1.4 SBOM in JSON format.
@@ -141,6 +142,7 @@ ossIndexAudit {
         listOf("39d74cc8-457a-4e57-89ef-a258420138c5") // list containing ids of vulnerabilities to be ignored
     excludeCoordinates =
         listOf("commons-fileupload:commons-fileupload:1.3") // list containing coordinate of components which if vulnerable should be ignored
+    excludeCompileOnly = true // if true then dependencies under the 'compileOnly' configuration will be ignored. By default is false
 
     // Output options
     outputFormat = "DEFAULT" // Optional, other values are: "DEPENDENCY_GRAPH" prints dependency graph showing direct/transitive dependencies, "JSON_CYCLONE_DX_1_4" prints a CycloneDX 1.4 SBOM in JSON format.
@@ -176,6 +178,7 @@ nexusIQScan {
     // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at the section "How to Deal with Multiple Release Variants" below in this doc.
     variantAttributes = ['com.android.build.api.attributes.ProductFlavor:version': 'prod', 'other.attribute': 'other value'] // Optional, use it only when the plugin can't match a variant on its own
     scanTargets = ['package-lock.json', '**/*.lock'] // Optional. Ant-like glob patterns for relative paths (to the project's folder) to select additional files to be scanned and evaluated.
+    excludeCompileOnly = true // if true then dependencies under the 'compileOnly' configuration will be ignored. By default is false.
 }
 ```
 
@@ -197,6 +200,7 @@ nexusIQScan {
     // For projects using multiple custom variants for the release distribution, a Map can be set with the attributes names and values to match the specific variant. See more at the section "How to Deal with Multiple Release Variants" below in this doc.
     variantAttributes = mapOf("com.android.build.api.attributes.ProductFlavor:version" to "prod", "other.attribute" to "other value") // Optional, use it only when the plugin can't match a variant on its own
     scanTargets = listOf("package-lock.json", "**/*.lock") // Optional. Ant-like glob patterns for relative paths (to the project's folder) to select additional files to be scanned and evaluated.
+    excludeCompileOnly = true // if true then dependencies under the 'compileOnly' configuration will be ignored. By default is false.
 }
 ```
 
@@ -213,6 +217,7 @@ Groovy:
 ```
 nexusIQIndex {
      modulesExcluded = ['module-1', 'module-2'] // Optional. For multi-module projects, the names of the sub-modules to exclude from indexing.
+     excludeCompileOnly = true // if true then dependencies under the 'compileOnly' configuration will be ignored. By default is false.
 }
 ```
 
@@ -220,6 +225,7 @@ Kotlin:
 ```
 nexusIQIndex {
      modulesExcluded = listOf("module-1", "module-2") // Optional. For multi-module projects, the names of the sub-modules to exclude from indexing.
+     excludeCompileOnly = true // if true then dependencies under the 'compileOnly' configuration will be ignored. By default is false.
 }
 ```
 
