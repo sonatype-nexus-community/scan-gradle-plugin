@@ -446,7 +446,15 @@ public abstract class ScanPluginIntegrationTestBase
         .withArguments("ossIndexAudit", "--info")
         .build();
 
-    assertThat(result.getOutput()).contains("0 dependencies");
+    String output = result.getOutput();
+
+    // Direct dependency on compileOnly and its transitive ones are not found
+    assertThat(output).doesNotContain("com.fasterxml.jackson.core:jackson-databind");
+    assertThat(output).doesNotContain("com.fasterxml.jackson.core:jackson-annotations");
+    assertThat(output).doesNotContain("com.fasterxml.jackson.core:jackson-core");
+
+    // Only the dependency explicitly declared in another configuration is found
+    assertThat(output).contains("net.bytebuddy:byte-buddy");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
@@ -461,7 +469,15 @@ public abstract class ScanPluginIntegrationTestBase
         .withArguments("ossIndexAudit", "--info")
         .build();
 
-    assertThat(result.getOutput()).contains("0 dependencies");
+    String output = result.getOutput();
+
+    // Direct dependency on compileOnly and its transitive ones are not found
+    assertThat(output).doesNotContain("pkg:maven/com.fasterxml.jackson.core/jackson-databind");
+    assertThat(output).doesNotContain("pkg:maven/com.fasterxml.jackson.core/jackson-annotations");
+    assertThat(output).doesNotContain("pkg:maven/com.fasterxml.jackson.core/jackson-core");
+
+    // Only the dependency explicitly declared in another configuration is found
+    assertThat(output).contains("pkg:maven/net.bytebuddy/byte-buddy");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
