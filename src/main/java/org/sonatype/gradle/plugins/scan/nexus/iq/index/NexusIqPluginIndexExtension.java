@@ -29,6 +29,8 @@ public class NexusIqPluginIndexExtension
 
   private Map<String, String> variantAttributes;
 
+  private boolean excludeCompileOnly;
+
   public NexusIqPluginIndexExtension(Project project) {
     modulesExcluded = Collections.emptySet();
     variantAttributes = Collections.emptyMap();
@@ -56,5 +58,13 @@ public class NexusIqPluginIndexExtension
 
   public void setVariantAttributes(Map<String, String> variantAttributes) {
     this.variantAttributes = variantAttributes;
+  }
+
+  public boolean isExcludeCompileOnly() {
+    return excludeCompileOnly;
+  }
+
+  public void setExcludeCompileOnly(boolean excludeCompileOnly) {
+    this.excludeCompileOnly = excludeCompileOnly;
   }
 }

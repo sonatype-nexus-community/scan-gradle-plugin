@@ -73,6 +73,8 @@ public class OssIndexPluginExtension
 
   private Map<String, String> variantAttributes;
 
+  private boolean excludeCompileOnly;
+
   public OssIndexPluginExtension(Project project) {
     username = "";
     password = "";
@@ -250,5 +252,13 @@ public class OssIndexPluginExtension
 
   public void setVariantAttributes(Map<String, String> variantAttributes) {
     this.variantAttributes = variantAttributes;
+  }
+
+  public boolean isExcludeCompileOnly() {
+    return excludeCompileOnly;
+  }
+
+  public void setExcludeCompileOnly(boolean excludeCompileOnly) {
+    this.excludeCompileOnly = excludeCompileOnly;
   }
 }

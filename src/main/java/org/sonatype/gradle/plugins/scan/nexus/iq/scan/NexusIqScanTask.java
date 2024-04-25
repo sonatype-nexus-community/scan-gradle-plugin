@@ -88,7 +88,7 @@ public class NexusIqScanTask
         }
 
         dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(), extension.getModulesExcluded(),
-            extension.getVariantAttributes());
+            extension.getVariantAttributes(), extension.isExcludeCompileOnly());
 
         applicationPolicyEvaluation =
             new ApplicationPolicyEvaluation(0, 0, 0, 0, 0, 0, 0, 0, 1, alerts, "simulated/report");
@@ -110,7 +110,7 @@ public class NexusIqScanTask
 
         File scanFolder = new File(extension.getScanFolderPath());
         List<Module> modules = dependenciesFinder.findModules(getProject(), extension.isAllConfigurations(),
-            extension.getModulesExcluded(), extension.getVariantAttributes());
+            extension.getModulesExcluded(), extension.getVariantAttributes(), extension.isExcludeCompileOnly());
 
         ScanResult scanResult = iqClient.scan(extension.getApplicationId(), proprietaryConfig, buildProperties(),
             buildScanTargets(), scanFolder, Collections.emptyMap(), Collections.emptySet(), modules);
