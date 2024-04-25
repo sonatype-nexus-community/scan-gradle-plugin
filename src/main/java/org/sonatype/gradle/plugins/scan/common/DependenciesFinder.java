@@ -355,7 +355,9 @@ public class DependenciesFinder
       boolean isDirect,
       Set<String> processedDependencies)
   {
-    Dependency dependency = new Dependency().setId(resolvedDependency.getName()).setDirect(isDirect);
+    Dependency dependency = new Dependency()
+        .setId(resolvedDependency.getName())
+        .setDirect(isDirect);
 
     processedDependencies.add(resolvedDependency.getName());
 
@@ -364,7 +366,9 @@ public class DependenciesFinder
         dependency.addDependency(processDependency(child, false, processedDependencies));
       }
       else if (!isParent(resolvedDependency, child, new HashSet<>())) {
-        Dependency childDependency = new Dependency().setId(child.getName()).setDirect(false);
+        Dependency childDependency = new Dependency()
+            .setId(child.getName())
+            .setDirect(false);
 
         dependency.addDependency(childDependency);
       }
