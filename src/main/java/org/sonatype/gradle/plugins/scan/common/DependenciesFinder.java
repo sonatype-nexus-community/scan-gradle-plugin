@@ -75,17 +75,17 @@ public class DependenciesFinder
 
   private static final String RELEASE_RUNTIME_CONFIGURATION_NAME = "releaseRuntimeClasspath";
 
-  private static final Set<String> CONFIGURATION_NAMES = ImmutableSet.of(
-      COMPILE_CLASSPATH_CONFIGURATION_NAME,
-      RUNTIME_CLASSPATH_CONFIGURATION_NAME,
-      RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME,
-      RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME,
-      RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME,
+  private static final Set<String> CONFIGURATION_NAMES = ImmutableSet.of(COMPILE_CLASSPATH_CONFIGURATION_NAME,
+      RUNTIME_CLASSPATH_CONFIGURATION_NAME, RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME,
+      RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME, RELEASE_RUNTIME_LIBRARY_LEGACY_CONFIGURATION_NAME,
       RELEASE_COMPILE_CONFIGURATION_NAME, RELEASE_RUNTIME_CONFIGURATION_NAME);
 
   private static final String COPY_CONFIGURATION_NAME = "sonatypeCopyConfiguration";
 
   private static final String ATTRIBUTES_SUPPORTED_GRADLE_VERSION = "4.0";
+
+  private static final Function<ResolvedConfiguration, Stream<ResolvedDependency>> CONFIGURATION_DEPENDENCIES_FUNCTION =
+      resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream();
 
   public Set<ResolvedDependency> findResolvedDependencies(
       Project project,
@@ -97,10 +97,9 @@ public class DependenciesFinder
         excludeCompileOnlyDependencies ? getCompileOnlyDependencyIds(project) : Collections.emptySet();
 
     return new LinkedHashSet<>(new LinkedHashSet<>(project.getConfigurations()).stream()
-        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> {
-          Stream<ResolvedDependency> dependencies = getDependencies(project, configuration, variantAttributes,
-              resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream());
+        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations)).flatMap(configuration -> {
+          Stream<ResolvedDependency> dependencies =
+              getDependencies(project, configuration, variantAttributes, CONFIGURATION_DEPENDENCIES_FUNCTION);
 
           if (!compileOnlyDependenciesIds.isEmpty() && shouldRemoveCompileOnlyDependencies(project, configuration)) {
             Set<ResolvedDependency> filteredDependencies =
@@ -112,8 +111,7 @@ public class DependenciesFinder
           }
 
           return dependencies;
-        })
-        .collect(collectResolvedDependencies()).values());
+        }).collect(collectResolvedDependencies()).values());
   }
 
   public List<Module> findModules(
@@ -134,16 +132,13 @@ public class DependenciesFinder
 
         findResolvedArtifacts(project, allConfigurations, variantAttributes, compileOnlyDependenciesIds)
             .forEach(resolvedArtifact -> {
-              Artifact artifact = new Artifact()
-                  .setId(getArtifactId(resolvedArtifact))
-                  .setPathname(resolvedArtifact.getFile())
-                  .setMonitored(true);
+              Artifact artifact = new Artifact().setId(getArtifactId(resolvedArtifact))
+                  .setPathname(resolvedArtifact.getFile()).setMonitored(true);
               module.addConsumedArtifact(artifact);
-        });
+            });
 
         findResolvedDependencies(project, allConfigurations, variantAttributes, excludeCompileOnlyDependencies).forEach(
-            resolvedDependency -> module.addDependency(processDependency(resolvedDependency, true, new HashSet<>()))
-        );
+            resolvedDependency -> module.addDependency(processDependency(resolvedDependency, true, new HashSet<>())));
 
         modules.add(module);
       }
@@ -160,8 +155,7 @@ public class DependenciesFinder
       Set<String> compileOnlyDependenciesIds)
   {
     return new LinkedHashSet<>(project.getConfigurations()).stream()
-        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations))
-        .flatMap(configuration -> {
+        .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations)).flatMap(configuration -> {
 
           Stream<ResolvedArtifact> artifacts = getDependencies(project, configuration, variantAttributes,
               resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
@@ -170,25 +164,21 @@ public class DependenciesFinder
             Set<ResolvedArtifact> filteredArtifacts = artifacts.collect(Collectors.toSet());
             Set<String> dependenciesToRemove = new HashSet<>();
 
-            getDependencies(project, configuration, variantAttributes,
-                resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream())
-                    .filter(dependency -> compileOnlyDependenciesIds.contains(getResolvedDependencyId(dependency)))
-                    .forEach(dependency -> fillAllChildDependencies(dependency, dependenciesToRemove));
+            getDependencies(project, configuration, variantAttributes, CONFIGURATION_DEPENDENCIES_FUNCTION)
+                .filter(dependency -> compileOnlyDependenciesIds.contains(getResolvedDependencyId(dependency)))
+                .forEach(dependency -> fillAllChildDependencies(dependency, dependenciesToRemove));
 
             filteredArtifacts.removeIf(artifact -> dependenciesToRemove.contains(getArtifactId(artifact)));
             return filteredArtifacts.stream();
           }
 
           return artifacts;
-        })
-        .collect(Collectors.toSet());
+        }).collect(Collectors.toSet());
   }
 
   @VisibleForTesting
   Module buildModule(Project project) {
-    Module module = new Module()
-        .setIdKind("gradle")
-        .setPathname(project.getProjectDir())
+    Module module = new Module().setIdKind("gradle").setPathname(project.getProjectDir())
         .setBuilderInfo(Module.BI_CLM_TOOL, "gradle")
         .setBuilderInfo(Module.BI_CLM_VERSION, PluginVersionUtils.getPluginVersion());
 
@@ -359,9 +349,7 @@ public class DependenciesFinder
       boolean isDirect,
       Set<String> processedDependencies)
   {
-    Dependency dependency = new Dependency()
-        .setId(resolvedDependency.getName())
-        .setDirect(isDirect);
+    Dependency dependency = new Dependency().setId(resolvedDependency.getName()).setDirect(isDirect);
 
     processedDependencies.add(resolvedDependency.getName());
 
@@ -370,9 +358,7 @@ public class DependenciesFinder
         dependency.addDependency(processDependency(child, false, processedDependencies));
       }
       else if (!isParent(resolvedDependency, child, new HashSet<>())) {
-        Dependency childDependency = new Dependency()
-            .setId(child.getName())
-            .setDirect(false);
+        Dependency childDependency = new Dependency().setId(child.getName()).setDirect(false);
 
         dependency.addDependency(childDependency);
       }
@@ -420,9 +406,7 @@ public class DependenciesFinder
       DependencySet dependencies = configuration.getAllDependencies();
 
       if (dependencies != null) {
-        return dependencies.stream()
-            .map(this::getDependencyId)
-            .collect(Collectors.toSet());
+        return dependencies.stream().map(this::getDependencyId).collect(Collectors.toSet());
       }
     }
 
