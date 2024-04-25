@@ -439,8 +439,12 @@ public abstract class ScanPluginIntegrationTestBase
   public void testAuditTask_ExcludeCompileOnlyDependencies_OssIndex_DependencyGraph() throws IOException {
     writeFile(buildFile, "exclude-compileOnly-dependency-graph.gradle");
 
-    BuildResult result = GradleRunner.create().withGradleVersion(gradleVersion).withProjectDir(testProjectDir.getRoot())
-        .withPluginClasspath().withArguments("ossIndexAudit", "--info").build();
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
 
     assertThat(result.getOutput()).contains("0 dependencies");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
@@ -450,8 +454,12 @@ public abstract class ScanPluginIntegrationTestBase
   public void testAuditTask_ExcludeCompileOnlyDependencies_OssIndex_Default() throws IOException {
     writeFile(buildFile, "exclude-compileOnly-default.gradle");
 
-    BuildResult result = GradleRunner.create().withGradleVersion(gradleVersion).withProjectDir(testProjectDir.getRoot())
-        .withPluginClasspath().withArguments("ossIndexAudit", "--info").build();
+    BuildResult result = GradleRunner.create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot())
+        .withPluginClasspath()
+        .withArguments("ossIndexAudit", "--info")
+        .build();
 
     assertThat(result.getOutput()).contains("0 dependencies");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);

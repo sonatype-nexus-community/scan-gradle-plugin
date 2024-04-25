@@ -178,7 +178,9 @@ public class DependenciesFinder
 
   @VisibleForTesting
   Module buildModule(Project project) {
-    Module module = new Module().setIdKind("gradle").setPathname(project.getProjectDir())
+    Module module = new Module()
+        .setIdKind("gradle")
+        .setPathname(project.getProjectDir())
         .setBuilderInfo(Module.BI_CLM_TOOL, "gradle")
         .setBuilderInfo(Module.BI_CLM_VERSION, PluginVersionUtils.getPluginVersion());
 
