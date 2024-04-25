@@ -130,12 +130,12 @@ public class DependenciesFinder
         Set<String> compileOnlyDependenciesIds =
             excludeCompileOnlyDependencies ? getCompileOnlyDependencyIds(project) : Collections.emptySet();
 
-        findResolvedArtifacts(project, allConfigurations, variantAttributes, compileOnlyDependenciesIds)
-            .forEach(resolvedArtifact -> {
-              Artifact artifact = new Artifact().setId(getArtifactId(resolvedArtifact))
-                  .setPathname(resolvedArtifact.getFile()).setMonitored(true);
-              module.addConsumedArtifact(artifact);
-            });
+        findResolvedArtifacts(project, allConfigurations, variantAttributes, compileOnlyDependenciesIds).stream()
+            .map(resolvedArtifact -> new Artifact()
+                .setId(getArtifactId(resolvedArtifact))
+                .setPathname(resolvedArtifact.getFile())
+                .setMonitored(true))
+            .forEach(module::addConsumedArtifact);
 
         findResolvedDependencies(project, allConfigurations, variantAttributes, excludeCompileOnlyDependencies).forEach(
             resolvedDependency -> module.addDependency(processDependency(resolvedDependency, true, new HashSet<>())));
