@@ -77,7 +77,7 @@ dependencies {
   implementation ("com.sonatype.nexus:nexus-platform-api:$nexusPlatformApiVersion") {
     exclude group: 'org.eclipse.jgit', module: 'org.eclipse.jgit'
   }
-  implementation 'org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r'
+  implementation 'org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r'
   implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
   implementation "ch.qos.logback:logback-classic:$logbackVersion"
   implementation "commons-io:commons-io:$commonsIoVersion"
