@@ -106,6 +106,7 @@ ossIndexAudit {
 
     // By default, the audit scan will fail the task/build if any vulnerabilities are found.
     // Set this to 'false' to allow the task to succeed even when vulnerabilities are detected.
+    // Use this option only if you rely on an external tool to further process the output of this plugin (see below for output options).
     failOnDetection = true
 
     // Output options
@@ -150,6 +151,7 @@ ossIndexAudit {
 
     // By default, the audit scan will fail the task/build if any vulnerabilities are found.
     // Set this to 'false' to allow the task to succeed even when vulnerabilities are detected.
+    // Use this option only if you rely on an external tool to further process the output of this plugin (see below for output options).
     failOnDetection = true
 
     // Output options
