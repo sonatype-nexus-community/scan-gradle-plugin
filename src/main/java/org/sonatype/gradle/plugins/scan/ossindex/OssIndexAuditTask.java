@@ -122,7 +122,7 @@ public class OssIndexAuditTask
       throw new GradleException("Could not audit the project: " + e.getMessage(), e);
     }
 
-    if (hasVulnerabilities) {
+    if (hasVulnerabilities && extension.isFailOnDetection()) {
       throw new GradleException("Vulnerabilities detected, check log output to review them");
     }
   }
