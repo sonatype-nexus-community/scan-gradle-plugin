@@ -68,7 +68,7 @@ plugins {
 }
 ```
 
-Some basic examples will be provided next, which we strongly advice to read :)
+Some basic examples follow, which we strongly advise reading :)
 
 After doing so, specific usage on CI tools can be found at https://github.com/guillermo-varela/example-scan-gradle-plugin
 
@@ -103,6 +103,10 @@ ossIndexAudit {
     excludeVulnerabilityIds = ['39d74cc8-457a-4e57-89ef-a258420138c5'] // list containing ids of vulnerabilities to be ignored
     excludeCoordinates = ['commons-fileupload:commons-fileupload:1.3'] // list containing coordinate of components which if vulnerable should be ignored
     excludeCompileOnly = true // if true then dependencies under the 'compileOnly' configuration will be ignored. By default is false
+
+    // By default, the audit scan will fail the task/build if any vulnerabilities are found.
+    // Set this to 'false' to allow the task to succeed even when vulnerabilities are detected.
+    failOnDetection = true
 
     // Output options
     outputFormat = 'DEFAULT' // Optional, other values are: 'DEPENDENCY_GRAPH' prints dependency graph showing direct/transitive dependencies, 'JSON_CYCLONE_DX_1_4' prints a CycloneDX 1.4 SBOM in JSON format.
@@ -143,6 +147,10 @@ ossIndexAudit {
     excludeCoordinates =
         listOf("commons-fileupload:commons-fileupload:1.3") // list containing coordinate of components which if vulnerable should be ignored
     excludeCompileOnly = true // if true then dependencies under the 'compileOnly' configuration will be ignored. By default is false
+
+    // By default, the audit scan will fail the task/build if any vulnerabilities are found.
+    // Set this to 'false' to allow the task to succeed even when vulnerabilities are detected.
+    failOnDetection = true
 
     // Output options
     outputFormat = "DEFAULT" // Optional, other values are: "DEPENDENCY_GRAPH" prints dependency graph showing direct/transitive dependencies, "JSON_CYCLONE_DX_1_4" prints a CycloneDX 1.4 SBOM in JSON format.
