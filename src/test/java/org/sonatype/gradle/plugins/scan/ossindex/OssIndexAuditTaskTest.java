@@ -44,6 +44,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -87,6 +88,16 @@ public class OssIndexAuditTaskTest
     assertThatThrownBy(taskSpy::audit)
         .isInstanceOf(GradleException.class)
         .hasMessageContaining("Vulnerabilities detected, check log output to review them");
+
+    verify(ossIndexClientMock).requestComponentReports(eq(Collections.singletonList(COMMONS_COLLECTIONS_PURL)));
+  }
+
+  @Test
+  public void testAudit_vulnerabilitiesNoFailOnDetection() throws Exception {
+    setupComponentReport(true);
+    OssIndexAuditTask taskSpy = buildAuditTaskSpy(false, (project, extension) -> extension.setFailOnDetection(false));
+
+    assertThatCode(taskSpy::audit).doesNotThrowAnyException();
 
     verify(ossIndexClientMock).requestComponentReports(eq(Collections.singletonList(COMMONS_COLLECTIONS_PURL)));
   }
