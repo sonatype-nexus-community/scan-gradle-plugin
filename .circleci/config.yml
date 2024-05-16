@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  gradle: circleci/gradle@1.0.11
+  gradle: circleci/gradle@3.0.0
 executors:
   openjdk-11-executor:
     docker:
