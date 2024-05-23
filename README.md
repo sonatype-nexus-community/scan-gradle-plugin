@@ -72,6 +72,13 @@ Some basic examples follow, which we strongly advise reading :)
 
 After doing so, specific usage on CI tools can be found at https://github.com/guillermo-varela/example-scan-gradle-plugin
 
+Also, when running the tasks please set the log level to `INFO` to see results using `-i` or `--info`:
+
+```
+./gradlew ossIndexAudit --info
+./gradlew nexusIQScan --info
+```
+
 ### OSS Index
 OSS Index can be used without any extra configuration, but to avoid reaching the limit for anonymous queries every user
 is encouraged to create a free account on [OSS Index](https://ossindex.sonatype.org/user/signin) and use the credentials
