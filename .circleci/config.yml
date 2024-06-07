@@ -63,6 +63,26 @@ workflows:
     - gradle/test:
           <<: *it-defaults
           test_command: --no-daemon -Dorg.gradle.daemon=false --info it1
+  it2:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it2
+  it3:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it3
+  it4:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it4
+  it5:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it5
 
   release:
     jobs:
