@@ -42,7 +42,8 @@ If you want to save some time, skip integration tests:
 > ./gradlew integrationTest
 
 ## Compatibility
-The plugin can be used on projects with Gradle 5.0 or higher (local installation or wrapper) and Java 11 installed locally.
+The plugin from release 3.0.0 onwards, can be used on projects with Gradle 5.0 or higher (local installation or wrapper) and Java 11 installed locally.
+All plugin releases prior to 3.0.0, can be used on projects with Gradle 3.3 or higher (local installation or wrapper) and Java 8 installed locally.
 
 ## Supported Programming Languages
 Gradle can be used to build projects developed in various programming languages. This plugin supports:
