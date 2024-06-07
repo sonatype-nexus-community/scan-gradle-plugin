@@ -23,8 +23,8 @@ gradlePlugin {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
   withJavadocJar()
   withSourcesJar()
 }
@@ -64,8 +64,7 @@ dependencies {
   testImplementation gradleTestKit()
   testImplementation "junit:junit:$junitVersion"
   testImplementation "org.assertj:assertj-core:$assertJVersion"
-  testImplementation "org.powermock:powermock-module-junit4:$powermockVersion"
-  testImplementation "org.powermock:powermock-api-mockito2:$powermockVersion"
+  testImplementation "org.mockito:mockito-core:${mockitoVersion}"
 }
 
 processResources {
