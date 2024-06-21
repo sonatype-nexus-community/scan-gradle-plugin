@@ -132,7 +132,7 @@ public class NexusIqScanTaskTest
     verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()), eq(""));
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
     verify(iqClientMock).evaluateApplication(eq(task.getApplicationId()), eq(task.getStage()),
-        nullable(ScanResult.class), any(File.class), isNull());
+        nullable(ScanResult.class), any(File.class), isNull(File.class));
   }
 
   @Test
