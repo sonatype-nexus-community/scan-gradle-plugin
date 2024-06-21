@@ -20,15 +20,15 @@ import java.util.List;
 
 import org.junit.runners.Parameterized;
 
-public class ScanIT_Gradle_Versions_7_0_to_7_4
+public class ScanIT_Gradle_Versions_7_6_to_8_0
     extends ScanPluginIntegrationTestBase
 {
   @Parameterized.Parameters(name = "Version: {0}")
   public static List<String> data() {
-    return Arrays.asList("7.0", "7.2", "7.4.2");
+    return Arrays.asList("7.6.2", "7.6.4", "8.0");
   }
 
-  public ScanIT_Gradle_Versions_7_0_to_7_4(final String gradleVersion) {
+  public ScanIT_Gradle_Versions_7_6_to_8_0(final String gradleVersion) {
     super(gradleVersion);
   }
 }
