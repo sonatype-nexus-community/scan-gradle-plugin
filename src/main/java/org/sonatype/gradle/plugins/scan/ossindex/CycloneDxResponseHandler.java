@@ -16,7 +16,6 @@
 package org.sonatype.gradle.plugins.scan.ossindex;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +30,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import org.cyclonedx.model.metadata.ToolInformation;
 import org.sonatype.goodies.packageurl.PackageUrl;
 import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReport;
@@ -55,6 +55,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ResolvedDependency;
+
+import static org.cyclonedx.model.Component.Type.APPLICATION;
 
 public class CycloneDxResponseHandler
     implements OssIndexResponseHandler
@@ -145,15 +147,18 @@ public class CycloneDxResponseHandler
 
   private Bom buildBom() {
     Bom bom = new Bom();
-    bom.setSerialNumber("urn:uuid:" + UUID.randomUUID().toString());
+    bom.setSerialNumber("urn:uuid:" + UUID.randomUUID());
 
-    Tool tool = new Tool();
-    tool.setVendor("Sonatype");
-    tool.setName("Scan Gradle Plugin (aka Sherlock Trunks)");
-    tool.setVersion(PluginVersionUtils.getPluginVersion());
+    Component toolComponent = new Component();
+    toolComponent.setType(APPLICATION);
+    toolComponent.setName("Scan Gradle Plugin (aka Sherlock Trunks)");
+    toolComponent.setVersion(PluginVersionUtils.getPluginVersion());
+
+    ToolInformation toolChoice = new ToolInformation();
+    toolChoice.setComponents(Collections.singletonList(toolComponent));
 
     Metadata metadata = new Metadata();
-    metadata.addTool(tool);
+    metadata.setToolChoice(toolChoice);
     metadata.setTimestamp(new Date());
 
     Component component = new Component();
@@ -215,6 +220,7 @@ public class CycloneDxResponseHandler
   }
 
   private void addToolDetails(Vulnerability vulnerability) {
+    // TODO update to use ToolInformation once method is available on vulnerability
     Tool tool = new Tool();
     tool.setVendor("Sonatype");
     tool.setName("OSS Index");
@@ -235,9 +241,9 @@ public class CycloneDxResponseHandler
   }
 
   private void generateFile(Bom bom) {
-    BomJsonGenerator generator = BomGeneratorFactory.createJson(CycloneDxSchema.Version.VERSION_14, bom);
+    BomJsonGenerator generator = BomGeneratorFactory.createJson(CycloneDxSchema.Version.VERSION_15, bom);
 
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(FILE_NAME_OUTPUT)))) {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME_OUTPUT))) {
       writer.write(generator.toJsonString());
       writer.flush();
       log.info("CycloneDX SBOM file: {}", FILE_NAME_OUTPUT);
