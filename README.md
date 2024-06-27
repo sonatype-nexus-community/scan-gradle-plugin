@@ -118,8 +118,8 @@ ossIndexAudit {
     failOnDetection = true
 
     // Output options
-    outputFormat = 'DEFAULT' // Optional, other values are: 'DEPENDENCY_GRAPH' prints dependency graph showing direct/transitive dependencies, 'JSON_CYCLONE_DX_1_4' prints a CycloneDX 1.4 SBOM in JSON format.
-    cycloneDxComponentType = 'LIBRARY' // Optional, only used when outputFormat = 'JSON_CYCLONE_DX_1_4' to define the type of component this project is for the BOM metadata with possible values: 'LIBRARY' (default), 'APPLICATION', 'FRAMEWORK', 'CONTAINER', 'OPERATING_SYSTEM', 'DEVICE', 'FIRMWARE' and 'FILE'.
+    outputFormat = 'DEFAULT' // Optional, other values are: 'DEPENDENCY_GRAPH' prints dependency graph showing direct/transitive dependencies, 'JSON_CYCLONE_DX_1_5' prints a CycloneDX 1.5 SBOM in JSON format.
+    cycloneDxComponentType = 'LIBRARY' // Optional, only used when outputFormat = 'JSON_CYCLONE_DX_1_5' to define the type of component this project is for the BOM metadata with possible values: 'LIBRARY' (default), 'APPLICATION', 'FRAMEWORK', 'CONTAINER', 'OPERATING_SYSTEM', 'DEVICE', 'FIRMWARE' and 'FILE'.
     isColorEnabled = false // if true (and outputFormat = "DEFAULT") prints vulnerability description in color. By default is true.
     showAll = false // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
     printBanner = true // if true will print ASCII text banner. By default is true.
@@ -163,8 +163,8 @@ ossIndexAudit {
     failOnDetection = true
 
     // Output options
-    outputFormat = "DEFAULT" // Optional, other values are: "DEPENDENCY_GRAPH" prints dependency graph showing direct/transitive dependencies, "JSON_CYCLONE_DX_1_4" prints a CycloneDX 1.4 SBOM in JSON format.
-    cycloneDxComponentType = "LIBRARY" // Optional, only used when outputFormat = "JSON_CYCLONE_DX_1_4" to define the type of component this project is for the BOM metadata with possible values: "LIBRARY" (default), "APPLICATION", "FRAMEWORK", "CONTAINER", "OPERATING_SYSTEM", "DEVICE", "FIRMWARE" and "FILE".
+    outputFormat = "DEFAULT" // Optional, other values are: "DEPENDENCY_GRAPH" prints dependency graph showing direct/transitive dependencies, "JSON_CYCLONE_DX_1_5" prints a CycloneDX 1.5 SBOM in JSON format.
+    cycloneDxComponentType = "LIBRARY" // Optional, only used when outputFormat = "JSON_CYCLONE_DX_1_5" to define the type of component this project is for the BOM metadata with possible values: "LIBRARY" (default), "APPLICATION", "FRAMEWORK", "CONTAINER", "OPERATING_SYSTEM", "DEVICE", "FIRMWARE" and "FILE".
     isColorEnabled = false // if true (and outputFormat = "DEFAULT") prints vulnerability description in color. By default is true.
     isShowAll = false // if true prints all dependencies. By default is false, meaning only dependencies with vulnerabilities will be printed.
     isPrintBanner = true // if true will print ASCII text banner. By default is true.

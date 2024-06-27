@@ -52,6 +52,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.cyclonedx.model.Component.Type.APPLICATION;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonatype.gradle.plugins.scan.ossindex.CycloneDxResponseHandler.FILE_NAME_OUTPUT;
@@ -69,7 +70,7 @@ public class CycloneDxResponseHandlerTest
   @Before
   public void setup() {
     extension = new OssIndexPluginExtension(null);
-    extension.setOutputFormat(OutputFormat.JSON_CYCLONE_DX_1_4);
+    extension.setOutputFormat(OutputFormat.JSON_CYCLONE_DX_1_5);
 
     when(project.getGroup()).thenReturn("test-group");
     when(project.getName()).thenReturn("some-name");
@@ -139,11 +140,12 @@ public class CycloneDxResponseHandlerTest
     assertThat(component.getName()).isEqualTo(project.getName());
     assertThat(component.getVersion()).isEqualTo(project.getVersion());
 
-    assertThat(metadata.getTools()).hasSize(1);
-    Tool tool = metadata.getTools().get(0);
-    assertThat(tool.getVendor()).isEqualTo("Sonatype");
-    assertThat(tool.getName()).isEqualTo("Scan Gradle Plugin (aka Sherlock Trunks)");
-    assertThat(tool.getVersion()).isEqualTo(PluginVersionUtils.getPluginVersion());
+    assertThat(metadata.getToolChoice()).isNotNull();
+    assertThat(metadata.getToolChoice().getComponents()).hasSize(1);
+    Component toolComponent = metadata.getToolChoice().getComponents().get(0);
+    assertThat(toolComponent.getType()).isEqualTo(APPLICATION);
+    assertThat(toolComponent.getName()).isEqualTo("Scan Gradle Plugin (aka Sherlock Trunks)");
+    assertThat(toolComponent.getVersion()).isEqualTo(PluginVersionUtils.getPluginVersion());
 
     assertComponents(bom, packageUrl);
   }
@@ -264,6 +266,7 @@ public class CycloneDxResponseHandlerTest
         .map(URI::create)
         .containsExactlyInAnyOrderElementsOf(vulnerability.getExternalReferences());
 
+    // TODO update to use ToolInformation once method is available on vulnerability
     assertThat(resultVulnerability.getTools()).hasSize(1);
     Tool tool = resultVulnerability.getTools().get(0);
     assertThat(tool.getVendor()).isEqualTo("Sonatype");

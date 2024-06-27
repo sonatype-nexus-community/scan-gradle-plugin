@@ -207,7 +207,7 @@ public class OssIndexAuditTask
     switch (extension.getOutputFormat()) {
       case DEPENDENCY_GRAPH:
         return new DependencyGraphResponseHandler(extension);
-      case JSON_CYCLONE_DX_1_4:
+      case JSON_CYCLONE_DX_1_5:
         return new CycloneDxResponseHandler(extension, getProject());
       default:
         return new DefaultResponseHandler(extension);
