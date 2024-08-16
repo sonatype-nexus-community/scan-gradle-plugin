@@ -429,7 +429,9 @@ public class DependenciesFinder
   }
 
   private void fillAllChildDependencies(ResolvedDependency resolvedDependency, Set<String> dependenciesIds) {
-    dependenciesIds.add(getResolvedDependencyId(resolvedDependency));
+    if (!dependenciesIds.add(getResolvedDependencyId(resolvedDependency))) {
+      return;
+    }
 
     if (resolvedDependency.getChildren() != null) {
       for (ResolvedDependency child : resolvedDependency.getChildren()) {
