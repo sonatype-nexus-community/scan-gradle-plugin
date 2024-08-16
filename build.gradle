@@ -219,3 +219,4 @@ publishing {
 
 afterReleaseBuild.dependsOn publish
 publish.finalizedBy closeAndReleaseRepository
+publish.finalizedBy publishPlugins
