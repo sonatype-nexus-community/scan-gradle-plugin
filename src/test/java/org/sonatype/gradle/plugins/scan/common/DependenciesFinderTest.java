@@ -51,10 +51,10 @@ import org.junit.Test;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -72,14 +72,14 @@ public class DependenciesFinderTest
 
   @Test
   public void testFindResolvedDependencies_includeCompileDependencies() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedDependencies_includeRuntimeDependencies() {
-    Project project = buildProject(RUNTIME_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(RUNTIME_ONLY_CONFIGURATION_NAME, false);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
@@ -156,14 +156,14 @@ public class DependenciesFinderTest
 
   @Test
   public void testFindResolvedDependencies_omitTestDependencies() {
-    Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(TEST_IMPLEMENTATION_CONFIGURATION_NAME, false);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, false, emptyMap(), false);
     assertThat(result).isEmpty();
   }
 
   @Test
   public void testFindResolvedDependencies_includeTestDependencies() {
-    Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(TEST_IMPLEMENTATION_CONFIGURATION_NAME, false);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
@@ -171,7 +171,7 @@ public class DependenciesFinderTest
   @Test
   public void testFindResolvedDependencies_multiModuleProject() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
-    Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
+    Project childProject = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false, parentProject);
 
     assertThat(finder.findResolvedDependencies(childProject, false, emptyMap(), false)).hasSize(1);
     assertThat(finder.findResolvedDependencies(parentProject, false, emptyMap(), false)).isEmpty();
@@ -179,7 +179,7 @@ public class DependenciesFinderTest
 
   @Test
   public void testFindResolvedDependencies_copyConfigurationAfterResolveException() {
-    Project project = spy(buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false));
+    Project project = spy(buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false));
     ConfigurationContainer configurationContainer = spy(project.getConfigurations());
     Configuration configuration = spy(configurationContainer.iterator().next());
 
@@ -201,14 +201,14 @@ public class DependenciesFinderTest
 
   @Test
   public void testFindResolvedArtifacts_includeCompileDependencies() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap(), emptySet());
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testFindResolvedArtifacts_includeRuntimeDependencies() {
-    Project project = buildProject(RUNTIME_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(RUNTIME_ONLY_CONFIGURATION_NAME, false);
     Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap(), emptySet());
     assertThat(result).hasSize(1);
   }
@@ -229,14 +229,14 @@ public class DependenciesFinderTest
 
   @Test
   public void testFindResolvedArtifacts_omitTestDependencies() {
-    Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(TEST_IMPLEMENTATION_CONFIGURATION_NAME, false);
     Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, false, emptyMap(), emptySet());
     assertThat(result).isEmpty();
   }
 
   @Test
   public void testFindResolvedArtifacts_includeTestDependencies() {
-    Project project = buildProject(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(TEST_IMPLEMENTATION_CONFIGURATION_NAME, false);
     Set<ResolvedArtifact> result = finder.findResolvedArtifacts(project, true, emptyMap(), emptySet());
     assertThat(result).hasSize(1);
   }
@@ -251,7 +251,7 @@ public class DependenciesFinderTest
 
   @Test
   public void testBuildModule_withBasicInfo() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     Module module = finder.buildModule(project);
 
     assertThat(module).isNotNull();
@@ -264,7 +264,7 @@ public class DependenciesFinderTest
 
   @Test
   public void testBuildModule_withGroup() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     project.setGroup("groupTest");
     Module module = finder.buildModule(project);
 
@@ -274,7 +274,7 @@ public class DependenciesFinderTest
 
   @Test
   public void testBuildModule_withGroupAndVersion() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     project.setGroup("groupTest");
     project.setVersion("0.0.1");
     Module module = finder.buildModule(project);
@@ -285,7 +285,7 @@ public class DependenciesFinderTest
 
   @Test
   public void testFindModules_singleModule() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     List<Module> modules = finder.findModules(project, false, emptySet(), emptyMap(), false);
 
     assertThat(modules).hasSize(1);
@@ -306,7 +306,7 @@ public class DependenciesFinderTest
   @Test
   public void testFindModules_multiModule() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
-    Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
+    Project childProject = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false, parentProject);
     List<Module> modules = finder.findModules(parentProject, false, emptySet(), emptyMap(), false);
 
     assertThat(modules).hasSize(2);
@@ -333,7 +333,7 @@ public class DependenciesFinderTest
   @Test
   public void testFindModules_multiModuleWithModuleExcluded() {
     Project parentProject = ProjectBuilder.builder().withName("parent").build();
-    Project childProject = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false, parentProject);
+    Project childProject = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false, parentProject);
     List<Module> modules =
         finder.findModules(parentProject, false, Collections.singleton(childProject.getName()), emptyMap(), false);
 
@@ -354,7 +354,7 @@ public class DependenciesFinderTest
 
   @Test
   public void testCreateCopyConfiguration() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     Configuration configuration = finder.createCopyConfiguration(project, emptyMap());
 
     assertThat(configuration).isNotNull();
@@ -368,7 +368,7 @@ public class DependenciesFinderTest
 
   @Test
   public void testCreateCopyConfiguration_WithVariantAttributes() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     Map<String, String> variantAttributes = ImmutableMap.of("attribute1", "1", "attribute2", "2");
 
     Configuration configuration = finder.createCopyConfiguration(project, variantAttributes);
@@ -385,7 +385,7 @@ public class DependenciesFinderTest
     PluginContainer pluginContainer = mock(PluginContainer.class);
     when(pluginContainer.hasPlugin("com.android.application")).thenReturn(true);
 
-    Project project = spy(buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false));
+    Project project = spy(buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false));
     when(project.getPlugins()).thenReturn(pluginContainer);
 
     Configuration configuration = finder.createCopyConfiguration(project, emptyMap());
@@ -412,8 +412,9 @@ public class DependenciesFinderTest
 
   @Test
   public void testGetDependencies_ModuleDependencies() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Configuration originalConfiguration = project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
+    Configuration originalConfiguration = project.getConfigurations().getByName(IMPLEMENTATION_CONFIGURATION_NAME);
+    originalConfiguration.setCanBeResolved(true);
 
     Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream());
@@ -431,12 +432,12 @@ public class DependenciesFinderTest
 
   @Test
   public void testGetDependencies_ModuleDependencies_WithError() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
 
     Configuration originalConfiguration = mock(Configuration.class);
     when(originalConfiguration.getResolvedConfiguration()).thenThrow(ResolveException.class);
     when(originalConfiguration.getAllDependencies())
-        .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
+        .thenReturn(project.getConfigurations().getByName(IMPLEMENTATION_CONFIGURATION_NAME).getAllDependencies());
 
     Stream<ResolvedDependency> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream());
@@ -454,8 +455,9 @@ public class DependenciesFinderTest
 
   @Test
   public void testGetDependencies_ResolvedArtifacts() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
-    Configuration originalConfiguration = project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
+    Configuration originalConfiguration = project.getConfigurations().getByName(IMPLEMENTATION_CONFIGURATION_NAME);
+    originalConfiguration.setCanBeResolved(true);
 
     Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
@@ -470,12 +472,12 @@ public class DependenciesFinderTest
 
   @Test
   public void testGetDependencies_ResolvedArtifacts_WithError() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
 
     Configuration originalConfiguration = mock(Configuration.class);
     when(originalConfiguration.getResolvedConfiguration()).thenThrow(ResolveException.class);
     when(originalConfiguration.getAllDependencies())
-        .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
+        .thenReturn(project.getConfigurations().getByName(IMPLEMENTATION_CONFIGURATION_NAME).getAllDependencies());
 
     Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
@@ -490,16 +492,16 @@ public class DependenciesFinderTest
 
   @Test
   public void testGetDependencies_ResolvedArtifacts_Skip_Unresolvable_Dependencies() {
-    Project project = buildProject(COMPILE_CLASSPATH_CONFIGURATION_NAME, false);
+    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     DependencyHandler dependencyHandler = project.getDependencies();
     org.gradle.api.artifacts.Dependency testDependency =
-        dependencyHandler.add(COMPILE_CLASSPATH_CONFIGURATION_NAME, "test_group-test_artifact:0.0.1");
+        dependencyHandler.add(IMPLEMENTATION_CONFIGURATION_NAME, "test_group-test_artifact:0.0.1");
 
     Configuration originalConfiguration = mock(Configuration.class);
     when(originalConfiguration.getResolvedConfiguration()).thenThrow(ResolveException.class);
     when(originalConfiguration.files(testDependency)).thenThrow(ResolveException.class);
     when(originalConfiguration.getAllDependencies())
-        .thenReturn(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).getAllDependencies());
+        .thenReturn(project.getConfigurations().getByName(IMPLEMENTATION_CONFIGURATION_NAME).getAllDependencies());
 
     Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
