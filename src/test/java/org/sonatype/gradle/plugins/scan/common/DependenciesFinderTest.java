@@ -494,16 +494,17 @@ public class DependenciesFinderTest
   public void testGetDependencies_ResolvedArtifacts_Skip_Unresolvable_Dependencies() {
     Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
     DependencyHandler dependencyHandler = project.getDependencies();
-    org.gradle.api.artifacts.Dependency testDependency =
-        dependencyHandler.add(IMPLEMENTATION_CONFIGURATION_NAME, "test_group-test_artifact:0.0.1");
+    dependencyHandler.add(IMPLEMENTATION_CONFIGURATION_NAME, "test_group-test_artifact:0.0.1");
 
-    Configuration originalConfiguration = mock(Configuration.class);
-    when(originalConfiguration.getResolvedConfiguration()).thenThrow(ResolveException.class);
-    when(originalConfiguration.files(testDependency)).thenThrow(ResolveException.class);
-    when(originalConfiguration.getAllDependencies())
-        .thenReturn(project.getConfigurations().getByName(IMPLEMENTATION_CONFIGURATION_NAME).getAllDependencies());
+    Configuration realConfiguration = project.getConfigurations().getByName(IMPLEMENTATION_CONFIGURATION_NAME);
+    realConfiguration.setCanBeResolved(true);
 
-    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, originalConfiguration, emptyMap(),
+    Configuration mockConfiguration = mock(Configuration.class);
+    when(mockConfiguration.getResolvedConfiguration()).thenThrow(ResolveException.class);
+    when(mockConfiguration.getIncoming()).thenReturn(realConfiguration.getIncoming());
+    when(mockConfiguration.getAllDependencies()).thenReturn(realConfiguration.getAllDependencies());
+
+    Stream<ResolvedArtifact> dependencies = finder.getDependencies(project, mockConfiguration, emptyMap(),
         resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
 
     assertThat(dependencies).isNotNull();
