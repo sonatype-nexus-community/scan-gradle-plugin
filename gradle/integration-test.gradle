@@ -17,7 +17,9 @@ task integrationTest(type: Test) {
  '**/ScanIT_Gradle_Versions_6_0*.class',
  '**/ScanIT_Gradle_Versions_6_6*.class',
  '**/ScanIT_Gradle_Versions_7_0*.class',
- '**/ScanIT_Gradle_Versions_7_6*.class'].eachWithIndex { className, index ->
+ '**/ScanIT_Gradle_Versions_7_6*.class',
+ '**/ScanIT_Gradle_Versions_8_1*.class',
+ '**/ScanIT_Gradle_Versions_8_6*.class'].eachWithIndex { className, index ->
   task "it${index + 1}"(type: Test) {
     includes = [className]
     description = "Runs the integration tests on class $className."
