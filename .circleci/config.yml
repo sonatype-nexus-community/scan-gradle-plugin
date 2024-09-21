@@ -90,6 +90,18 @@ workflows:
           <<: *it-defaults
           test_command: --no-daemon -Dorg.gradle.daemon=false --info it6
 
+  it7:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it7
+
+  it8:
+    jobs:
+    - gradle/test:
+          <<: *it-defaults
+          test_command: --no-daemon -Dorg.gradle.daemon=false --info it8
+
   release:
     jobs:
       - approve-release:
