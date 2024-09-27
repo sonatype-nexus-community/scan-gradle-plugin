@@ -15,20 +15,19 @@
  */
 package org.sonatype.gradle.plugins.scan;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.runners.Parameterized;
 
-public class ScanIT_Gradle_Versions_7_0_to_7_4
-        extends ScanPluginIntegrationTestBase
+public class ScanIT_Gradle_Versions_8_3_to_8_5
+    extends ScanPluginIntegrationTestBase
 {
   @Parameterized.Parameters(name = "Version: {0}")
   public static List<String> data() {
-    return Arrays.asList("7.0", "7.2", "7.4.2");
+    return List.of("8.3", "8.4", "8.5");
   }
 
-  public ScanIT_Gradle_Versions_7_0_to_7_4(final String gradleVersion) {
+  public ScanIT_Gradle_Versions_8_3_to_8_5(final String gradleVersion) {
     super(gradleVersion);
   }
 }

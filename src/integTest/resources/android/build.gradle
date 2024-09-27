@@ -7,13 +7,16 @@ buildscript {
 
   // Mapping between Gradle and Android plugin versions: https://developer.android.com/studio/releases/gradle-plugin
   def androidGradlePluginVersion = '3.0.0'
-  if (gradle.gradleVersion.compareTo('6.1.1') >= 0) {
+  if (gradle.gradleVersion.compareTo('8.0') >= 0) {
+    androidGradlePluginVersion = '7.4.0'
+  } else if (gradle.gradleVersion.compareTo('6.1.1') >= 0) {
     androidGradlePluginVersion = '4.0.0'
   } else if (gradle.gradleVersion.compareTo('5.6.4') >= 0) {
     androidGradlePluginVersion = '3.6.4'
   } else if (gradle.gradleVersion.compareTo('5.0') >= 0) {
     androidGradlePluginVersion = '3.3.3'
   }
+
   dependencies {
     classpath "com.android.tools.build:gradle:$androidGradlePluginVersion"
   }
