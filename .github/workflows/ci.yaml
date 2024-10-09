@@ -1,4 +1,4 @@
-# Sample workflow for building and deploying
+# workflow name shown in the Actions tab and PR checks
 name: ci-gha
 
 on:
@@ -12,9 +12,6 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
-# Env Vars
-#env:
 
 jobs:
   test:
@@ -33,12 +30,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Build with Gradle
-#        run: ./gradlew build
         run: ./gradlew test --no-daemon --debug --max-workers 2
 
   it-tests:
     strategy:
-      max-parallel: 2
+      # might be helpful to limit threads in local builds
+#      max-parallel: 2
       matrix:
         it: [it1, it2, it3, it4, it5, it6, it7, it8]
     runs-on: ubuntu-latest
@@ -53,6 +50,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 8
+       # might need to setup NDK for local builds
 #      - uses: nttld/setup-ndk@v1
 #        with:
 #          ndk-version: r28-beta1
