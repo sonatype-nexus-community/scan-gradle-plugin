@@ -1,5 +1,5 @@
 # Sample workflow for building and deploying
-name: Continuous Integration
+name: ci-gha
 
 on:
   pull_request:
@@ -34,6 +34,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 8
+#      - uses: nttld/setup-ndk@v1
+#        with:
+#          ndk-version: r28-beta1
+#          link-to-sdk: true
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Build with Gradle
