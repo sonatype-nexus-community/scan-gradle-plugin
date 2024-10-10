@@ -48,6 +48,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
@@ -330,19 +331,24 @@ public class DependenciesFinder
   {
     Configuration copyConfiguration = createCopyConfiguration(project, variantAttributes);
 
+    Set<String> resolvedDependencies = !skipUnresolvableDependencies
+            ? Collections.emptySet()
+            : originalConfiguration.getIncoming().getResolutionResult().getAllDependencies()
+            .stream()
+            .filter(dependency -> dependency instanceof DefaultResolvedDependencyResult)
+            .map(dependency -> ((DefaultResolvedDependencyResult) dependency).getSelected().getId().getDisplayName())
+            .collect(Collectors.toSet());
+
     originalConfiguration.getAllDependencies().all(dependency -> {
       copyConfiguration.getDependencies().add(dependency);
 
-      if (skipUnresolvableDependencies && !(dependency instanceof ProjectDependency)) {
-        try {
-          originalConfiguration.files(dependency);
-        }
-        catch (Exception e) {
-          log.warn("Unable to process the dependency {}:{}:{} in project {} and configuration {}",
-              dependency.getGroup(), dependency.getName(), dependency.getVersion(), project.getName(),
-              originalConfiguration.getName());
-          copyConfiguration.getDependencies().remove(dependency);
-        }
+      if (skipUnresolvableDependencies
+              && !(dependency instanceof ProjectDependency)
+              && !resolvedDependencies.contains(getDependencyId(dependency))) {
+        log.warn("Unable to process the dependency {}:{}:{} in project {} and configuration {}", dependency.getGroup(),
+                dependency.getName(), dependency.getVersion(), project.getName(), originalConfiguration.getName());
+
+        copyConfiguration.getDependencies().remove(dependency);
       }
     });
 
