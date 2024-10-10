@@ -1,13 +1,8 @@
-name: checkout-setup
-description: Checkout source code and setup Java and Gradle
+name: setup
+description: Setup Java and Gradle
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        fetch-depth: 0
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
