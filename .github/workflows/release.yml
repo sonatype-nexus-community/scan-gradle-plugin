@@ -26,14 +26,5 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/configure-git
-      # setup key needed for GitHub checkin during release process
-      # Ensure parameter if_key_exists is set correctly
-#      - name: Install SSH key
-#        uses: shimataro/ssh-key-action@v2.6.1
-#        with:
-#          key: "${{ secrets.CIRCLE_CI_SSH_KEY }}"
-#          name: circle_ci_id_rsa
-#          known_hosts: "${{ secrets.CIRCLE_CI_KNOWN_HOSTS }}"
-#          if_key_exists: fail
       - name: Release with Gradle
         run: ./gradlew clean release -Dorg.gradle.daemon=false --stacktrace -x test -x integrationTest
