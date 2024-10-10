@@ -26,7 +26,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew test --no-daemon --debug --max-workers 2
 
-  it-tests:
+  it-test:
     strategy:
       # might be helpful to limit threads in local builds
 #      max-parallel: 2
