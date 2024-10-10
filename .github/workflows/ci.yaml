@@ -22,13 +22,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 8
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: ./.github/actions/setup
       - name: Build with Gradle
         run: ./gradlew test --no-daemon --debug --max-workers 2
 
@@ -45,18 +39,12 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 8
+      - uses: ./.github/actions/setup
        # might need to setup NDK for local builds
 #      - uses: nttld/setup-ndk@v1
 #        with:
 #          ndk-version: r28-beta1
 #          link-to-sdk: true
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
       - name: Build with Gradle
         run: ./gradlew test --no-daemon --info ${{ matrix.it }}
 
