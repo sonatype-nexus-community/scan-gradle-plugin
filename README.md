@@ -42,7 +42,15 @@ If you want to save some time, skip integration tests:
 > ./gradlew integrationTest
 
 ## Compatibility
-The plugin from release 3.0.0 onwards, can be used on projects with Gradle 5.0 or higher (local installation or wrapper) and Java 11 installed locally.
+The plugin from release 3.0.0 onwards, can be used with Java 11 installed locally on projects with Gradle versions:
+- 5.0 until 6.4.1
+- 7.6.4
+- 8.3 or higher
+
+It has ranges of supported versions due to a known bug in Gradle for plugins with multi-jar dependencies. See more at:
+- https://github.com/gradle/gradle/issues/27156
+- https://discuss.gradle.org/t/is-there-any-way-to-skip-gradle-instrumenting-classpath-file-transformer/45213/3
+
 All plugin releases prior to 3.0.0, can be used on projects with Gradle 3.3 or higher (local installation or wrapper) and Java 8 installed locally.
 
 ## Supported Programming Languages
