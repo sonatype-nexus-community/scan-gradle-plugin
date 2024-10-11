@@ -163,7 +163,7 @@ public class DependenciesFinderTest
 
   @Test
   public void testFindResolvedDependencies_includeTestDependencies() {
-    Project project = buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false);
+    Project project = buildProject(TEST_IMPLEMENTATION_CONFIGURATION_NAME, false);
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true, emptyMap(), false);
     assertThat(result).hasSize(1);
   }
