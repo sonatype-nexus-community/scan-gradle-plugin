@@ -46,7 +46,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -224,7 +224,7 @@ public class OssIndexAuditTaskTest
     project.getRepositories().mavenCentral();
 
     DependencyHandler dependencyHandler = project.getDependencies();
-    dependencyHandler.add(COMPILE_CLASSPATH_CONFIGURATION_NAME, COMMONS_COLLECTIONS_DEPENDENCY);
+    dependencyHandler.add(IMPLEMENTATION_CONFIGURATION_NAME, COMMONS_COLLECTIONS_DEPENDENCY);
 
     OssIndexPluginExtension extension = new OssIndexPluginExtension(project);
     extension.setSimulationEnabled(isSimulated);
