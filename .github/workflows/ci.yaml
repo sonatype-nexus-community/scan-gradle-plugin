@@ -29,7 +29,8 @@ jobs:
   it-test:
     strategy:
       # might be helpful to limit threads in local builds
-#      max-parallel: 2
+      #max-parallel: 2
+      # TODO: Update this to remove obsolete itX's after branch `version3` is merged
       matrix:
         it: [it1, it2, it3, it4, it5, it6, it7, it8]
     runs-on: ubuntu-latest
