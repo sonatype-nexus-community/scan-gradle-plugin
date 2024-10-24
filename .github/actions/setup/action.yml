@@ -1,0 +1,13 @@
+name: setup
+description: Setup Java and Gradle
+runs:
+  using: composite
+  steps:
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        # TODO: Update this to Java 11 after branch `version3` is merged
+        java-version: 8
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
