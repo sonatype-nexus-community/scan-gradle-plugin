@@ -29,6 +29,9 @@ import com.sonatype.nexus.api.iq.internal.InternalIqClient;
 import com.sonatype.nexus.api.iq.internal.InternalIqClientBuilder;
 import com.sonatype.nexus.api.iq.scan.ScanResult;
 
+import org.junit.After;
+import org.mockito.*;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.sonatype.gradle.plugins.scan.common.DependenciesFinder;
 
 import com.google.common.collect.Sets;
@@ -40,12 +43,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,12 +63,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(InternalIqClientBuilder.class)
+@RunWith(MockitoJUnitRunner.class)
 public class NexusIqScanTaskTest
 {
   private static final String USER_AGENT_REGEX =
       "Sonatype_Nexus_Gradle/[^\\s]+ \\(Java [^;]+; [^;]+ [^;]+; Gradle [^;]+\\)";
+
+  private MockedStatic<InternalIqClientBuilder> internalIqClientBuilder;
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -87,7 +85,7 @@ public class NexusIqScanTaskTest
 
   @Before
   public void setup() throws IqClientException {
-    PowerMockito.mockStatic(InternalIqClientBuilder.class);
+    internalIqClientBuilder = Mockito.mockStatic(InternalIqClientBuilder.class);
 
     InternalIqClientBuilder builderMock = mock(InternalIqClientBuilder.class);
     when(builderMock.withServerConfig(any(ServerConfig.class))).thenReturn(builderMock);
@@ -104,6 +102,11 @@ public class NexusIqScanTaskTest
 
     when(dependenciesFinderMock.findModules(any(Project.class), eq(false), anySet(), anyMap(), eq(false)))
         .thenReturn(Collections.emptyList());
+  }
+
+  @After
+  public void cleanup() {
+    internalIqClientBuilder.close();
   }
 
   @Test
@@ -129,7 +132,7 @@ public class NexusIqScanTaskTest
     verify(iqClientMock).verifyOrCreateApplication(eq(task.getApplicationId()), eq(""));
     verify(iqClientMock).getProprietaryConfigForApplicationEvaluation(eq(task.getApplicationId()));
     verify(iqClientMock).evaluateApplication(eq(task.getApplicationId()), eq(task.getStage()),
-        nullable(ScanResult.class), any(File.class), isNull());
+        nullable(ScanResult.class), any(File.class), isNull(File.class));
   }
 
   @Test
@@ -162,7 +165,6 @@ public class NexusIqScanTaskTest
   public void testScan_realWithResultFilePath() throws Exception {
     NexusIqScanTask task = buildScanTask(false, "some/path/file.json");
     task.setDependenciesFinder(dependenciesFinderMock);
-    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
     task.scan();
 
@@ -198,7 +200,6 @@ public class NexusIqScanTaskTest
   public void testScan_realWithDirIncludes() throws Exception {
     NexusIqScanTask task = buildScanTask(false, null, "dir-include", null, null);
     task.setDependenciesFinder(dependenciesFinderMock);
-    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
     task.scan();
 
@@ -214,7 +215,6 @@ public class NexusIqScanTaskTest
   public void testScan_realWithDirExcludes() throws Exception {
     NexusIqScanTask task = buildScanTask(false, null, null, "dir-exclude", null);
     task.setDependenciesFinder(dependenciesFinderMock);
-    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
     task.scan();
 
@@ -242,7 +242,6 @@ public class NexusIqScanTaskTest
     });
 
     task.setDependenciesFinder(dependenciesFinderMock);
-    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
     task.scan();
 
@@ -258,7 +257,6 @@ public class NexusIqScanTaskTest
   public void testScan_realWithExcludeCompileOnly() throws Exception {
     NexusIqScanTask task = buildScanTask(extension -> extension.setExcludeCompileOnly(true));
     task.setDependenciesFinder(dependenciesFinderMock);
-    when(iqClientMock.verifyOrCreateApplication(eq(task.getApplicationId()))).thenReturn(true);
 
     task.scan();
 
