@@ -67,4 +67,4 @@ jobs:
           username: ${{ secrets.SONATYPE_LIFECYCLE_USERNAME }}
           password: ${{ secrets.SONATYPE_LIFECYCLE_PASSWORD }}
           application-id: 'scan-gradle-plugin'
-          scan-targets: '.'
+          scan-targets: './build.gradle'
