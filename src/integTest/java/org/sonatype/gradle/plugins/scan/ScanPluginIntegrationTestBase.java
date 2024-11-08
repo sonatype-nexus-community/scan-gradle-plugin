@@ -57,8 +57,6 @@ public abstract class ScanPluginIntegrationTestBase
 
   private final String gradleVersion;
 
-  protected boolean useLegacySyntax;
-
   public ScanPluginIntegrationTestBase(String gradleVersion) {
     this.gradleVersion = gradleVersion;
   }
@@ -147,8 +145,7 @@ public abstract class ScanPluginIntegrationTestBase
 
   @Test
   public void testScanTask_Android_NexusIQ() throws IOException {
-    String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
-    File target = copyResource(resource);
+    File target = copyResource("android");
 
     final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -163,9 +160,7 @@ public abstract class ScanPluginIntegrationTestBase
 
   @Test
   public void testScanTask_AndroidMultipleFlavors_NexusIQ() throws IOException {
-    String resource =
-        useLegacySyntax ? "legacy-syntax" + File.separator + "android-multiple-flavors" : "android-multiple-flavors";
-    File target = copyResource(resource);
+    File target = copyResource("android-multiple-flavors");
 
     final BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -483,8 +478,7 @@ public abstract class ScanPluginIntegrationTestBase
 
   @Test
   public void testAuditTask_Android_OssIndex() throws IOException {
-    String resource = useLegacySyntax ? "legacy-syntax" + File.separator + "android" : "android";
-    File target = copyResource(resource);
+    File target = copyResource("android");
 
     BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -506,9 +500,7 @@ public abstract class ScanPluginIntegrationTestBase
 
   @Test
   public void testAuditTask_AndroidMultipleFlavors_OssIndex() throws IOException {
-    String resource =
-        useLegacySyntax ? "legacy-syntax" + File.separator + "android-multiple-flavors" : "android-multiple-flavors";
-    File target = copyResource(resource);
+    File target = copyResource("android-multiple-flavors");
 
     BuildResult result = GradleRunner.create()
         .withGradleVersion(gradleVersion)
@@ -553,8 +545,7 @@ public abstract class ScanPluginIntegrationTestBase
   }
 
   private void writeFile(File destination, String resourceName) throws IOException {
-    String resource = useLegacySyntax ? "legacy-syntax" + File.separator + resourceName : resourceName;
-    try (InputStream contentStream = getClass().getClassLoader().getResourceAsStream(resource);
+    try (InputStream contentStream = getClass().getClassLoader().getResourceAsStream(resourceName);
         BufferedWriter output = new BufferedWriter(new FileWriter(destination))) {
       assert contentStream != null;
       IOUtils.copy(contentStream, output, StandardCharsets.UTF_8);

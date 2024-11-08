@@ -1,10 +1,10 @@
 version: 2.1
 orbs:
-  gradle: circleci/gradle@1.0.11
+  gradle: circleci/gradle@3.0.0
 executors:
-  openjdk-8-executor:
+  openjdk-11-executor:
     docker:
-      - image: 'circleci/android:api-28-alpha'
+      - image: 'circleci/android:api-29'
 
 commands:
   configure-git:
@@ -23,7 +23,7 @@ commands:
 
 jobs:
   do-release:
-    executor: openjdk-8-executor
+    executor: openjdk-11-executor
     parameters:
       ssh-fingerprints:
         type: string
@@ -36,7 +36,7 @@ jobs:
       - gradle-release
 
 it-defaults: &it-defaults
-      executor: openjdk-8-executor
+      executor: openjdk-11-executor
       test_results_path: build/test-results
       reports_path: build/reports
 
@@ -44,7 +44,7 @@ workflows:
   checkout-run_task:
     jobs:
       - gradle/test:
-          executor: openjdk-8-executor
+          executor: openjdk-11-executor
           test_results_path: build/test-results
           reports_path: build/reports
           test_command: test --no-daemon --debug --max-workers 2
@@ -70,36 +70,24 @@ workflows:
           test_command: --no-daemon -Dorg.gradle.daemon=false --info it2
   it3:
     jobs:
-    - gradle/test:
+      - gradle/test:
           <<: *it-defaults
           test_command: --no-daemon -Dorg.gradle.daemon=false --info it3
   it4:
     jobs:
-    - gradle/test:
+      - gradle/test:
           <<: *it-defaults
           test_command: --no-daemon -Dorg.gradle.daemon=false --info it4
   it5:
     jobs:
-    - gradle/test:
+      - gradle/test:
           <<: *it-defaults
           test_command: --no-daemon -Dorg.gradle.daemon=false --info it5
   it6:
     jobs:
-    - gradle/test:
+      - gradle/test:
           <<: *it-defaults
           test_command: --no-daemon -Dorg.gradle.daemon=false --info it6
-
-  it7:
-    jobs:
-      - gradle/test:
-          <<: *it-defaults
-          test_command: --no-daemon -Dorg.gradle.daemon=false --info it7
-
-  it8:
-    jobs:
-      - gradle/test:
-          <<: *it-defaults
-          test_command: --no-daemon -Dorg.gradle.daemon=false --info it8
 
   release:
     jobs:

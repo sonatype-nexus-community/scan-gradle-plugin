@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
-
 plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
@@ -7,7 +5,6 @@ plugins {
   id 'net.researchgate.release' version '3.0.0'
   id 'io.codearte.nexus-staging' version '0.30.0'
   id 'com.gradle.plugin-publish' version '0.21.0'
-  id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 apply from: 'gradle/integration-test.gradle'
@@ -26,8 +23,8 @@ gradlePlugin {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
   withJavadocJar()
   withSourcesJar()
 }
@@ -49,35 +46,25 @@ jar {
   }
 }
 
-shadowJar {
-  mergeServiceFiles()
-  archiveClassifier.set('')
-}
-
-task relocateShadowJar(type: ConfigureShadowRelocation) {
-  target = tasks.shadowJar
-}
-
-tasks.shadowJar.dependsOn tasks.relocateShadowJar
-
-artifacts {
-  archives shadowJar
-}
-
 allprojects {
   repositories {
     mavenCentral()
   }
 }
 
-dependencies {
-  shadow localGroovy()
-  shadow gradleApi()
+ext {
+  nexusPlatformApiVersion='5.1.2-01'
+  ossIndexClientVersion='1.8.2'
+  logbackVersion='1.3.14'
+  commonsIoVersion='2.16.1'
 
-  implementation ("com.sonatype.nexus:nexus-platform-api:$nexusPlatformApiVersion") {
-    exclude group: 'org.eclipse.jgit', module: 'org.eclipse.jgit'
-  }
-  implementation 'org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r'
+  junitVersion='4.13.2'
+  mockitoVersion='5.12.0'
+  assertJVersion='3.25.3'
+}
+
+dependencies {
+  implementation "com.sonatype.nexus:nexus-platform-api:$nexusPlatformApiVersion"
   implementation "org.sonatype.ossindex:ossindex-service-client:$ossIndexClientVersion"
   implementation "ch.qos.logback:logback-classic:$logbackVersion"
   implementation "commons-io:commons-io:$commonsIoVersion"
@@ -85,13 +72,7 @@ dependencies {
   testImplementation gradleTestKit()
   testImplementation "junit:junit:$junitVersion"
   testImplementation "org.assertj:assertj-core:$assertJVersion"
-  testImplementation "org.powermock:powermock-module-junit4:$powermockVersion"
-  testImplementation "org.powermock:powermock-api-mockito2:$powermockVersion"
-}
-
-// Remove the gradleApi so it isn't merged into the jar file when applying 'shadow'
-configurations.named(JavaPlugin.API_CONFIGURATION_NAME) {
-  dependencies.remove(project.dependencies.gradleApi())
+  testImplementation "org.mockito:mockito-core:${mockitoVersion}"
 }
 
 processResources {
@@ -102,14 +83,6 @@ processResources {
 
 test {
   maxHeapSize = '512m'
-}
-
-sourceSets {
-  test {
-    // Groovy and Gradle libraries on the new shadow configuration need to be available for tests
-    compileClasspath = configurations.shadow + compileClasspath
-    runtimeClasspath = configurations.shadow + runtimeClasspath
-  }
 }
 
 publishing {
