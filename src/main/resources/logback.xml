@@ -26,4 +26,5 @@
   <root level="INFO">
     <appender-ref ref="CONSOLE" />
   </root>
+  <logger name="de.schlichtherle.truezip" level="ERROR" />
 </configuration>
