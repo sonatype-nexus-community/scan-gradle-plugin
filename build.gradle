@@ -157,8 +157,6 @@ jreleaser {
 signing {
   useInMemoryPgpKeys(System.getenv('GPG_SIGNING_KEY'), System.getenv('GPG_PASSPHRASE'))
   sign publishing.publications.maven
-  sign publishing.publications.pluginMaven
-  sign publishing.publications.scanPluginMarkerMaven
 
 }
 
