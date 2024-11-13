@@ -5,6 +5,7 @@ plugins {
   id 'net.researchgate.release' version '3.0.0'
   id 'io.codearte.nexus-staging' version '0.30.0'
   id 'com.gradle.plugin-publish' version '0.21.0'
+  id 'org.jreleaser' version '1.15.0'
 }
 
 apply from: 'gradle/integration-test.gradle'
@@ -86,109 +87,81 @@ test {
 }
 
 publishing {
-  afterEvaluate {
-    def pluginUrl = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
+  publications {
+    maven(MavenPublication) {
+      from components.java
+      groupId = 'org.sonatype.gradle.plugins'
+      artifactId = project.name
+      version = project.version.toString()
 
-    pluginBundle {
-      website = pluginUrl
-      vcsUrl = pluginUrl
-      description = pluginDescription
-      tags = ['sonatype', 'scan', 'dependencies', 'ossindex', 'iq server']
-      System.setProperty('gradle.publish.key', System.getenv('GRADLE_PUBLISH_KEY') ?: '')
-      System.setProperty('gradle.publish.secret', System.getenv('GRADLE_PUBLISH_SECRET') ?: '')
-    }
-
-    release {
-      // avoid infinite CircleCI builds triggered by release commits
-      preCommitText = '[skip ci] '
-      buildTasks = ['assemble']
-    }
-
-    def sonatypeUsername = System.getenv('SONATYPE_USERNAME')
-    def sonatypePassword = System.getenv('SONATYPE_PASSWORD')
-
-    def serverUrlBase = 'https://repository.sonatype.org:443/service/local/'
-
-    repositories {
-      maven {
-        name = 'rso'
-        url = serverUrlBase + 'staging/deploy/maven2/'
-        credentials {
-          username = sonatypeUsername
-          password = sonatypePassword
+      pom {
+        name = project.name
+        description = pluginDescription
+        url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
+        organization {
+          name = 'Sonatype'
+          url = 'https://www.sonatype.org'
         }
-      }
-    }
-
-    nexusStaging {
-      serverUrl = serverUrlBase
-      stagingProfileId = '97306992c3c7ca'
-      username = sonatypeUsername
-      password = sonatypePassword
-      numberOfRetries = 40
-      delayBetweenRetriesInMillis = 5000
-    }
-
-    publications {
-      withType(MavenPublication) {
-        pom {
-          name = project.name
-          description = pluginDescription
+        issueManagement {
+          system = 'GitHub'
+          url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin/issues'
+        }
+        licenses {
+          license {
+            name = 'The Apache Software License, Version 2.0'
+            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution = 'repo'
+          }
+        }
+        scm {
+          connection = 'scm:git:git://github.com/sonatype-nexus-community/scan-gradle-plugin.git'
+          developerConnection = 'scm:git:ssh://git@github.com:sonatype-nexus-community/scan-gradle-plugin.git'
           url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
-          organization {
-            name = 'Sonatype'
-            url = 'https://www.sonatype.org'
+        }
+        developers {
+          developer {
+            name = 'Guillermo Varela'
           }
-          issueManagement {
-            system = 'GitHub'
-            url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin/issues'
-          }
-          licenses {
-            license {
-              name = 'The Apache Software License, Version 2.0'
-              url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-              distribution = 'repo'
-            }
-          }
-          scm {
-            connection = 'scm:git:git://github.com/sonatype-nexus-community/scan-gradle-plugin.git'
-            developerConnection = 'scm:git:ssh://git@github.com:sonatype-nexus-community/scan-gradle-plugin.git'
-            url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
-          }
-          developers {
-            developer {
-              name = 'Guillermo Varela'
-            }
-            developer {
-              name = 'Usman Shaikh'
-            }
+          developer {
+            name = 'Usman Shaikh'
           }
         }
-
-        artifactId = project.name
       }
     }
-
-    // configure signing if performing release
-    if ('do-release' == System.getenv('CIRCLE_JOB')) {
-      signing {
-        def final encodedKey = System.getenv('SECRING_GPG_ASC_BASE64')
-        def final signingKey = new String(encodedKey.decodeBase64())
-
-        allprojects {
-          println 'setup gpg signing with in-memory key'
-          useInMemoryPgpKeys(
-              signingKey,
-              System.getenv('GPG_PASSPHRASE')
-          )
+  }
+  repositories {
+    maven {
+      url = layout.buildDirectory.dir('staging-deploy')
+    }
+  }
+}
+jreleaser {
+  signing {
+    active = 'ALWAYS'
+    armored = true
+  }
+  deploy {
+    maven {
+      mavenCentral {
+        sonatype {
+          active = 'ALWAYS'
+          url = 'https://central.sonatype.com/api/v1/publisher'
+          stagingRepository('build/staging-deploy')
         }
-
-        sign publishing.publications.pluginMaven
-        sign publishing.publications.scanPluginMarkerMaven
       }
     }
   }
 }
+
+// Configure signing
+signing {
+  useInMemoryPgpKeys(System.getenv('GPG_SIGNING_KEY'), System.getenv('GPG_PASSPHRASE'))
+  sign publishing.publications.maven
+  sign publishing.publications.pluginMaven
+  sign publishing.publications.scanPluginMarkerMaven
+
+}
+
 
 afterReleaseBuild.dependsOn publish
 publish.finalizedBy closeAndReleaseRepository
