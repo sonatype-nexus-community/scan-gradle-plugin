@@ -100,7 +100,7 @@ publishing {
         url = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
         organization {
           name = 'Sonatype'
-          url = 'https://www.sonatype.org'
+          url = 'https://www.sonatype.com'
         }
         issueManagement {
           system = 'GitHub'
