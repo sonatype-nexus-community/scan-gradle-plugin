@@ -172,7 +172,4 @@ signing {
 
 }
 
-
-afterReleaseBuild.dependsOn publish
-publish.finalizedBy closeAndReleaseRepository
 publish.finalizedBy publishPlugins
