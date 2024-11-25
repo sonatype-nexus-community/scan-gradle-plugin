@@ -28,3 +28,8 @@ jobs:
       - uses: ./.github/actions/configure-git
       - name: Release with Gradle
         run: ./gradlew clean release -Dorg.gradle.daemon=false --stacktrace -x test -x integrationTest
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
