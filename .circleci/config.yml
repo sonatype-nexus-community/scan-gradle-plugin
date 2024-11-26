@@ -47,7 +47,7 @@ workflows:
           executor: openjdk-11-executor
           test_results_path: build/test-results
           reports_path: build/reports
-          test_command: test --no-daemon --debug --max-workers 1
+          test_command: test --no-daemon --debug --max-workers 2
 
 # Running all ITs at once was causing intermittent memory errors (as per below config), so we split ITs into batches.
 #  integration-test:
