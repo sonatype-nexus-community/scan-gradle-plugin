@@ -170,6 +170,7 @@ signing {
   useInMemoryPgpKeys(System.getenv('GPG_SIGNING_KEY'), System.getenv('GPG_PASSPHRASE'))
   sign publishing.publications.maven
 }
+
 afterReleaseBuild.dependsOn publish
 publish.finalizedBy closeAndReleaseRepository
 publish.finalizedBy publishPlugins
