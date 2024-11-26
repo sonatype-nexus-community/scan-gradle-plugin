@@ -62,32 +62,32 @@ workflows:
     jobs:
     - gradle/test:
           <<: *it-defaults
-          test_command: --no-daemon -Dorg.gradle.daemon=false --info it1
+          test_command: --no-daemon -Dorg.gradle.daemon=false --max-workers 1 --info it1
   it2:
     jobs:
     - gradle/test:
           <<: *it-defaults
-          test_command: --no-daemon -Dorg.gradle.daemon=false --info it2
+          test_command: --no-daemon -Dorg.gradle.daemon=false --max-workers 1 --info it2
   it3:
     jobs:
       - gradle/test:
           <<: *it-defaults
-          test_command: --no-daemon -Dorg.gradle.daemon=false --info it3
+          test_command: --no-daemon -Dorg.gradle.daemon=false --max-workers 1 --info it3
   it4:
     jobs:
       - gradle/test:
           <<: *it-defaults
-          test_command: --no-daemon -Dorg.gradle.daemon=false --info it4
+          test_command: --no-daemon -Dorg.gradle.daemon=false --max-workers 1 --info it4
   it5:
     jobs:
       - gradle/test:
           <<: *it-defaults
-          test_command: --no-daemon -Dorg.gradle.daemon=false --info it5
+          test_command: --no-daemon -Dorg.gradle.daemon=false --max-workers 1 --info it5
   it6:
     jobs:
       - gradle/test:
           <<: *it-defaults
-          test_command: --no-daemon -Dorg.gradle.daemon=false --info it6
+          test_command: --no-daemon -Dorg.gradle.daemon=false --max-workers 1 --info it6
 
   release:
     jobs:
