@@ -169,7 +169,13 @@ if (System.getenv('RELEASE_BUILD') == 'true') {
   signing {
     def final encodedKey = System.getenv('GPG_SIGNING_KEY')
     def final signingKey = new String(encodedKey.decodeBase64())
-    useInMemoryPgpKeys(signingKey, System.getenv('GPG_PASSPHRASE'))
+    allprojects {
+      println 'setup gpg signing with in-memory key'
+      useInMemoryPgpKeys(
+          signingKey,
+          System.getenv('GPG_PASSPHRASE')
+      )
+    }
     sign publishing.publications.maven
   }
 }
