@@ -167,7 +167,12 @@ jreleaser {
 
 // Configure signing
 signing {
-  useInMemoryPgpKeys(System.getenv('GPG_SIGNING_KEY'), System.getenv('GPG_PASSPHRASE'))
+  // Decode the Base64-encoded GPG key
+  def final encodedKey = System.getenv('GPG_SIGNING_KEY')
+  def final signingKey = new String(encodedKey.decodeBase64())
+
+  // Use the decoded key and passphrase
+  useInMemoryPgpKeys(signingKey, System.getenv('GPG_PASSPHRASE'))
   sign publishing.publications.maven
 }
 
