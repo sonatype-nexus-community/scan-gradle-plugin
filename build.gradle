@@ -165,17 +165,12 @@ jreleaser {
   }
 }
 
-// Configure signing
-signing {
-  def final encodedKey = System.getenv('GPG_SIGNING_KEY')
-  def final passphrase = System.getenv('GPG_PASSPHRASE')
-  if (encodedKey && passphrase) {
-    println "Setting up GPG signing with in-memory key."
-    def final signingKey = new String(encodedKey.decodeBase64(), "UTF-8")
-    useInMemoryPgpKeys(signingKey, passphrase)
+if (System.getenv('RELEASE_BUILD') == 'true') {
+  signing {
+    def final encodedKey = System.getenv('GPG_SIGNING_KEY')
+    def final signingKey = new String(encodedKey.decodeBase64())
+    useInMemoryPgpKeys(signingKey, System.getenv('GPG_PASSPHRASE'))
     sign publishing.publications.maven
-  } else {
-    println "GPG signing key or passphrase is not set. Skipping GPG signing configuration."
   }
 }
 

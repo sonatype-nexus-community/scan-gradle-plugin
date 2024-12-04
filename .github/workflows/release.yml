@@ -27,8 +27,9 @@ jobs:
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/configure-git
       - name: Release with JReleaser
-        run: ./gradlew clean release -Dorg.gradle.daemon=false --stacktrace -x test -x integrationTest
+        run: ./gradlew jreleaserFullRelease -Dorg.gradle.daemon=false --stacktrace -x test -x integrationTest
         env:
+          RELEASE_BUILD: 'true'
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
