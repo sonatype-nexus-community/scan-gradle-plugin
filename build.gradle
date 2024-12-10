@@ -30,6 +30,10 @@ java {
   withSourcesJar()
 }
 
+if (JavaVersion.current() != targetCompatibility) {
+  throw new GradleException(
+      "The java version used ${JavaVersion.current()} is not the expected version ${project.targetCompatibility}.")
+}
 
 jar {
   manifest {
