@@ -30,10 +30,6 @@ java {
   withSourcesJar()
 }
 
-if (JavaVersion.current() != targetCompatibility) {
-  throw new GradleException(
-      "The java version used ${JavaVersion.current()} is not the expected version ${project.targetCompatibility}.")
-}
 
 jar {
   manifest {
@@ -151,6 +147,9 @@ jreleaser {
   signing {
     active = 'ALWAYS'
     armored = true
+    publicKey = System.getenv('JRELEASER_GPG_PUBLIC_KEY')
+    secretKey = System.getenv('JRELEASER_GPG_SECRET_KEY')
+    passphrase = System.getenv('JRELEASER_GPG_PASSPHRASE')
   }
   deploy {
     maven {
@@ -158,34 +157,18 @@ jreleaser {
         sonatype {
           active = 'ALWAYS'
           url = 'https://central.sonatype.com/api/v1/publisher'
+          applyMavenCentralRules = true
+          sign = true
+          checksums = true
           stagingRepository('build/staging-deploy')
+          username = System.getenv('JRELEASER_MAVENCENTRAL_USERNAME')
+          password = System.getenv('JRELEASER_MAVENCENTRAL_PASSWORD')
         }
       }
     }
   }
 }
 
-if (System.getenv('RELEASE_BUILD') == 'true') {
-  signing {
-    def final encodedKey = System.getenv('JRELEASER_GPG_SECRET_KEY_BASE64')
-    def final signingKey = new String(encodedKey.decodeBase64())
-    // Todo Set system property for key here??? Is this property setting visible elsewhere?
-    System.setProperty('jreleaser.gpg.secret.key', signingKey)
-    allprojects {
-      println 'setup gpg signing with in-memory key'
-      useInMemoryPgpKeys(
-          signingKey,
-          System.getenv('GPG_PASSPHRASE')
-      )
-    }
-    sign publishing.publications.maven
-
-    def final encodedPublicKey = System.getenv('JRELEASER_GPG_PUBLIC_KEY_BASE64')
-    def final publicKey = new String(encodedPublicKey.decodeBase64())
-    // Todo Set system property for public key here???
-    System.setProperty('jreleaser.gpg.public.key', publicKey)
-  }
-}
 
 afterReleaseBuild.dependsOn publish
 publish.finalizedBy closeAndReleaseRepository
