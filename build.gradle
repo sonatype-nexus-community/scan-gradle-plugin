@@ -167,8 +167,10 @@ jreleaser {
 
 if (System.getenv('RELEASE_BUILD') == 'true') {
   signing {
-    def final encodedKey = System.getenv('GPG_SIGNING_KEY')
+    def final encodedKey = System.getenv('JRELEASER_GPG_SECRET_KEY_BASE64')
     def final signingKey = new String(encodedKey.decodeBase64())
+    // Todo Set system property for key here??? Is this property setting visible elsewhere?
+    System.setProperty('jreleaser.gpg.secret.key', signingKey)
     allprojects {
       println 'setup gpg signing with in-memory key'
       useInMemoryPgpKeys(
@@ -177,6 +179,11 @@ if (System.getenv('RELEASE_BUILD') == 'true') {
       )
     }
     sign publishing.publications.maven
+
+    def final encodedPublicKey = System.getenv('JRELEASER_GPG_PUBLIC_KEY_BASE64')
+    def final publicKey = new String(encodedPublicKey.decodeBase64())
+    // Todo Set system property for public key here???
+    System.setProperty('jreleaser.gpg.public.key', publicKey)
   }
 }
 
