@@ -148,6 +148,11 @@ pluginBundle {
 }
 
 jreleaser {
+  project {
+    name = 'scan-gradle-plugin'
+    description = 'Scan, evaluate and audit Gradle projects using Sonatype platforms'
+    website = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
+  }
   signing {
     active = 'ALWAYS'
     armored = true
@@ -158,6 +163,9 @@ jreleaser {
         sonatype {
           active = 'ALWAYS'
           url = 'https://central.sonatype.com/api/v1/publisher'
+          username = System.getenv('JRELEASER_MAVENCENTRAL_USERNAME')
+          password = System.getenv('JRELEASER_MAVENCENTRAL_PASSWORD')
+          verifyPom = false
           stagingRepository('build/staging-deploy')
         }
       }
@@ -165,28 +173,6 @@ jreleaser {
   }
 }
 
-if (System.getenv('RELEASE_BUILD') == 'true') {
-  signing {
-    def final encodedKey = System.getenv('JRELEASER_GPG_SECRET_KEY_BASE64')
-    def final signingKey = new String(encodedKey.decodeBase64())
-    // Todo Set system property for key here??? Is this property setting visible elsewhere?
-    System.setProperty('jreleaser.gpg.secret.key', signingKey)
-    allprojects {
-      println 'setup gpg signing with in-memory key'
-      useInMemoryPgpKeys(
-          signingKey,
-          System.getenv('GPG_PASSPHRASE')
-      )
-    }
-    sign publishing.publications.maven
 
-    def final encodedPublicKey = System.getenv('JRELEASER_GPG_PUBLIC_KEY_BASE64')
-    def final publicKey = new String(encodedPublicKey.decodeBase64())
-    // Todo Set system property for public key here???
-    System.setProperty('jreleaser.gpg.public.key', publicKey)
-  }
-}
 
 afterReleaseBuild.dependsOn publish
-publish.finalizedBy closeAndReleaseRepository
-publish.finalizedBy publishPlugins
