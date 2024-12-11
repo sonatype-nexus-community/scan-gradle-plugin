@@ -3,7 +3,6 @@ plugins {
   id 'maven-publish'
   id 'signing'
   id 'net.researchgate.release' version '3.0.0'
-  id 'io.codearte.nexus-staging' version '0.30.0'
   id 'com.gradle.plugin-publish' version '0.21.0'
   id 'org.jreleaser' version '1.15.0'
 }
@@ -176,3 +175,4 @@ jreleaser {
 
 
 afterReleaseBuild.dependsOn publish
+publish.finalizedBy publishPlugins
