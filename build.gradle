@@ -135,6 +135,7 @@ publishing {
   }
 }
 
+
 // Plugin publishing configuration
 def pluginUrl = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
 pluginBundle {
@@ -146,6 +147,7 @@ pluginBundle {
   System.setProperty('gradle.publish.secret', System.getenv('GRADLE_PUBLISH_SECRET') ?: '')
 }
 
+
 jreleaser {
   project {
     name = 'scan-gradle-plugin'
@@ -155,6 +157,17 @@ jreleaser {
   signing {
     active = 'ALWAYS'
     armored = true
+    def final encodedSigningKey = System.getenv('GPG_SIGNING_KEY')
+    def final encodedPublicKey = System.getenv('GPG_PUBLIC_KEY')
+
+    def final publicKey = new String(encodedPublicKey.decodeBase64())
+    def final secretKey = new String(encodedSigningKey.decodeBase64())
+
+    System.setProperty('jreleaser.gpg.public.key', publicKey)
+    System.setProperty('jreleaser.gpg.secret.key', secretKey)
+
+    def final passphrase = System.getenv('GPG_PASSPHRASE')
+    System.setProperty('jreleaser.gpg.passphrase', passphrase)
   }
   deploy {
     maven {
@@ -162,8 +175,11 @@ jreleaser {
         sonatype {
           active = 'ALWAYS'
           url = 'https://central.sonatype.com/api/v1/publisher'
-          username = System.getenv('JRELEASER_MAVENCENTRAL_USERNAME')
-          password = System.getenv('JRELEASER_MAVENCENTRAL_PASSWORD')
+          def final sonatype_user = System.getenv('SONATYPE_USERNAME')
+          def final sonatype_pass = System.getenv('SONATYPE_PASSWORD')
+
+          System.setProperty('jreleaser.mavencentral.username', sonatype_user)
+          System.setProperty('jreleaser.mavencentral.password', sonatype_pass)
           verifyPom = false
           stagingRepository('build/staging-deploy')
         }
@@ -171,8 +187,6 @@ jreleaser {
     }
   }
 }
-
-
 
 afterReleaseBuild.dependsOn publish
 publish.finalizedBy publishPlugins
