@@ -169,7 +169,6 @@ jreleaser {
       System.setProperty('jreleaser.gpg.secret.key', secretKey)
     }
 
-
     def passphrase = System.getenv('GPG_PASSPHRASE')
     if (passphrase) {
       System.setProperty('jreleaser.gpg.passphrase', passphrase)
@@ -183,11 +182,16 @@ jreleaser {
           url = 'https://central.sonatype.com/api/v1/publisher'
           def final sonatype_user = System.getenv('SONATYPE_USERNAME')
           def final sonatype_pass = System.getenv('SONATYPE_PASSWORD')
-
-          System.setProperty('jreleaser.mavencentral.username', sonatype_user)
-          System.setProperty('jreleaser.mavencentral.password', sonatype_pass)
+          if (sonatype_user) {
+            System.setProperty('jreleaser.mavencentral.username', sonatype_user)
+          }
+          if (sonatype_pass) {
+            System.setProperty('jreleaser.mavencentral.password', sonatype_pass)
+          }
+          if (!sonatype_user || !sonatype_pass) {
+            logger.warn('Sonatype credentials are missing. This may cause deployment issues.')
+          }
           verifyPom = false
-          snapshotSupported = true
           stagingRepository('build/staging-deploy')
         }
       }
