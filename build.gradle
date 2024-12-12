@@ -180,8 +180,8 @@ jreleaser {
         sonatype {
           active = 'ALWAYS'
           url = 'https://central.sonatype.com/api/v1/publisher'
-          def final sonatype_user = System.getenv('SONATYPE_USERNAME')
-          def final sonatype_pass = System.getenv('SONATYPE_PASSWORD')
+          def sonatype_user = System.getenv('JRELEASER_MAVENCENTRAL_USERNAME')
+          def sonatype_pass = System.getenv('JRELEASER_MAVENCENTRAL_PASSWORD')
           if (sonatype_user) {
             System.setProperty('jreleaser.mavencentral.username', sonatype_user)
           }
@@ -200,4 +200,3 @@ jreleaser {
 }
 
 afterReleaseBuild.dependsOn publish
-publish.finalizedBy publishPlugins
