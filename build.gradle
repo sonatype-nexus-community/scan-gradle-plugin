@@ -157,17 +157,23 @@ jreleaser {
   signing {
     active = 'ALWAYS'
     armored = true
-    def final encodedSigningKey = System.getenv('GPG_SIGNING_KEY')
-    def final encodedPublicKey = System.getenv('GPG_PUBLIC_KEY')
+    def publicKey = System.getenv('GPG_PUBLIC_KEY')?.decodeBase64() ?
+        new String(System.getenv('GPG_PUBLIC_KEY').decodeBase64()) : ''
+    def secretKey = System.getenv('GPG_SIGNING_KEY')?.decodeBase64() ?
+        new String(System.getenv('GPG_SIGNING_KEY').decodeBase64()) : ''
 
-    def final publicKey = new String(encodedPublicKey.decodeBase64())
-    def final secretKey = new String(encodedSigningKey.decodeBase64())
+    if (publicKey) {
+      System.setProperty('jreleaser.gpg.public.key', publicKey)
+    }
+    if (secretKey) {
+      System.setProperty('jreleaser.gpg.secret.key', secretKey)
+    }
 
-    System.setProperty('jreleaser.gpg.public.key', publicKey)
-    System.setProperty('jreleaser.gpg.secret.key', secretKey)
 
-    def final passphrase = System.getenv('GPG_PASSPHRASE')
-    System.setProperty('jreleaser.gpg.passphrase', passphrase)
+    def passphrase = System.getenv('GPG_PASSPHRASE')
+    if (passphrase) {
+      System.setProperty('jreleaser.gpg.passphrase', passphrase)
+    }
   }
   deploy {
     maven {
@@ -181,6 +187,7 @@ jreleaser {
           System.setProperty('jreleaser.mavencentral.username', sonatype_user)
           System.setProperty('jreleaser.mavencentral.password', sonatype_pass)
           verifyPom = false
+          snapshotSupported = true
           stagingRepository('build/staging-deploy')
         }
       }
