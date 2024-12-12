@@ -3,7 +3,6 @@ plugins {
   id 'maven-publish'
   id 'signing'
   id 'net.researchgate.release' version '3.0.0'
-  id 'io.codearte.nexus-staging' version '0.30.0'
   id 'com.gradle.plugin-publish' version '0.21.0'
   id 'org.jreleaser' version '1.15.0'
 }
@@ -136,6 +135,7 @@ publishing {
   }
 }
 
+
 // Plugin publishing configuration
 def pluginUrl = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
 pluginBundle {
@@ -147,10 +147,32 @@ pluginBundle {
   System.setProperty('gradle.publish.secret', System.getenv('GRADLE_PUBLISH_SECRET') ?: '')
 }
 
+
 jreleaser {
+  project {
+    name = 'scan-gradle-plugin'
+    description = 'Scan, evaluate and audit Gradle projects using Sonatype platforms'
+    website = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
+  }
   signing {
     active = 'ALWAYS'
     armored = true
+    def publicKey = System.getenv('GPG_PUBLIC_KEY')?.decodeBase64() ?
+        new String(System.getenv('GPG_PUBLIC_KEY').decodeBase64()) : ''
+    def secretKey = System.getenv('GPG_SIGNING_KEY')?.decodeBase64() ?
+        new String(System.getenv('GPG_SIGNING_KEY').decodeBase64()) : ''
+
+    if (publicKey) {
+      System.setProperty('jreleaser.gpg.public.key', publicKey)
+    }
+    if (secretKey) {
+      System.setProperty('jreleaser.gpg.secret.key', secretKey)
+    }
+
+    def passphrase = System.getenv('GPG_PASSPHRASE')
+    if (passphrase) {
+      System.setProperty('jreleaser.gpg.passphrase', passphrase)
+    }
   }
   deploy {
     maven {
@@ -158,6 +180,18 @@ jreleaser {
         sonatype {
           active = 'ALWAYS'
           url = 'https://central.sonatype.com/api/v1/publisher'
+          def final sonatype_user = System.getenv('SONATYPE_USERNAME')
+          def final sonatype_pass = System.getenv('SONATYPE_PASSWORD')
+          if (sonatype_user) {
+            System.setProperty('jreleaser.mavencentral.username', sonatype_user)
+          }
+          if (sonatype_pass) {
+            System.setProperty('jreleaser.mavencentral.password', sonatype_pass)
+          }
+          if (!sonatype_user || !sonatype_pass) {
+            logger.warn('Sonatype credentials are missing. This may cause deployment issues.')
+          }
+          verifyPom = false
           stagingRepository('build/staging-deploy')
         }
       }
@@ -165,21 +199,5 @@ jreleaser {
   }
 }
 
-if (System.getenv('RELEASE_BUILD') == 'true') {
-  signing {
-    def final encodedKey = System.getenv('GPG_SIGNING_KEY')
-    def final signingKey = new String(encodedKey.decodeBase64())
-    allprojects {
-      println 'setup gpg signing with in-memory key'
-      useInMemoryPgpKeys(
-          signingKey,
-          System.getenv('GPG_PASSPHRASE')
-      )
-    }
-    sign publishing.publications.maven
-  }
-}
-
 afterReleaseBuild.dependsOn publish
-publish.finalizedBy closeAndReleaseRepository
 publish.finalizedBy publishPlugins

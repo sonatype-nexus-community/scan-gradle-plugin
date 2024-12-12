@@ -29,8 +29,8 @@ jobs:
       - name: Release with JReleaser
         run: ./gradlew jreleaserFullRelease -Dorg.gradle.daemon=false --stacktrace -x test -x integrationTest
         env:
-          RELEASE_BUILD: 'true'
-          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.SONATYPE_PASSWORD }}
+          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.SONATYPE_USERNAME }}
