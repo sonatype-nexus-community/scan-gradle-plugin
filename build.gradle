@@ -87,8 +87,7 @@ test {
 
 publishing {
   publications {
-    maven(MavenPublication) {
-      from components.java
+    withType(MavenPublication) {
       groupId = 'org.sonatype.gradle.plugins'
       artifactId = project.name
       version = project.version.toString()
@@ -185,3 +184,4 @@ jreleaser {
 }
 
 afterReleaseBuild.dependsOn publish
+// publish.finalizedBy publishPlugins
