@@ -156,10 +156,10 @@ jreleaser {
   signing {
     active = 'ALWAYS'
     armored = true
-    def publicKey = System.getenv('GPG_PUBLIC_KEY')?.decodeBase64() ?
-        new String(System.getenv('GPG_PUBLIC_KEY').decodeBase64()) : ''
-    def secretKey = System.getenv('GPG_SIGNING_KEY')?.decodeBase64() ?
-        new String(System.getenv('GPG_SIGNING_KEY').decodeBase64()) : ''
+    def publicKey = System.getenv('JRELEASER_GPG_PUBLIC_KEY')?.decodeBase64() ?
+        new String(System.getenv('JRELEASER_GPG_PUBLIC_KEY').decodeBase64()) : ''
+    def secretKey = System.getenv('JRELEASER_GPG_SECRET_KEY')?.decodeBase64() ?
+        new String(System.getenv('JRELEASER_GPG_SECRET_KEY').decodeBase64()) : ''
 
     if (publicKey) {
       System.setProperty('jreleaser.gpg.public.key', publicKey)
@@ -168,10 +168,6 @@ jreleaser {
       System.setProperty('jreleaser.gpg.secret.key', secretKey)
     }
 
-    def passphrase = System.getenv('GPG_PASSPHRASE')
-    if (passphrase) {
-      System.setProperty('jreleaser.gpg.passphrase', passphrase)
-    }
   }
   deploy {
     maven {
@@ -179,17 +175,6 @@ jreleaser {
         sonatype {
           active = 'ALWAYS'
           url = 'https://central.sonatype.com/api/v1/publisher'
-          def sonatype_user = System.getenv('JRELEASER_MAVENCENTRAL_USERNAME')
-          def sonatype_pass = System.getenv('JRELEASER_MAVENCENTRAL_PASSWORD')
-          if (sonatype_user) {
-            System.setProperty('jreleaser.mavencentral.username', sonatype_user)
-          }
-          if (sonatype_pass) {
-            System.setProperty('jreleaser.mavencentral.password', sonatype_pass)
-          }
-          if (!sonatype_user || !sonatype_pass) {
-            logger.warn('Sonatype credentials are missing. This may cause deployment issues.')
-          }
           verifyPom = false
           stagingRepository('build/staging-deploy')
         }
@@ -199,4 +184,4 @@ jreleaser {
 }
 
 afterReleaseBuild.dependsOn publish
-publish.finalizedBy publishPlugins
+// publish.finalizedBy publishPlugins
