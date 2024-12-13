@@ -199,3 +199,4 @@ jreleaser {
 }
 
 afterReleaseBuild.dependsOn publish
+publish.finalizedBy publishPlugins
