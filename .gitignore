@@ -10,3 +10,6 @@ target/
 
 # ci config for local ci build
 .circleci/local-config.yml
+
+.env
+.secrets
