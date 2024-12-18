@@ -183,5 +183,16 @@ jreleaser {
   }
 }
 
+// Remove unwanted "scan" directory after publishing
+tasks.register('cleanupUnwantedArtifacts') {
+  doLast {
+    def unwantedDir = file("build/staging-deploy/org/sonatype/gradle/plugins/scan")
+    if (unwantedDir.exists()) {
+      println "Removing unwanted directory: $unwantedDir"
+      delete unwantedDir
+    }
+  }
+}
 afterReleaseBuild.dependsOn publish
+publish.finalizedBy cleanupUnwantedArtifacts
 // publish.finalizedBy publishPlugins
