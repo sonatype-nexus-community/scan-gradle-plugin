@@ -1,15 +1,14 @@
 plugins {
-  id 'java-gradle-plugin'
-  id 'maven-publish'
-  id 'signing'
   id 'net.researchgate.release' version '3.0.0'
-  id 'com.gradle.plugin-publish' version '0.21.0'
+  id 'com.gradle.plugin-publish' version '1.3.0'
   id 'org.jreleaser' version '1.15.0'
 }
 
 apply from: 'gradle/integration-test.gradle'
 
+// Plugin publishing configuration
 def pluginDescription = 'Scan, evaluate and audit Gradle projects using Sonatype platforms'
+def pluginUrl = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
 
 gradlePlugin {
   plugins {
@@ -18,6 +17,11 @@ gradlePlugin {
       implementationClass = 'org.sonatype.gradle.plugins.scan.ScanPlugin'
       displayName = project.name
       description = pluginDescription
+      website = pluginUrl
+      vcsUrl = pluginUrl
+      tags.set(['sonatype', 'scan', 'dependencies', 'ossindex', 'iq server', 'lifecycle'])
+      System.setProperty('gradle.publish.key', System.getenv('GRADLE_PUBLISH_KEY') ?: '')
+      System.setProperty('gradle.publish.secret', System.getenv('GRADLE_PUBLISH_SECRET') ?: '')
     }
   }
 }
@@ -134,24 +138,11 @@ publishing {
   }
 }
 
-
-// Plugin publishing configuration
-def pluginUrl = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
-pluginBundle {
-  website = pluginUrl
-  vcsUrl = pluginUrl
-  description = pluginDescription
-  tags = ['sonatype', 'scan', 'dependencies', 'ossindex', 'iq server']
-  System.setProperty('gradle.publish.key', System.getenv('GRADLE_PUBLISH_KEY') ?: '')
-  System.setProperty('gradle.publish.secret', System.getenv('GRADLE_PUBLISH_SECRET') ?: '')
-}
-
-
 jreleaser {
   project {
     name = 'scan-gradle-plugin'
-    description = 'Scan, evaluate and audit Gradle projects using Sonatype platforms'
-    website = 'https://github.com/sonatype-nexus-community/scan-gradle-plugin'
+    description = pluginDescription
+    website = pluginUrl
   }
   signing {
     active = 'ALWAYS'
@@ -167,7 +158,6 @@ jreleaser {
     if (secretKey) {
       System.setProperty('jreleaser.gpg.secret.key', secretKey)
     }
-
   }
   deploy {
     maven {
@@ -183,5 +173,17 @@ jreleaser {
   }
 }
 
+// Remove unwanted "scan" directory after publishing
+tasks.register('cleanupUnwantedArtifacts') {
+  doLast {
+    def unwantedDir = file("build/staging-deploy/org/sonatype/gradle/plugins/scan")
+    if (unwantedDir.exists()) {
+      println "Removing unwanted directory: $unwantedDir"
+      delete unwantedDir
+    }
+  }
+}
+
 afterReleaseBuild.dependsOn publish
-// publish.finalizedBy publishPlugins
+publish.finalizedBy cleanupUnwantedArtifacts
+publish.finalizedBy publishPlugins
