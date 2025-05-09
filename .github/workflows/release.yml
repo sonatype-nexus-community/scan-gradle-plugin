@@ -37,6 +37,11 @@ jobs:
       - name: Clean Deployment
         run: ./gradlew clean publish -Dorg.gradle.daemon=false
 
+      - name: Cleanup Unwanted Artifacts
+        run: |
+          echo "Removing unwanted scanPluginMarkerMaven artifacts"
+          rm -rf build/publications/scanPluginMarkerMaven
+
       - name: Release with JReleaser
         run: ./gradlew jreleaserFullRelease -Dorg.gradle.daemon=false --stacktrace -x test -x integrationTest
         env:
