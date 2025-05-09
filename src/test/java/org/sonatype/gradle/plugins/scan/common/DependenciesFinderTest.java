@@ -20,7 +20,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Dependency;
@@ -28,12 +27,11 @@ import com.sonatype.insight.scan.module.model.Module;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +44,6 @@ import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAM
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class DependenciesFinderTest
@@ -168,18 +165,16 @@ public class DependenciesFinderTest
   }
 
   @Test
-  public void testFindResolvedDependencies_copyConfigurationAfterResolveException() {
-    Project project = spy(buildProject(IMPLEMENTATION_CONFIGURATION_NAME, false));
-    ConfigurationContainer configurationContainer = spy(project.getConfigurations());
-    Configuration configuration = spy(configurationContainer.iterator().next());
+  public void testFindResolvedDependencies_excludeNonJavaConfiguration() {
+    Project project = buildProject("implementationDependenciesMetadata", true);
 
-    when(configuration.getResolvedConfiguration()).thenThrow(ResolveException.class);
-    when(configurationContainer.stream()).thenReturn(Stream.of(configuration));
-    when(project.getConfigurations()).thenReturn(configurationContainer);
-    when(project.getAllprojects()).thenReturn(Sets.newHashSet(project));
+    project.getConfigurations().getByName("implementationDependenciesMetadata").attributes(attributeContainer -> {
+      ObjectFactory factory = project.getObjects();
+      attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, factory.named(Usage.class, Usage.NATIVE_LINK));
+    });
 
     Set<ResolvedDependency> result = finder.findResolvedDependencies(project, true, emptyMap(), false);
-    assertThat(result).hasSize(1);
+    assertThat(result).isEmpty();
   }
 
   @Test
