@@ -42,6 +42,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
 
@@ -276,6 +277,11 @@ public class DependenciesFinder
   }
 
   private boolean isAcceptableConfiguration(Configuration configuration, boolean allConfigurations) {
+    Usage usage = configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
+    if (usage != null && !usage.getName().equals(Usage.JAVA_API) && !usage.getName().equals(Usage.JAVA_RUNTIME)) {
+      return false;
+    }
+
     if (allConfigurations) {
       return configuration.isCanBeResolved();
     }
