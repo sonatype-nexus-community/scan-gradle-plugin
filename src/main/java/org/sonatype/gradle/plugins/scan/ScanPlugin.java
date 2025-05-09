@@ -15,9 +15,6 @@
  */
 package org.sonatype.gradle.plugins.scan;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.util.GradleVersion;
 import org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqIndexTask;
 import org.sonatype.gradle.plugins.scan.nexus.iq.index.NexusIqPluginIndexExtension;
 import org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqPluginScanExtension;
@@ -25,14 +22,14 @@ import org.sonatype.gradle.plugins.scan.nexus.iq.scan.NexusIqScanTask;
 import org.sonatype.gradle.plugins.scan.ossindex.OssIndexAuditTask;
 import org.sonatype.gradle.plugins.scan.ossindex.OssIndexPluginExtension;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.util.GradleVersion;
 
 public class ScanPlugin implements Plugin<Project>
 {
-  private static final boolean IS_GRADLE_MIN_4_9 =
-      GradleVersion.current().compareTo(GradleVersion.version("4.9-rc-1")) >= 0;
-
   private static final boolean IS_GRADLE_MIN_7_4 =
       GradleVersion.current().compareTo(GradleVersion.version("7.4")) >= 0;
 
@@ -73,11 +70,12 @@ public class ScanPlugin implements Plugin<Project>
     });
   }
 
-  private static <T extends Task> void createTask(Project project, String name, Class<T> type, Action<? super T> configuration) {
-    if (IS_GRADLE_MIN_4_9) {
-      project.getTasks().register(name, type, configuration);
-    } else {
-      project.getTasks().create(name, type, configuration);
-    }
+  private static <T extends Task> void createTask(
+      Project project,
+      String name,
+      Class<T> type,
+      Action<? super T> configuration)
+  {
+    project.getTasks().register(name, type, configuration);
   }
 }
