@@ -16,7 +16,6 @@
 package org.sonatype.gradle.plugins.scan.ossindex;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,8 +36,10 @@ import org.sonatype.ossindex.service.api.componentreport.ComponentReport;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReportVulnerability;
 
 import com.google.common.base.CharMatcher;
-import org.cyclonedx.BomGeneratorFactory;
-import org.cyclonedx.CycloneDxSchema;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.cyclonedx.Version;
+import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.generators.json.BomJsonGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -50,8 +51,6 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import org.cyclonedx.model.vulnerability.Vulnerability.Source;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -235,9 +234,9 @@ public class CycloneDxResponseHandler
   }
 
   private void generateFile(Bom bom) {
-    BomJsonGenerator generator = BomGeneratorFactory.createJson(CycloneDxSchema.Version.VERSION_14, bom);
+    BomJsonGenerator generator = BomGeneratorFactory.createJson(Version.VERSION_14, bom);
 
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(FILE_NAME_OUTPUT)))) {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME_OUTPUT))) {
       writer.write(generator.toJsonString());
       writer.flush();
       log.info("CycloneDX SBOM file: {}", FILE_NAME_OUTPUT);
