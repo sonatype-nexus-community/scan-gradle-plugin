@@ -58,7 +58,7 @@ allprojects {
 }
 
 ext {
-  nexusPlatformApiVersion='5.2.4-01'
+  nexusPlatformApiVersion='5.1.2-01'
   ossIndexClientVersion='1.8.2'
   logbackVersion='1.3.14'
   commonsIoVersion='2.16.1'
@@ -91,9 +91,10 @@ test {
 }
 
 tasks.shadowJar {
-  enableAutoRelocation = true
-  relocationPrefix = 'org.sonatype.gradle.plugins.scan.shadow'
   archiveClassifier = ''
+  enableAutoRelocation = false
+  relocate('org.objectweb.asm', 'org.sonatype.gradle.plugins.scan.shadow.org.objectweb.asm')
+  mergeServiceFiles()
 }
 
 publishing {
