@@ -18,6 +18,7 @@ package org.sonatype.gradle.plugins.scan.ossindex;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import org.sonatype.goodies.packageurl.PackageUrl;
@@ -31,12 +32,10 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,6 +49,7 @@ import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAM
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -158,36 +158,36 @@ public class OssIndexAuditTaskTest
 
   @Test
   public void testBuildDependenciesMap_avoidCircularDependenciesStackOverflowError() {
-    ModuleVersionIdentifier parentModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g", "a", "v");
-    ResolvedConfigurationIdentifier parentResolvedConfigurationIdentifier =
-        new ResolvedConfigurationIdentifier(parentModuleVersionIdentifier, "");
-    DefaultResolvedDependency parentDependency =
-        new DefaultResolvedDependency(parentResolvedConfigurationIdentifier, null);
+    ResolvedDependency parentDependency = mock(ResolvedDependency.class);
 
-    ModuleVersionIdentifier singleChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g2", "a2", "v2");
-    ResolvedConfigurationIdentifier singleChildResolvedConfigurationIdentifier =
-        new ResolvedConfigurationIdentifier(singleChildModuleVersionIdentifier, "");
-    DefaultResolvedDependency singleChildDependency =
-        new DefaultResolvedDependency(singleChildResolvedConfigurationIdentifier, null);
+    ResolvedModuleVersion resolvedModuleVersion = mock(ResolvedModuleVersion.class);
+    when(resolvedModuleVersion.getId()).thenReturn(DefaultModuleVersionIdentifier.newId("g", "a", "v"));
+    when(parentDependency.getModule()).thenReturn(resolvedModuleVersion);
 
-    ModuleVersionIdentifier multiChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g3", "a3", "v3");
-    ResolvedConfigurationIdentifier multiChildResolvedConfigurationIdentifier =
-        new ResolvedConfigurationIdentifier(multiChildModuleVersionIdentifier, "");
-    DefaultResolvedDependency multiChildDependency =
-        new DefaultResolvedDependency(multiChildResolvedConfigurationIdentifier, null);
+    ResolvedDependency singleChildDependency = mock(ResolvedDependency.class);
 
-    ModuleVersionIdentifier subChildModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId("g4", "a4", "v4");
-    ResolvedConfigurationIdentifier subChildResolvedConfigurationIdentifier =
-        new ResolvedConfigurationIdentifier(subChildModuleVersionIdentifier, "");
-    DefaultResolvedDependency subChildDependency =
-        new DefaultResolvedDependency(subChildResolvedConfigurationIdentifier, null);
+    ResolvedModuleVersion resolvedModuleVersion2 = mock(ResolvedModuleVersion.class);
+    when(resolvedModuleVersion2.getId()).thenReturn(DefaultModuleVersionIdentifier.newId("g2", "a2", "v2"));
+    when(singleChildDependency.getModule()).thenReturn(resolvedModuleVersion2);
 
-    multiChildDependency.addChild(subChildDependency);
+    ResolvedDependency multiChildDependency = mock(ResolvedDependency.class);
+
+    ResolvedModuleVersion resolvedModuleVersion3 = mock(ResolvedModuleVersion.class);
+    when(resolvedModuleVersion3.getId()).thenReturn(DefaultModuleVersionIdentifier.newId("g3", "a3", "v3"));
+    when(multiChildDependency.getModule()).thenReturn(resolvedModuleVersion3);
+
+    ResolvedDependency subChildDependency = mock(ResolvedDependency.class);
+
+    ResolvedModuleVersion resolvedModuleVersion4 = mock(ResolvedModuleVersion.class);
+    when(resolvedModuleVersion4.getId()).thenReturn(DefaultModuleVersionIdentifier.newId("g4", "a4", "v4"));
+    when(subChildDependency.getModule()).thenReturn(resolvedModuleVersion4);
+
+    when(multiChildDependency.getChildren()).thenReturn(Set.of(subChildDependency));
 
     // circular dependency
-    singleChildDependency.addChild(parentDependency);
-    parentDependency.addChild(singleChildDependency);
-    parentDependency.addChild(multiChildDependency);
+    when(singleChildDependency.getChildren()).thenReturn(Set.of(parentDependency));
+
+    when(parentDependency.getChildren()).thenReturn(Set.of(singleChildDependency, multiChildDependency));
 
     OssIndexAuditTask taskSpy = buildAuditTaskSpy(true, null);
     BiMap<ResolvedDependency, PackageUrl> dependenciesMap = HashBiMap.create();
@@ -218,7 +218,10 @@ public class OssIndexAuditTaskTest
     assertThat(taskSpy.buildResponseHandler()).isInstanceOf(CycloneDxResponseHandler.class);
   }
 
-  private OssIndexAuditTask buildAuditTaskSpy(boolean isSimulated, BiConsumer<Project, OssIndexPluginExtension> extensionContributor) {
+  private OssIndexAuditTask buildAuditTaskSpy(
+      boolean isSimulated,
+      BiConsumer<Project, OssIndexPluginExtension> extensionContributor)
+  {
     Project project = ProjectBuilder.builder().build();
     project.getPluginManager().apply("java");
     project.getRepositories().mavenCentral();
@@ -233,7 +236,7 @@ public class OssIndexAuditTaskTest
     }
     project.getExtensions().add("ossIndexAudit", extension);
 
-    OssIndexAuditTask task = spy(project.getTasks().create("ossIndexAudit", OssIndexAuditTask.class));
+    OssIndexAuditTask task = spy(project.getTasks().register("ossIndexAudit", OssIndexAuditTask.class).get());
     doReturn(ossIndexClientMock).when(task).buildOssIndexClient();
 
     return task;

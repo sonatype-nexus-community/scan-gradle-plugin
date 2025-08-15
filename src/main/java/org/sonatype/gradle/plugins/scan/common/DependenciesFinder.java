@@ -39,22 +39,12 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.impldep.com.google.common.annotations.VisibleForTesting;
-import org.gradle.util.GradleVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME;
@@ -62,10 +52,6 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_
 
 public class DependenciesFinder
 {
-  private final Logger log = LoggerFactory.getLogger(DependenciesFinder.class);
-
-  static final String BUILD_TYPE_ATTR_NAME = "com.android.build.api.attributes.BuildTypeAttr";
-
   private static final String RELEASE_COMPILE_LEGACY_CONFIGURATION_NAME = "_releaseCompile";
 
   private static final String RELEASE_RUNTIME_APK_LEGACY_CONFIGURATION_NAME = "_releaseApk";
@@ -85,26 +71,21 @@ public class DependenciesFinder
       RELEASE_COMPILE_CONFIGURATION_NAME,
       RELEASE_RUNTIME_CONFIGURATION_NAME);
 
-  private static final String COPY_CONFIGURATION_NAME = "sonatypeCopyConfiguration";
-
-  private static final String ATTRIBUTES_SUPPORTED_GRADLE_VERSION = "4.0";
-
-  private static final Function<ResolvedConfiguration, Stream<ResolvedDependency>> CONFIGURATION_DEPENDENCIES_FUNCTION =
-      resolvedConfiguration -> resolvedConfiguration.getFirstLevelModuleDependencies().stream();
-
   public Set<ResolvedDependency> findResolvedDependencies(
       Project project,
       boolean allConfigurations,
       Map<String, String> variantAttributes,
       boolean excludeCompileOnlyDependencies)
   {
+    addDisambiguationRules(project, variantAttributes);
+
     Set<String> compileOnlyDependenciesIds =
         excludeCompileOnlyDependencies ? getCompileOnlyDependencyIds(project) : Collections.emptySet();
 
     return new LinkedHashSet<>(new LinkedHashSet<>(project.getConfigurations()).stream()
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations)).flatMap(configuration -> {
           Stream<ResolvedDependency> dependencies =
-              getDependencies(project, configuration, variantAttributes, CONFIGURATION_DEPENDENCIES_FUNCTION);
+              configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream();
 
           if (!compileOnlyDependenciesIds.isEmpty() && shouldRemoveCompileOnlyDependencies(project, configuration)) {
             Set<ResolvedDependency> filteredDependencies =
@@ -129,13 +110,16 @@ public class DependenciesFinder
     List<Module> modules = new ArrayList<>();
 
     rootProject.allprojects(project -> {
+
+      addDisambiguationRules(project, variantAttributes);
+
       if (!modulesExcluded.contains(project.getName())) {
         Module module = buildModule(project);
 
         Set<String> compileOnlyDependenciesIds =
             excludeCompileOnlyDependencies ? getCompileOnlyDependencyIds(project) : Collections.emptySet();
 
-        findResolvedArtifacts(project, allConfigurations, variantAttributes, compileOnlyDependenciesIds).stream()
+        findResolvedArtifacts(project, allConfigurations, compileOnlyDependenciesIds).stream()
             .map(resolvedArtifact -> new Artifact()
                 .setId(getArtifactId(resolvedArtifact))
                 .setPathname(resolvedArtifact.getFile())
@@ -152,24 +136,40 @@ public class DependenciesFinder
     return modules;
   }
 
+  private void addDisambiguationRules(Project project, Map<String, String> variantAttributes) {
+    project.getDependencies().attributesSchema(attributesSchema -> {
+      if (isAndroidProject(project)) {
+        attributesSchema
+            .attribute(Attribute.of("artifactType", String.class))
+            .getDisambiguationRules()
+            .add(AndroidArtifactTypeAttributeDisambiguationRule.class);
+      }
+
+      if (variantAttributes != null) {
+        variantAttributes.forEach((attributeName, attributeValue) -> attributesSchema
+            .attribute(Attribute.of(attributeName, String.class), strategy -> strategy
+                .getDisambiguationRules()
+                .add(VariantAttributeDisambiguationRule.class, config -> config.params(attributeValue))));
+      }
+    });
+  }
+
   @VisibleForTesting
   Set<ResolvedArtifact> findResolvedArtifacts(
       Project project,
       boolean allConfigurations,
-      Map<String, String> variantAttributes,
       Set<String> compileOnlyDependenciesIds)
   {
     return new LinkedHashSet<>(project.getConfigurations()).stream()
         .filter(configuration -> isAcceptableConfiguration(configuration, allConfigurations)).flatMap(configuration -> {
 
-          Stream<ResolvedArtifact> artifacts = getDependencies(project, configuration, variantAttributes,
-              resolvedConfiguration -> resolvedConfiguration.getResolvedArtifacts().stream());
+          Stream<ResolvedArtifact> artifacts = configuration.getResolvedConfiguration().getResolvedArtifacts().stream();
 
           if (!compileOnlyDependenciesIds.isEmpty() && shouldRemoveCompileOnlyDependencies(project, configuration)) {
             Set<ResolvedArtifact> filteredArtifacts = artifacts.collect(Collectors.toSet());
             Set<String> dependenciesToRemove = new HashSet<>();
 
-            getDependencies(project, configuration, variantAttributes, CONFIGURATION_DEPENDENCIES_FUNCTION)
+            configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream()
                 .filter(dependency -> compileOnlyDependenciesIds.contains(getResolvedDependencyId(dependency)))
                 .forEach(dependency -> fillAllChildDependencies(dependency, dependenciesToRemove));
 
@@ -225,134 +225,9 @@ public class DependenciesFinder
   }
 
   @VisibleForTesting
-  Configuration createCopyConfiguration(Project project, Map<String, String> variantAttributes) {
-    String configurationName = COPY_CONFIGURATION_NAME;
-    for (int i = 0; project.getConfigurations().findByName(configurationName) != null; i++) {
-      configurationName += i;
-    }
-    Configuration copyConfiguration = project.getConfigurations().create(configurationName);
-
-    if (isGradleVersionSupportedForAttributes(project.getGradle().getGradleVersion())) {
-      boolean isAndroidProject = isAndroidProject(project);
-
-      if (isAndroidProject) {
-        AttributeMatchingStrategy<String> artifactTypeMatchingStrategy =
-            project.getDependencies().getAttributesSchema().attribute(Attribute.of("artifactType", String.class));
-        artifactTypeMatchingStrategy.getDisambiguationRules().add(AndroidArtifactTypeAttributeDisambiguationRule.class);
-      }
-
-      copyConfiguration.attributes(attributeContainer -> {
-        ObjectFactory factory = project.getObjects();
-        attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, factory.named(Usage.class, Usage.JAVA_RUNTIME));
-
-        variantAttributes.forEach((attributeName, value) -> {
-          attributeContainer.attribute(Attribute.of(attributeName, String.class), value);
-        });
-
-        if (isAndroidProject) {
-          addReleaseBuildTypeAttribute(project, attributeContainer);
-        }
-      });
-    }
-    return copyConfiguration;
-  }
-
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  private void addReleaseBuildTypeAttribute(Project project, AttributeContainer attributeContainer) {
-    if (GradleVersion.current().compareTo(GradleVersion.version("6.0.1")) >= 0) {
-      attributeContainer.attribute(Attribute.of(BUILD_TYPE_ATTR_NAME, String.class), "release");
-    }
-    else {
-      Set<String> configurationNames = new HashSet<String>(CONFIGURATION_NAMES);
-      configurationNames.add("fullReleaseRuntimeElements");
-
-      for (String configurationName : configurationNames) {
-        Configuration configuration = project.getConfigurations().findByName(configurationName);
-        Attribute attributeFound = null;
-        Object attributeValue = null;
-
-        if (configuration != null) {
-          for (Attribute attribute : configuration.getAttributes().keySet()) {
-            if (BUILD_TYPE_ATTR_NAME.equals(attribute.getName())) {
-              attributeFound = attribute;
-              attributeValue = configuration.getAttributes().getAttribute(attributeFound);
-              break;
-            }
-          }
-        }
-
-        if (attributeFound != null) {
-          attributeContainer.attribute(Attribute.of(BUILD_TYPE_ATTR_NAME, attributeFound.getType()), attributeValue);
-          break;
-        }
-      }
-    }
-  }
-
-  @VisibleForTesting
-  boolean isGradleVersionSupportedForAttributes(String gradleVersion) {
-    return gradleVersion.compareTo(ATTRIBUTES_SUPPORTED_GRADLE_VERSION) >= 0;
-  }
-
-  @VisibleForTesting
   boolean isAndroidProject(Project project) {
     PluginContainer pluginContainer = project.getPlugins();
     return pluginContainer.hasPlugin("com.android.application") || pluginContainer.hasPlugin("com.android.library");
-  }
-
-  @VisibleForTesting
-  <T> Stream<T> getDependencies(
-      Project project,
-      Configuration originalConfiguration,
-      Map<String, String> variantAttributes,
-      Function<ResolvedConfiguration, Stream<T>> function)
-  {
-    try {
-      return function.apply(originalConfiguration.getResolvedConfiguration());
-    }
-    catch (ResolveException e) {
-      Configuration copyConfiguration = copyDependencies(project, originalConfiguration, false, variantAttributes);
-
-      try {
-        return function.apply(copyConfiguration.getResolvedConfiguration());
-      }
-      catch (ResolveException lastResortException) {
-        copyConfiguration = copyDependencies(project, originalConfiguration, true, variantAttributes);
-        return function.apply(copyConfiguration.getResolvedConfiguration());
-      }
-    }
-  }
-
-  private Configuration copyDependencies(
-      Project project,
-      Configuration originalConfiguration,
-      boolean skipUnresolvableDependencies,
-      Map<String, String> variantAttributes)
-  {
-    Configuration copyConfiguration = createCopyConfiguration(project, variantAttributes);
-
-    Set<String> resolvedDependencies = !skipUnresolvableDependencies
-            ? Collections.emptySet()
-            : originalConfiguration.getIncoming().getResolutionResult().getAllDependencies()
-            .stream()
-            .filter(dependency -> dependency instanceof DefaultResolvedDependencyResult)
-            .map(dependency -> ((DefaultResolvedDependencyResult) dependency).getSelected().getId().getDisplayName())
-            .collect(Collectors.toSet());
-
-    originalConfiguration.getAllDependencies().all(dependency -> {
-      copyConfiguration.getDependencies().add(dependency);
-
-      if (skipUnresolvableDependencies
-              && !(dependency instanceof ProjectDependency)
-              && !resolvedDependencies.contains(getDependencyId(dependency))) {
-        log.warn("Unable to process the dependency {}:{}:{} in project {} and configuration {}", dependency.getGroup(),
-                dependency.getName(), dependency.getVersion(), project.getName(), originalConfiguration.getName());
-
-        copyConfiguration.getDependencies().remove(dependency);
-      }
-    });
-
-    return copyConfiguration;
   }
 
   @VisibleForTesting
@@ -402,8 +277,11 @@ public class DependenciesFinder
   }
 
   private boolean isAcceptableConfiguration(Configuration configuration, boolean allConfigurations) {
-    if (configuration.getName().endsWith(COPY_CONFIGURATION_NAME))
+    Usage usage = configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
+    if (usage != null && !usage.getName().equals(Usage.JAVA_API) && !usage.getName().equals(Usage.JAVA_RUNTIME)) {
       return false;
+    }
+
     if (allConfigurations) {
       return configuration.isCanBeResolved();
     }

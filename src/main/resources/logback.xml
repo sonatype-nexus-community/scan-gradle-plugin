@@ -17,7 +17,7 @@
 
 -->
 <configuration debug="false">
-  <appender name="CONSOLE" class="shadow.ch.qos.logback.core.ConsoleAppender">
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%m%n</pattern>
     </encoder>
