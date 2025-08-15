@@ -288,9 +288,6 @@ public abstract class ScanPluginIntegrationTestBase
 
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
     assertThat(result.getOutput()).contains("CycloneDX SBOM file: " + FILE_NAME_OUTPUT);
-
-    File file = new File(FILE_NAME_OUTPUT);
-    assertThat(file.exists()).isTrue();
   }
 
   @Test

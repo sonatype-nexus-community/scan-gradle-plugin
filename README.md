@@ -25,8 +25,6 @@
 
 [![Gradle Plugins Portal](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/org/sonatype/gradle/plugins/scan/org.sonatype.gradle.plugins.scan.gradle.plugin/maven-metadata.xml.svg?colorB=007ec6&label=Gradle%20Plugins%20Portal)](https://plugins.gradle.org/plugin/org.sonatype.gradle.plugins.scan)
 
-[![CircleCI Build Status](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin.svg?style=shield "CircleCI Build Status")](https://circleci.com/gh/sonatype-nexus-community/scan-gradle-plugin) 
-
 Gradle plugin that scans the dependencies of a Gradle project using Sonatype platforms: OSS Index and Nexus IQ Server.
 
 ## Compile and Publish to Local Maven Cache
@@ -66,14 +64,14 @@ Gradle can be used to build projects developed in various programming languages.
 
 ```
 plugins {
-  id 'org.sonatype.gradle.plugins.scan' version '3.1.1' // Update the version as needed
+  id 'org.sonatype.gradle.plugins.scan' version '3.1.3' // Update the version as needed
 }
 ```
 
 - Or `build.gradle.kts`:
 ```
 plugins {
-    id ("org.sonatype.gradle.plugins.scan") version "3.1.1" // Update the version as needed
+    id ("org.sonatype.gradle.plugins.scan") version "3.1.3" // Update the version as needed
 }
 ```
 
