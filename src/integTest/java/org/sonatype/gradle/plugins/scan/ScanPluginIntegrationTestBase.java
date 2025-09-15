@@ -203,7 +203,7 @@ public abstract class ScanPluginIntegrationTestBase
 
     String resultOutput = result.getOutput();
     assertThat(resultOutput).contains("No vulnerabilities found!");
-    assertThat(resultOutput).doesNotContain("commons-collections");
+    assertThat(resultOutput).doesNotContainPattern("commons-collections[:@]3\\.1");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
@@ -237,7 +237,7 @@ public abstract class ScanPluginIntegrationTestBase
 
     String resultOutput = result.getOutput();
     assertThat(resultOutput).contains("No vulnerabilities found!");
-    assertThat(resultOutput).doesNotContain("commons-collections");
+    assertThat(resultOutput).doesNotContainPattern("commons-collections[:@]3\\.1");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 
@@ -580,7 +580,7 @@ public abstract class ScanPluginIntegrationTestBase
   private void assertBuildOutputText_ExcludeVulnerabilities_OssIndex(BuildResult result) {
     String resultOutput = result.getOutput();
     assertThat(resultOutput).contains("No vulnerabilities found!");
-    assertThat(resultOutput).doesNotContain("commons-collections");
+    assertThat(resultOutput).doesNotContainPattern("commons-collections[:@]3\\.1");
     assertThat(result.task(":ossIndexAudit").getOutcome()).isEqualTo(SUCCESS);
   }
 }

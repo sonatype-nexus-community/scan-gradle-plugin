@@ -30,7 +30,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import org.cyclonedx.CycloneDxSchema;
 import org.sonatype.goodies.packageurl.PackageUrl;
 import org.sonatype.gradle.plugins.scan.common.PluginVersionUtils;
 import org.sonatype.ossindex.service.api.componentreport.ComponentReport;
