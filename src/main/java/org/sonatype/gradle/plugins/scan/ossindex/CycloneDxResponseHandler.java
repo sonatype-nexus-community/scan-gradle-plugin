@@ -38,8 +38,8 @@ import org.sonatype.ossindex.service.api.componentreport.ComponentReportVulnerab
 import com.google.common.base.CharMatcher;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.cyclonedx.BomGeneratorFactory;
-import org.cyclonedx.CycloneDxSchema;
+import org.cyclonedx.generators.BomGeneratorFactory;
+import org.cyclonedx.Version;
 import org.cyclonedx.generators.json.BomJsonGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -234,7 +234,7 @@ public class CycloneDxResponseHandler
   }
 
   private void generateFile(Bom bom) {
-    BomJsonGenerator generator = BomGeneratorFactory.createJson(CycloneDxSchema.Version.VERSION_14, bom);
+    BomJsonGenerator generator = BomGeneratorFactory.createJson(Version.VERSION_14, bom);
 
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME_OUTPUT))) {
       writer.write(generator.toJsonString());
