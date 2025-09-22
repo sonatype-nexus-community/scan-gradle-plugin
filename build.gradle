@@ -194,4 +194,4 @@ tasks.register('cleanupUnwantedArtifacts') {
 
 afterReleaseBuild.dependsOn publish
 publish.finalizedBy cleanupUnwantedArtifacts
-// publish.finalizedBy publishPlugins
+publish.finalizedBy publishPlugins
