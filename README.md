@@ -20,6 +20,11 @@
     <img src="https://github.com/sonatype/scan-gradle-plugin/blob/main/docs/images/sherlocktrunks.png" width="350"/>
 </p>
 
+> ℹ️ As of 26th August 2026, this community project has [graduated](https://contribute.sonatype.com/docs/project-classification/) and is offered as part of Sonatype's commercial offerings - see [here](https://help.sonatype.com/en/sonatype-integrations.html) for full details.
+>
+> 🚧 This community project will receive no further updates or maintenance.
+
+
 # Sonatype Scan Gradle Plugin - AKA Sherlock Trunks #
 [![Maven Central](https://img.shields.io/maven-central/v/org.sonatype.gradle.plugins/scan-gradle-plugin.svg?label=Maven%20Central)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.sonatype.gradle.plugins%22%20AND%20a%3A%22scan-gradle-plugin%22)
 
